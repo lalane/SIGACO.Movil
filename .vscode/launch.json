@@ -1,0 +1,46 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SIGACO Movil (debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "SIGACO Movil (debug, marca de prueba azul)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=BRAND_PRIMARY=#0EA5E9",
+        "--dart-define=BRAND_HEADER_START=#0B1F3A",
+        "--dart-define=BRAND_HEADER_END=#07121F",
+        "--dart-define=BRAND_SECONDARY=#0F172A"
+      ]
+    },
+    {
+      "name": "SIGACO Movil (debug, marca de prueba naranja)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=BRAND_PRIMARY=#F97316"
+      ]
+    },
+    {
+      "name": "SIGACO Movil (profile)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "SIGACO Movil (release)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart"
+    }
+  ]
+}

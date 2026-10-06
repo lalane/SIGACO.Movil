@@ -1,0 +1,11 @@
+flutter_native_splash:
+  color: "#160F3E"
+  image: assets/branding/sigaco_wordmark.png
+  android: true
+  ios: false
+  web: false
+  # Android 12+ recorta el icono en un circulo: se deja vacio y la marca
+  # (wordmark en una linea + patron de puntos) la dibuja SplashPage en Flutter.
+  android_12:
+    color: "#160F3E"
+    image: assets/branding/splash_empty.png

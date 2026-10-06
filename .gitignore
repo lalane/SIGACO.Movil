@@ -1,0 +1,49 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IDE
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# FVM Version Cache (.fvmrc SI se versiona)
+.fvm/
+
+# Symbolication
+app.*.symbols
+app.*.map.json
+
+# Secretos y firma (no versionar)
+*.jks
+*.keystore
+key.properties
+google-services.json
+.env
+.env.*
+
+# Android Studio
+/android/app/debug
+/android/app/profile
+/android/app/release
