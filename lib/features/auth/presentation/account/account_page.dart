@@ -7,9 +7,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../../../core/branding/sigaco_wordmark.dart';
 import '../../../../core/connectivity/connectivity_cubit.dart';
 import '../../../../core/device/device_info_source.dart';
+import '../../../../core/offline/sync_cubit.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/settings/settings_cubit.dart';
 import '../../../../core/theme/sigaco_palette.dart';
+import '../../../../core/time/concession_zone_cubit.dart';
 import '../../../../core/ui/widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/auth_entities.dart';
@@ -221,6 +223,10 @@ class _Body extends StatelessWidget {
     final lastContact = context.select(
       (ConnectivityCubit c) => c.state.lastContactAt,
     );
+    // Zona horaria de la concesion: en ella se muestran las fechas del negocio.
+    final zone = context.select((ConcessionZoneCubit c) => c.state);
+    // Lo capturado sin conexion que aun no llego al servidor.
+    final sync = context.watch<SyncCubit>().state;
     final rows = <(IconData, String, String)>[
       (Icons.person_outline, l10n.fieldUser, user.username),
       (Icons.mail_outline, l10n.fieldEmailShort, user.email),
@@ -239,6 +245,12 @@ class _Body extends StatelessWidget {
         l10n.fieldConcession,
         profile.activeConcession?.name ?? '—',
       ),
+      if (zone != null)
+        (
+          Icons.schedule_outlined,
+          l10n.fieldTimezone,
+          '${zone.id} (${zone.offsetLabelAt(DateTime.now())})',
+        ),
       (Icons.add_road, l10n.fieldRoads, roads.isEmpty ? '—' : roads),
       (Icons.info_outline, l10n.fieldAppVersion, version),
       if (device.isNotEmpty)
@@ -369,6 +381,20 @@ class _Body extends StatelessWidget {
               title: l10n.actionSwitchConcession,
               subtitle: l10n.actionSwitchConcessionSub,
               onTap: onSwitchConcession!,
+            ),
+            SizedBox(height: r.s(10)),
+          ],
+          if (sync.enabled) ...[
+            _ActionTile(
+              key: const Key('account-sync'),
+              icon: Icons.sync,
+              title: l10n.syncTitle,
+              subtitle: sync.isEmpty
+                  ? l10n.syncAllDone
+                  : sync.attention > 0
+                  ? l10n.syncStripAttention(sync.attention)
+                  : l10n.syncStripPending(sync.pending),
+              onTap: () => context.push('/sync'),
             ),
             SizedBox(height: r.s(10)),
           ],
@@ -582,6 +608,7 @@ class _SectionTitle extends StatelessWidget {
 
 class _ActionTile extends StatelessWidget {
   const _ActionTile({
+    super.key,
     required this.icon,
     required this.title,
     required this.subtitle,

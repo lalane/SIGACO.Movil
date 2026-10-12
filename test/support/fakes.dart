@@ -1,5 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/offline/sync_cubit.dart';
+import 'package:sigaco_movil/core/ui/logo_store.dart';
 import 'package:sigaco_movil/features/auth/domain/entities/auth_entities.dart';
 import 'package:sigaco_movil/features/auth/domain/repositories/auth_repository.dart';
 import 'package:sigaco_movil/features/auth/domain/repositories/credential_store.dart';
@@ -68,10 +74,14 @@ class FakeBrandingRepository implements BrandingRepository {
   /// Si se define, cada carga espera este tiempo (para probar respuestas tardias).
   Duration? delay;
 
+  /// Simula un fallo del repositorio.
+  bool failing = false;
+
   @override
   Future<ConcessionBranding?> load(String concessionId) async {
     loads.add(concessionId);
     if (delay != null) await Future<void>.delayed(delay!);
+    if (failing) throw StateError('sin conexion');
     return brands[concessionId];
   }
 }
@@ -267,4 +277,120 @@ class FakeCredentialStore implements CredentialStore {
     _passwordForgotten = true;
     if (!_remember) stored = null;
   }
+}
+
+/// Un PNG valido de 1 x 1.
+final tinyPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+/// Un SVG de 100 x 40: a 34 de alto mide 85 de ancho.
+const tinySvg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40">'
+    '<rect width="100" height="40" fill="#0EA5E9"/></svg>';
+
+/// Logos de prueba, sin red ni disco: un PNG o un SVG segun la URL. Guarda lo
+/// que se pidio. Con [failing] no entrega nada (sin conexion y sin copia).
+class FakeLogoStore implements LogoStore {
+  FakeLogoStore({this.failing = false});
+
+  bool failing;
+  final asked = <(String url, int version)>[];
+
+  @override
+  Future<Uint8List?> bytesFor(String url, {int version = 0}) async {
+    asked.add((url, version));
+    if (failing) return null;
+    final path = Uri.tryParse(url)?.path.toLowerCase() ?? '';
+    return path.endsWith('.svg')
+        ? Uint8List.fromList(utf8.encode(tinySvg))
+        : tinyPng;
+  }
+}
+
+/// Cola de sincronizacion de pruebas: guarda el estado que se le da y registra
+/// lo que la app le pide, sin base local ni red.
+class FakeSyncCubit extends Cubit<SyncState> implements SyncCubit {
+  FakeSyncCubit([SyncState? initial]) : super(initial ?? const SyncState());
+
+  final calls = <String>[];
+  final conflicts = <String, SyncConflict>{};
+
+  @override
+  Duration get resumeGap => Duration.zero;
+
+  @override
+  OfflineScope? get scope => state.scope;
+
+  void show(SyncState next) => emit(next);
+
+  @override
+  Future<void> setScope(OfflineScope? scope) async {
+    calls.add('scope:${scope?.userId}/${scope?.concessionId}');
+    emit(scope == null ? const SyncState() : state.copyWith(scope: scope));
+  }
+
+  @override
+  void setOnline(bool online) => calls.add('online:$online');
+
+  @override
+  Future<void> onResume() async => calls.add('resume');
+
+  @override
+  Future<void> syncNow({Duration minGap = Duration.zero}) async =>
+      calls.add('syncNow');
+
+  @override
+  Future<SyncConflict?> conflictOf(String operationId) async =>
+      conflicts[operationId];
+
+  @override
+  Future<void> retry(String operationId, {int? baseVersion}) async =>
+      calls.add('retry:$operationId:$baseVersion');
+
+  @override
+  Future<bool> discard(String operationId) async {
+    calls.add('discard:$operationId');
+    emit(
+      state.copyWith(
+        items: [
+          for (final o in state.items)
+            if (o.id != operationId) o,
+        ],
+      ),
+    );
+    return true;
+  }
+}
+
+/// Una operacion pendiente de prueba.
+PendingOperation fakeOperation(
+  String id, {
+  OperationStatus status = OperationStatus.pending,
+  String entity = 'documento',
+  String? name,
+  String? error,
+  OperationKind kind = OperationKind.insert,
+  OfflineScope scope = const OfflineScope(userId: 'u1', concessionId: 'c0'),
+  DateTime? capturedAt,
+  int attempts = 0,
+  int? baseVersion,
+  Map<String, Object?>? payload,
+}) {
+  final at = capturedAt ?? DateTime.utc(2026, 10, 12, 15, 30);
+  return PendingOperation(
+    id: id,
+    scope: scope,
+    entity: entity,
+    kind: kind,
+    payload: payload ?? {'name': ?name},
+    status: status,
+    createdAt: at,
+    capturedAt: at,
+    updatedAt: at,
+    attempts: attempts,
+    lastError: error,
+    recordId: kind == OperationKind.insert ? null : 'rec-1',
+    baseVersion: kind == OperationKind.insert ? null : baseVersion ?? 1,
+  );
 }

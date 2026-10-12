@@ -7,7 +7,13 @@ import '../core/api/api_client.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
 import '../core/device/device_info_source.dart';
+import '../core/offline/offline_database.dart';
+import '../core/offline/operation_queue.dart';
+import '../core/offline/sync_cubit.dart';
+import '../core/offline/sync_engine.dart';
+import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
+import '../core/ui/logo_store.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/data/repositories/credential_vault.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
@@ -15,7 +21,12 @@ import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/branding/data/repositories/branding_repository_impl.dart';
 import '../features/branding/domain/entities/concession_branding.dart';
 import '../features/branding/domain/repositories/branding_repository.dart';
+import '../features/documents/data/repositories/sample_documents_repository.dart';
+import '../features/documents/data/repositories/unavailable_documents_repository.dart';
+import '../features/documents/domain/entities/document_access.dart';
+import '../features/documents/domain/repositories/documents_repository.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
+import '../features/navigation/domain/entities/navigation_entities.dart';
 import '../features/navigation/domain/repositories/navigation_repository.dart';
 
 /// Sin marca propia: se usan los colores de SIGACO.
@@ -24,6 +35,35 @@ class _NoBranding implements BrandingRepository {
 
   @override
   Future<ConcessionBranding?> load(String concessionId) async => null;
+}
+
+/// Solo para la prueba con documentos de ejemplo (`SAMPLE_DOCUMENTS`): suma el
+/// modulo y sus permisos al menu que entrega el servidor.
+class _WithSampleDocuments implements NavigationRepository {
+  const _WithSampleDocuments(this._inner);
+
+  final NavigationRepository _inner;
+
+  @override
+  Stream<void> get accessDenied => _inner.accessDenied;
+
+  @override
+  Future<NavigationMenu> load() async {
+    final menu = await _inner.load();
+    if (menu.has('DOCUMENTOS')) return menu;
+    return NavigationMenu(
+      modules: [
+        ...menu.modules,
+        const NavigationItem(code: 'DOCUMENTOS', name: 'Gestor documental'),
+      ],
+      permissions: [
+        ...menu.permissions,
+        DocumentAccess.viewKey,
+        DocumentAccess.uploadKey,
+        DocumentAccess.signKey,
+      ],
+    );
+  }
 }
 
 /// Raiz de composicion: aqui se crean las implementaciones concretas.
@@ -35,19 +75,30 @@ class AppDependencies {
     required this.credentialStore,
     required this.navigationRepository,
     BrandingRepository? brandingRepository,
+    DocumentsRepository? documentsRepository,
     SessionScope? sessionScope,
     this.accessRefreshGap = const Duration(seconds: 30),
     this.connectivity = const AlwaysOnlineSource(),
     this.serverReachable = const Stream<bool>.empty(),
     this.deviceInfo = const NoDeviceInfo(),
+    this.logoStore = const DownloadLogoStore(),
+    this.brandingRefreshGap = const Duration(minutes: 1),
+    SyncCubit? sync,
   }) : brandingRepository = brandingRepository ?? const _NoBranding(),
-       sessionScope = sessionScope ?? SessionScope();
+       documentsRepository =
+           documentsRepository ?? const UnavailableDocumentsRepository(),
+       sessionScope = sessionScope ?? SessionScope(),
+       sync = sync ?? SyncCubit.disabled();
 
   final SharedPreferences prefs;
   final AuthRepository authRepository;
   final CredentialStore credentialStore;
   final NavigationRepository navigationRepository;
   final BrandingRepository brandingRepository;
+
+  /// Gestor documental (M03). Hasta que el backend publique sus endpoints, no
+  /// hay datos: la pantalla ofrece reintentar.
+  final DocumentsRepository documentsRepository;
 
   /// Limpiadores de datos locales de la concesion activa (RN-CTX-02).
   final SessionScope sessionScope;
@@ -63,6 +114,17 @@ class AppDependencies {
   /// Datos del telefono que se muestran en la cuenta.
   final DeviceInfoSource deviceInfo;
 
+  /// De donde salen los logos de la concesion (en la app, guardados en disco).
+  final LogoStore logoStore;
+
+  /// Tiempo minimo entre consultas de la marca al volver a la app; las pruebas
+  /// lo ponen en cero.
+  final Duration brandingRefreshGap;
+
+  /// Cola local de operaciones sin conexion y su sincronizacion. Sin base local
+  /// (pruebas) esta deshabilitada y no hace nada.
+  final SyncCubit sync;
+
   static Future<AppDependencies> create() async {
     final prefs = await SharedPreferences.getInstance();
     String? userAgent;
@@ -73,7 +135,13 @@ class AppDependencies {
       userAgent = null;
     }
     final api = ApiClient(userAgent: userAgent);
+    final queue = OperationQueue(await OfflineDatabase.open());
+    // Lo aceptado hace mas de una semana ya no le sirve a nadie.
+    await queue.purgeAccepted();
+    // Hasta que el backend publique los endpoints, nada sale de la cola.
+    final engine = SyncEngine(queue, const UnavailableSyncRemote());
     return AppDependencies(
+      sync: SyncCubit(queue, engine),
       prefs: prefs,
       authRepository: AuthRepositoryImpl(api),
       credentialStore: CredentialVault(
@@ -81,10 +149,16 @@ class AppDependencies {
         prefs,
         LocalAuthentication(),
       ),
-      navigationRepository: NavigationRepositoryImpl(api),
+      navigationRepository: AppConfig.sampleDocuments
+          ? _WithSampleDocuments(NavigationRepositoryImpl(api))
+          : NavigationRepositoryImpl(api),
+      documentsRepository: AppConfig.sampleDocuments
+          ? SampleDocumentsRepository()
+          : const UnavailableDocumentsRepository(),
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
+      logoStore: DiskLogoStore(),
       brandingRepository: BrandingRepositoryImpl(
         api,
         prefs,

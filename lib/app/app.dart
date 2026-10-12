@@ -7,12 +7,15 @@ import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
 import '../core/settings/settings_cubit.dart';
 import '../core/theme/app_theme.dart';
+import '../core/time/concession_zone_cubit.dart';
+import '../core/ui/logo_store.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/auth/presentation/session/session_timeout_cubit.dart';
 import '../features/branding/presentation/bloc/branding_cubit.dart';
+import '../features/documents/domain/repositories/documents_repository.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../l10n/app_localizations.dart';
 import 'dependencies.dart';
@@ -48,11 +51,13 @@ class _SigacoAppState extends State<SigacoApp> {
   );
   late final BrandingCubit _branding = BrandingCubit(
     widget.dependencies.brandingRepository,
+    minRefreshGap: widget.dependencies.brandingRefreshGap,
   );
   late final ConnectivityCubit _connectivity = ConnectivityCubit(
     widget.dependencies.connectivity,
     widget.dependencies.serverReachable,
   );
+  late final ConcessionZoneCubit _zone = ConcessionZoneCubit();
   late final GoRouter _router = createRouter(_auth);
 
   @override
@@ -64,6 +69,8 @@ class _SigacoAppState extends State<SigacoApp> {
     _timeout.close();
     _branding.close();
     _connectivity.close();
+    _zone.close();
+    widget.dependencies.sync.close();
     super.dispose();
   }
 
@@ -80,6 +87,12 @@ class _SigacoAppState extends State<SigacoApp> {
         RepositoryProvider<DeviceInfoSource>.value(
           value: widget.dependencies.deviceInfo,
         ),
+        RepositoryProvider<LogoStore>.value(
+          value: widget.dependencies.logoStore,
+        ),
+        RepositoryProvider<DocumentsRepository>.value(
+          value: widget.dependencies.documentsRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -89,6 +102,8 @@ class _SigacoAppState extends State<SigacoApp> {
           BlocProvider.value(value: _timeout),
           BlocProvider.value(value: _branding),
           BlocProvider.value(value: _connectivity),
+          BlocProvider.value(value: _zone),
+          BlocProvider.value(value: widget.dependencies.sync),
         ],
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, settings) => BlocBuilder<BrandingCubit, BrandingState>(

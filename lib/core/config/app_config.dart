@@ -17,6 +17,11 @@ abstract final class AppConfig {
   static const demoBrandLogoLight = String.fromEnvironment('BRAND_LOGO_LIGHT');
   static const demoBrandLogoDark = String.fromEnvironment('BRAND_LOGO_DARK');
 
+  /// Gestor documental con documentos de ejemplo, mientras el backend no
+  /// publique sus endpoints: `--dart-define=SAMPLE_DOCUMENTS=true`. Tambien
+  /// agrega el modulo al menu, que solo se ve asi en esa prueba.
+  static const sampleDocuments = bool.fromEnvironment('SAMPLE_DOCUMENTS');
+
   /// El backend usa este valor para no ofrecer Configuracion en movil (RN-M02-02).
   static const clientType = 'MOBILE';
 }

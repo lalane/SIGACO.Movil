@@ -6,7 +6,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/connectivity/connectivity_cubit.dart';
 import '../../core/session/session_scope.dart';
+import '../../core/offline/operation.dart';
+import '../../core/offline/sync_cubit.dart';
 import '../../core/settings/settings_cubit.dart';
+import '../../core/time/concession_zone_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -73,12 +76,16 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     }
   }
 
-  /// Al volver a la app con la sesion abierta se vuelven a consultar los accesos:
-  /// un administrador pudo cambiarlos mientras estaba en segundo plano (M02-02-04).
+  /// Al volver a la app con la sesion abierta se vuelven a consultar los accesos
+  /// (un administrador pudo cambiarlos mientras estaba en segundo plano,
+  /// M02-02-04) y la version de la marca (US-18).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && _lastStep == AuthStep.signedIn) {
       context.read<NavigationBloc>().add(const NavigationRefreshed());
+      context.read<BrandingCubit>().refresh();
+      // Lo capturado sin conexion se envia al volver a la app.
+      context.read<SyncCubit>().onResume();
     }
   }
 
@@ -86,6 +93,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     final navigation = context.read<NavigationBloc>();
     final branding = context.read<BrandingCubit>();
     final timeout = context.read<SessionTimeoutCubit>();
+    final sync = context.read<SyncCubit>();
     final concessionChanged =
         _lastConcession != null &&
         s.activeConcessionId != null &&
@@ -103,10 +111,20 @@ class _SessionLifecycleState extends State<SessionLifecycle>
           branding.clear();
         }
       }
+      // Lo local (cola de operaciones) es de esta persona en esta concesion.
+      final userId = s.user?.id;
+      final concession = s.activeConcessionId;
+      if (userId != null && concession != null) {
+        sync.setOnline(context.read<ConnectivityCubit>().state.online);
+        sync.setScope(OfflineScope(userId: userId, concessionId: concession));
+      } else {
+        sync.setScope(null);
+      }
       timeout.start(Duration(minutes: s.idleTimeoutMinutes));
     } else if (s.step == AuthStep.signedOut) {
       navigation.add(const NavigationCleared());
       branding.clear();
+      sync.setScope(null);
       timeout.stop();
       widget.scope.clear();
     }
@@ -206,18 +224,24 @@ class _SessionLifecycleState extends State<SessionLifecycle>
         ),
         // Solo se ofrece elegir el origen de los colores si la concesion los trae.
         BlocListener<BrandingCubit, BrandingState>(
-          listener: (context, s) =>
-              context.read<SettingsCubit>().setBrandAvailable(s.seed != null),
+          listener: (context, s) {
+            context.read<SettingsCubit>().setBrandAvailable(s.seed != null);
+            // La zona horaria de la concesion para los demas modulos (RN-04).
+            context.read<ConcessionZoneCubit>().set(s.zone);
+          },
         ),
         // Al volver la conexion se actualizan los accesos; sin ella se sondea.
         BlocListener<ConnectivityCubit, ConnectivityState>(
           listenWhen: (a, b) => a.online != b.online,
           listener: (context, s) {
             _onConnectionChanged(context, s);
+            context.read<SyncCubit>().setOnline(s.online);
             if (s.online && _lastStep == AuthStep.signedIn) {
               context.read<NavigationBloc>().add(
                 const NavigationRefreshed(gap: Duration.zero),
               );
+              // Un cambio de marca hecho en el portal mientras no habia red.
+              context.read<BrandingCubit>().refresh(gap: Duration.zero);
             }
           },
         ),

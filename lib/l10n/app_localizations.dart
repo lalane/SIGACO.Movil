@@ -914,6 +914,12 @@ abstract class AppLocalizations {
   /// **'Última conexión'**
   String get fieldLastConnection;
 
+  /// No description provided for @fieldTimezone.
+  ///
+  /// In es, this message translates to:
+  /// **'Zona horaria de la concesión'**
+  String get fieldTimezone;
+
   /// No description provided for @connectionOffline.
   ///
   /// In es, this message translates to:
@@ -985,6 +991,672 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sistema de Gestión de Activos'**
   String get appTaglineShort;
+
+  /// No description provided for @syncTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronización'**
+  String get syncTitle;
+
+  /// No description provided for @syncStripPending.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 operación pendiente de enviar} other{{count} operaciones pendientes de enviar}}'**
+  String syncStripPending(int count);
+
+  /// No description provided for @syncStripAttention.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 operación necesita tu decisión} other{{count} operaciones necesitan tu decisión}}'**
+  String syncStripAttention(int count);
+
+  /// No description provided for @syncLastSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Última sincronización: {time}'**
+  String syncLastSync(String time);
+
+  /// No description provided for @syncNever.
+  ///
+  /// In es, this message translates to:
+  /// **'Todavía no se ha sincronizado'**
+  String get syncNever;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar ahora'**
+  String get syncNow;
+
+  /// No description provided for @syncRunning.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizando…'**
+  String get syncRunning;
+
+  /// No description provided for @syncOfflineHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión. Se enviará al recuperarla.'**
+  String get syncOfflineHint;
+
+  /// No description provided for @syncAllDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo está sincronizado'**
+  String get syncAllDone;
+
+  /// No description provided for @syncAllDoneBody.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay operaciones pendientes ni que requieran tu decisión.'**
+  String get syncAllDoneBody;
+
+  /// No description provided for @syncSectionAttention.
+  ///
+  /// In es, this message translates to:
+  /// **'Requieren tu decisión'**
+  String get syncSectionAttention;
+
+  /// No description provided for @syncSectionPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendientes de enviar'**
+  String get syncSectionPending;
+
+  /// No description provided for @syncStatusPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente'**
+  String get syncStatusPending;
+
+  /// No description provided for @syncStatusSending.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviando'**
+  String get syncStatusSending;
+
+  /// No description provided for @syncStatusRejected.
+  ///
+  /// In es, this message translates to:
+  /// **'Rechazada'**
+  String get syncStatusRejected;
+
+  /// No description provided for @syncStatusConflict.
+  ///
+  /// In es, this message translates to:
+  /// **'En conflicto'**
+  String get syncStatusConflict;
+
+  /// No description provided for @syncCaptured.
+  ///
+  /// In es, this message translates to:
+  /// **'Capturada {time}'**
+  String syncCaptured(String time);
+
+  /// No description provided for @syncAttempts.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 intento} other{{count} intentos}}'**
+  String syncAttempts(int count);
+
+  /// No description provided for @syncActionRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get syncActionRetry;
+
+  /// No description provided for @syncActionDiscard.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar'**
+  String get syncActionDiscard;
+
+  /// No description provided for @syncActionReview.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisar'**
+  String get syncActionReview;
+
+  /// No description provided for @syncDiscardTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Descartar esta operación?'**
+  String get syncDiscardTitle;
+
+  /// No description provided for @syncDiscardBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se perderá lo capturado en este teléfono. Esto no se puede deshacer.'**
+  String get syncDiscardBody;
+
+  /// No description provided for @syncEntityDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento'**
+  String get syncEntityDocument;
+
+  /// No description provided for @syncEntitySignature.
+  ///
+  /// In es, this message translates to:
+  /// **'Firma de documento'**
+  String get syncEntitySignature;
+
+  /// No description provided for @syncEntityTicket.
+  ///
+  /// In es, this message translates to:
+  /// **'Ticket'**
+  String get syncEntityTicket;
+
+  /// No description provided for @syncEntityInspection.
+  ///
+  /// In es, this message translates to:
+  /// **'Inspección'**
+  String get syncEntityInspection;
+
+  /// No description provided for @syncEntityEvent.
+  ///
+  /// In es, this message translates to:
+  /// **'Evento'**
+  String get syncEntityEvent;
+
+  /// No description provided for @syncEntityAsset.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo'**
+  String get syncEntityAsset;
+
+  /// No description provided for @syncEntitySurvey.
+  ///
+  /// In es, this message translates to:
+  /// **'Levantamiento'**
+  String get syncEntitySurvey;
+
+  /// No description provided for @syncEntityMedia.
+  ///
+  /// In es, this message translates to:
+  /// **'Archivo'**
+  String get syncEntityMedia;
+
+  /// No description provided for @syncEntityOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Operación'**
+  String get syncEntityOther;
+
+  /// No description provided for @syncKindInsert.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta'**
+  String get syncKindInsert;
+
+  /// No description provided for @syncKindUpdate.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambio'**
+  String get syncKindUpdate;
+
+  /// No description provided for @syncKindDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja'**
+  String get syncKindDelete;
+
+  /// No description provided for @syncConflictTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Conflicto de sincronización'**
+  String get syncConflictTitle;
+
+  /// No description provided for @syncConflictIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Este registro cambió en el servidor mientras estabas sin conexión. Elige con cuál quedarte: nada se aplica en silencio.'**
+  String get syncConflictIntro;
+
+  /// No description provided for @syncConflictMine.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que capturaste'**
+  String get syncConflictMine;
+
+  /// No description provided for @syncConflictServer.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que hay en el servidor'**
+  String get syncConflictServer;
+
+  /// No description provided for @syncConflictVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión {version}'**
+  String syncConflictVersion(String version);
+
+  /// No description provided for @syncConflictNoDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin detalle disponible'**
+  String get syncConflictNoDetail;
+
+  /// No description provided for @syncConflictKeepServer.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedarme con el servidor'**
+  String get syncConflictKeepServer;
+
+  /// No description provided for @syncConflictKeepServerBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se descartará lo capturado en este teléfono.'**
+  String get syncConflictKeepServerBody;
+
+  /// No description provided for @syncConflictKeepMine.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantener lo mío'**
+  String get syncConflictKeepMine;
+
+  /// No description provided for @syncConflictKeepMineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se volverá a enviar sobre la versión actual del servidor, que puede rechazarlo.'**
+  String get syncConflictKeepMineBody;
+
+  /// No description provided for @syncConflictMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Este conflicto ya no existe.'**
+  String get syncConflictMissing;
+
+  /// No description provided for @syncMessageFromServer.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo: {message}'**
+  String syncMessageFromServer(String message);
+
+  /// No description provided for @moduleDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestor documental'**
+  String get moduleDocuments;
+
+  /// No description provided for @moduleDocumentsSub.
+  ///
+  /// In es, this message translates to:
+  /// **'Consulta y firma de documentos'**
+  String get moduleDocumentsSub;
+
+  /// No description provided for @docsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestor documental'**
+  String get docsTitle;
+
+  /// No description provided for @docsViewAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get docsViewAll;
+
+  /// No description provided for @docsViewRecent.
+  ///
+  /// In es, this message translates to:
+  /// **'Recientes'**
+  String get docsViewRecent;
+
+  /// No description provided for @docsViewFavorites.
+  ///
+  /// In es, this message translates to:
+  /// **'Favoritos'**
+  String get docsViewFavorites;
+
+  /// No description provided for @docsViewMine.
+  ///
+  /// In es, this message translates to:
+  /// **'Mis documentos'**
+  String get docsViewMine;
+
+  /// No description provided for @docsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por nombre, propietario o categoría'**
+  String get docsSearchHint;
+
+  /// No description provided for @docsFilters.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtros'**
+  String get docsFilters;
+
+  /// No description provided for @docsFiltersApply.
+  ///
+  /// In es, this message translates to:
+  /// **'Aplicar'**
+  String get docsFiltersApply;
+
+  /// No description provided for @docsFiltersClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar filtros'**
+  String get docsFiltersClear;
+
+  /// No description provided for @docsFilterType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo documental'**
+  String get docsFilterType;
+
+  /// No description provided for @docsFilterCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get docsFilterCategory;
+
+  /// No description provided for @docsFilterFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpeta'**
+  String get docsFilterFolder;
+
+  /// No description provided for @docsFilterModifiedBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Modificado por'**
+  String get docsFilterModifiedBy;
+
+  /// No description provided for @docsFilterFrom.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde'**
+  String get docsFilterFrom;
+
+  /// No description provided for @docsFilterTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Hasta'**
+  String get docsFilterTo;
+
+  /// No description provided for @docsFilterAny.
+  ///
+  /// In es, this message translates to:
+  /// **'Cualquiera'**
+  String get docsFilterAny;
+
+  /// No description provided for @docsFilterPickDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir fecha'**
+  String get docsFilterPickDate;
+
+  /// No description provided for @docsRangeInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'La fecha Desde no puede ser posterior a Hasta.'**
+  String get docsRangeInvalid;
+
+  /// No description provided for @docsLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando documentos…'**
+  String get docsLoading;
+
+  /// No description provided for @docsEmptyAllTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay documentos'**
+  String get docsEmptyAllTitle;
+
+  /// No description provided for @docsEmptyAllBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuando se carguen documentos de esta concesión aparecerán aquí.'**
+  String get docsEmptyAllBody;
+
+  /// No description provided for @docsEmptyRecentTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin actividad reciente'**
+  String get docsEmptyRecentTitle;
+
+  /// No description provided for @docsEmptyRecentBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí aparecen los documentos que abriste o cargaste en los últimos 30 días.'**
+  String get docsEmptyRecentBody;
+
+  /// No description provided for @docsEmptyFavoritesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin favoritos'**
+  String get docsEmptyFavoritesTitle;
+
+  /// No description provided for @docsEmptyFavoritesBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Marca un documento con la estrella para encontrarlo aquí.'**
+  String get docsEmptyFavoritesBody;
+
+  /// No description provided for @docsEmptyMineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No has cargado documentos'**
+  String get docsEmptyMineTitle;
+
+  /// No description provided for @docsEmptyMineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Los documentos que cargues aparecerán aquí.'**
+  String get docsEmptyMineBody;
+
+  /// No description provided for @docsNoResultsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin resultados'**
+  String get docsNoResultsTitle;
+
+  /// No description provided for @docsNoResultsBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Prueba con otra búsqueda o quita algún filtro.'**
+  String get docsNoResultsBody;
+
+  /// No description provided for @docsErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los documentos'**
+  String get docsErrorTitle;
+
+  /// No description provided for @docsErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Inténtalo de nuevo en unos momentos.'**
+  String get docsErrorBody;
+
+  /// No description provided for @docsOfflineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión'**
+  String get docsOfflineTitle;
+
+  /// No description provided for @docsOfflineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Los documentos necesitan conexión mientras no estén guardados en el teléfono.'**
+  String get docsOfflineBody;
+
+  /// No description provided for @docsNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin permiso para ver documentos'**
+  String get docsNoPermissionTitle;
+
+  /// No description provided for @docsNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede consultar el gestor documental en esta concesión.'**
+  String get docsNoPermissionBody;
+
+  /// No description provided for @docsNotFoundTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'El documento ya no está disponible'**
+  String get docsNotFoundTitle;
+
+  /// No description provided for @docsNotFoundBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Pudo haberse movido o eliminado.'**
+  String get docsNotFoundBody;
+
+  /// No description provided for @docsNotOfflineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Contenido no disponible sin conexión'**
+  String get docsNotOfflineTitle;
+
+  /// No description provided for @docsNotOfflineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Conéctate para consultar este documento.'**
+  String get docsNotOfflineBody;
+
+  /// No description provided for @docsSignatureUnsigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin firma'**
+  String get docsSignatureUnsigned;
+
+  /// No description provided for @docsSignaturePending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de validación'**
+  String get docsSignaturePending;
+
+  /// No description provided for @docsSignatureValidated.
+  ///
+  /// In es, this message translates to:
+  /// **'Validado'**
+  String get docsSignatureValidated;
+
+  /// No description provided for @docsFavoriteAdd.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar como favorito'**
+  String get docsFavoriteAdd;
+
+  /// No description provided for @docsFavoriteRemove.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar de favoritos'**
+  String get docsFavoriteRemove;
+
+  /// No description provided for @docsFavoriteFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo actualizar el favorito.'**
+  String get docsFavoriteFailed;
+
+  /// No description provided for @docsDetailTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento'**
+  String get docsDetailTitle;
+
+  /// No description provided for @docsFieldType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo documental'**
+  String get docsFieldType;
+
+  /// No description provided for @docsFieldCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get docsFieldCategory;
+
+  /// No description provided for @docsFieldDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get docsFieldDescription;
+
+  /// No description provided for @docsFieldFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpeta'**
+  String get docsFieldFolder;
+
+  /// No description provided for @docsFieldOwner.
+  ///
+  /// In es, this message translates to:
+  /// **'Propietario'**
+  String get docsFieldOwner;
+
+  /// No description provided for @docsFieldVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión vigente'**
+  String get docsFieldVersion;
+
+  /// No description provided for @docsFieldModified.
+  ///
+  /// In es, this message translates to:
+  /// **'Última modificación'**
+  String get docsFieldModified;
+
+  /// No description provided for @docsFieldModifiedBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Modificado por'**
+  String get docsFieldModifiedBy;
+
+  /// No description provided for @docsFieldSize.
+  ///
+  /// In es, this message translates to:
+  /// **'Tamaño'**
+  String get docsFieldSize;
+
+  /// No description provided for @docsFieldFormat.
+  ///
+  /// In es, this message translates to:
+  /// **'Formato'**
+  String get docsFieldFormat;
+
+  /// No description provided for @docsNoCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin categoría'**
+  String get docsNoCategory;
+
+  /// No description provided for @docsFolderRoot.
+  ///
+  /// In es, this message translates to:
+  /// **'Nivel inicial de la concesión'**
+  String get docsFolderRoot;
+
+  /// No description provided for @docsNoDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin descripción'**
+  String get docsNoDescription;
+
+  /// No description provided for @docsVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'V{number}'**
+  String docsVersion(int number);
+
+  /// No description provided for @docsOwnerLine.
+  ///
+  /// In es, this message translates to:
+  /// **'{owner} · {date}'**
+  String docsOwnerLine(String owner, String date);
+
+  /// No description provided for @docsZoneLegend.
+  ///
+  /// In es, this message translates to:
+  /// **'Fechas en hora de {zone} ({offset})'**
+  String docsZoneLegend(String zone, String offset);
 }
 
 class _AppLocalizationsDelegate

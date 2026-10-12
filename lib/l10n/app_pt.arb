@@ -136,6 +136,7 @@
   "fieldAppVersion": "Versão do app",
   "fieldDevice": "Dispositivo",
   "fieldLastConnection": "Última conexão",
+  "fieldTimezone": "Fuso horário da concessão",
   "connectionOffline": "Sem conexão",
   "connectionOfflineSince": "Sem conexão · última conexão {time}",
   "@connectionOfflineSince": {
@@ -154,5 +155,192 @@
   "sessionExpiringTitle": "Sua sessão está para expirar",
   "sessionContinue": "Continuar",
   "sessionExpiringBody": "Por inatividade será encerrada em {seconds} segundos.",
-  "appTaglineShort": "Sistema de Gestão de Ativos"
+  "appTaglineShort": "Sistema de Gestão de Ativos",
+  "syncTitle": "Sincronização",
+  "syncStripPending": "{count, plural, =1{1 operação pendente de envio} other{{count} operações pendentes de envio}}",
+  "@syncStripPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncStripAttention": "{count, plural, =1{1 operação precisa da sua decisão} other{{count} operações precisam da sua decisão}}",
+  "@syncStripAttention": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncLastSync": "Última sincronização: {time}",
+  "@syncLastSync": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNever": "Ainda não foi sincronizado",
+  "syncNow": "Sincronizar agora",
+  "syncRunning": "Sincronizando…",
+  "syncOfflineHint": "Sem conexão. Será enviado ao recuperá-la.",
+  "syncAllDone": "Tudo está sincronizado",
+  "syncAllDoneBody": "Não há operações pendentes nem que precisem da sua decisão.",
+  "syncSectionAttention": "Precisam da sua decisão",
+  "syncSectionPending": "Pendentes de envio",
+  "syncStatusPending": "Pendente",
+  "syncStatusSending": "Enviando",
+  "syncStatusRejected": "Rejeitada",
+  "syncStatusConflict": "Em conflito",
+  "syncCaptured": "Capturada {time}",
+  "@syncCaptured": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "syncAttempts": "{count, plural, =1{1 tentativa} other{{count} tentativas}}",
+  "@syncAttempts": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncActionRetry": "Tentar de novo",
+  "syncActionDiscard": "Descartar",
+  "syncActionReview": "Revisar",
+  "syncDiscardTitle": "Descartar esta operação?",
+  "syncDiscardBody": "O que foi capturado neste telefone será perdido. Isso não pode ser desfeito.",
+  "syncEntityDocument": "Documento",
+  "syncEntitySignature": "Assinatura de documento",
+  "syncEntityTicket": "Ticket",
+  "syncEntityInspection": "Inspeção",
+  "syncEntityEvent": "Evento",
+  "syncEntityAsset": "Ativo",
+  "syncEntitySurvey": "Levantamento",
+  "syncEntityMedia": "Arquivo",
+  "syncEntityOther": "Operação",
+  "syncKindInsert": "Inclusão",
+  "syncKindUpdate": "Alteração",
+  "syncKindDelete": "Exclusão",
+  "syncConflictTitle": "Conflito de sincronização",
+  "syncConflictIntro": "Este registro mudou no servidor enquanto você estava sem conexão. Escolha com qual ficar: nada é aplicado em silêncio.",
+  "syncConflictMine": "O que você capturou",
+  "syncConflictServer": "O que há no servidor",
+  "syncConflictVersion": "Versão {version}",
+  "@syncConflictVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "syncConflictNoDetail": "Sem detalhe disponível",
+  "syncConflictKeepServer": "Ficar com o servidor",
+  "syncConflictKeepServerBody": "O que foi capturado neste telefone será descartado.",
+  "syncConflictKeepMine": "Manter o meu",
+  "syncConflictKeepMineBody": "Será enviado de novo sobre a versão atual do servidor, que pode rejeitá-lo.",
+  "syncConflictMissing": "Este conflito não existe mais.",
+  "syncMessageFromServer": "Motivo: {message}",
+  "@syncMessageFromServer": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "moduleDocuments": "Gestor documental",
+  "moduleDocumentsSub": "Consulta e assinatura de documentos",
+  "docsTitle": "Gestor documental",
+  "docsViewAll": "Todos",
+  "docsViewRecent": "Recentes",
+  "docsViewFavorites": "Favoritos",
+  "docsViewMine": "Meus documentos",
+  "docsSearchHint": "Buscar por nome, proprietário ou categoria",
+  "docsFilters": "Filtros",
+  "docsFiltersApply": "Aplicar",
+  "docsFiltersClear": "Limpar filtros",
+  "docsFilterType": "Tipo documental",
+  "docsFilterCategory": "Categoria",
+  "docsFilterFolder": "Pasta",
+  "docsFilterModifiedBy": "Modificado por",
+  "docsFilterFrom": "De",
+  "docsFilterTo": "Até",
+  "docsFilterAny": "Qualquer",
+  "docsFilterPickDate": "Escolher data",
+  "docsRangeInvalid": "A data De não pode ser posterior a Até.",
+  "docsLoading": "Carregando documentos…",
+  "docsEmptyAllTitle": "Ainda não há documentos",
+  "docsEmptyAllBody": "Quando documentos desta concessão forem carregados, aparecerão aqui.",
+  "docsEmptyRecentTitle": "Sem atividade recente",
+  "docsEmptyRecentBody": "Aqui aparecem os documentos que você abriu ou carregou nos últimos 30 dias.",
+  "docsEmptyFavoritesTitle": "Sem favoritos",
+  "docsEmptyFavoritesBody": "Marque um documento com a estrela para encontrá-lo aqui.",
+  "docsEmptyMineTitle": "Você ainda não carregou documentos",
+  "docsEmptyMineBody": "Os documentos que você carregar aparecerão aqui.",
+  "docsNoResultsTitle": "Sem resultados",
+  "docsNoResultsBody": "Tente outra busca ou remova algum filtro.",
+  "docsErrorTitle": "Não foi possível carregar os documentos",
+  "docsErrorBody": "Tente novamente em instantes.",
+  "docsOfflineTitle": "Sem conexão",
+  "docsOfflineBody": "Os documentos precisam de conexão enquanto não estiverem salvos no telefone.",
+  "docsNoPermissionTitle": "Sem permissão para ver documentos",
+  "docsNoPermissionBody": "Seu perfil não pode consultar o gestor documental nesta concessão.",
+  "docsNotFoundTitle": "O documento não está mais disponível",
+  "docsNotFoundBody": "Ele pode ter sido movido ou excluído.",
+  "docsNotOfflineTitle": "Conteúdo indisponível sem conexão",
+  "docsNotOfflineBody": "Conecte-se para consultar este documento.",
+  "docsSignatureUnsigned": "Sem assinatura",
+  "docsSignaturePending": "Pendente de validação",
+  "docsSignatureValidated": "Validado",
+  "docsFavoriteAdd": "Marcar como favorito",
+  "docsFavoriteRemove": "Remover dos favoritos",
+  "docsFavoriteFailed": "Não foi possível atualizar o favorito.",
+  "docsDetailTitle": "Documento",
+  "docsFieldType": "Tipo documental",
+  "docsFieldCategory": "Categoria",
+  "docsFieldDescription": "Descrição",
+  "docsFieldFolder": "Pasta",
+  "docsFieldOwner": "Proprietário",
+  "docsFieldVersion": "Versão vigente",
+  "docsFieldModified": "Última modificação",
+  "docsFieldModifiedBy": "Modificado por",
+  "docsFieldSize": "Tamanho",
+  "docsFieldFormat": "Formato",
+  "docsNoCategory": "Sem categoria",
+  "docsFolderRoot": "Nível inicial da concessão",
+  "docsNoDescription": "Sem descrição",
+  "docsVersion": "V{number}",
+  "@docsVersion": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "docsOwnerLine": "{owner} · {date}",
+  "@docsOwnerLine": {
+    "placeholders": {
+      "owner": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "docsZoneLegend": "Datas no horário de {zone} ({offset})",
+  "@docsZoneLegend": {
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      },
+      "offset": {
+        "type": "String"
+      }
+    }
+  }
 }

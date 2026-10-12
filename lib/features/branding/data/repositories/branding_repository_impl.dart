@@ -85,8 +85,11 @@ ConcessionBranding? brandingFromJson(Map<String, dynamic>? raw) {
     secondary: text('secondary'),
     headerStart: text('headerStart'),
     headerEnd: text('headerEnd'),
+    background: text('background'),
     logoLightUrl: text('logoLightUrl'),
     logoDarkUrl: text('logoDarkUrl'),
+    logoReducedUrl: text('logoReducedUrl'),
+    timezone: text('timezone'),
   );
 }
 
@@ -96,6 +99,9 @@ Map<String, dynamic> brandingToJson(ConcessionBranding b) => {
   'secondary': b.secondary,
   'headerStart': b.headerStart,
   'headerEnd': b.headerEnd,
+  'background': b.background,
   'logoLightUrl': b.logoLightUrl,
   'logoDarkUrl': b.logoDarkUrl,
+  'logoReducedUrl': b.logoReducedUrl,
+  'timezone': b.timezone,
 };

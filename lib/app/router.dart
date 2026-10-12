@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,7 +20,16 @@ import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/mfa_enroll_page.dart';
 import '../features/auth/presentation/pages/mfa_page.dart';
 import '../features/auth/presentation/pages/recovery_page.dart';
+import '../features/documents/domain/entities/document_access.dart';
+import '../features/documents/domain/repositories/documents_repository.dart';
+import '../features/documents/presentation/bloc/document_detail_cubit.dart';
+import '../features/documents/presentation/bloc/documents_cubit.dart';
+import '../features/documents/presentation/pages/document_detail_page.dart';
+import '../features/documents/presentation/pages/documents_page.dart';
+import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/splash/presentation/splash_page.dart';
+import '../features/sync/presentation/conflict_page.dart';
+import '../features/sync/presentation/sync_page.dart';
 import 'shell/home_page.dart';
 
 String _routeFor(AuthStep step) => switch (step) {
@@ -50,6 +59,13 @@ class _AuthRefresh extends ChangeNotifier {
   }
 }
 
+/// Lo que el usuario puede hacer en el gestor documental, segun los permisos
+/// de su sesion; se recalcula si el menu cambia mientras la pantalla esta abierta.
+DocumentAccess _documentAccess(BuildContext context) =>
+    DocumentAccess.fromPermissions(
+      context.select((NavigationBloc b) => b.state.menu.permissions),
+    );
+
 GoRouter createRouter(AuthBloc auth) {
   return GoRouter(
     initialLocation: '/splash',
@@ -63,7 +79,12 @@ GoRouter createRouter(AuthBloc auth) {
             : '/login';
       }
       if (step == AuthStep.signedIn) {
-        return (loc == '/home' || loc.startsWith('/account')) ? null : '/home';
+        return (loc == '/home' ||
+                loc.startsWith('/account') ||
+                loc.startsWith('/sync') ||
+                loc.startsWith('/documents'))
+            ? null
+            : '/home';
       }
       final target = _routeFor(step);
       return loc == target ? null : target;
@@ -86,6 +107,42 @@ GoRouter createRouter(AuthBloc auth) {
       ),
       GoRoute(path: '/concession', builder: (_, _) => const ConcessionPage()),
       GoRoute(path: '/home', builder: (_, _) => const HomePage()),
+      GoRoute(
+        path: '/documents',
+        builder: (context, _) => BlocProvider(
+          create: (_) => DocumentsCubit(context.read<DocumentsRepository>()),
+          child: Builder(
+            builder: (context) =>
+                DocumentsPage(access: _documentAccess(context)),
+          ),
+        ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => BlocProvider(
+              create: (_) => DocumentDetailCubit(
+                context.read<DocumentsRepository>(),
+                state.pathParameters['id']!,
+              ),
+              child: Builder(
+                builder: (context) =>
+                    DocumentDetailPage(access: _documentAccess(context)),
+              ),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/sync',
+        builder: (_, _) => const SyncPage(),
+        routes: [
+          GoRoute(
+            path: 'conflict/:id',
+            builder: (_, state) =>
+                ConflictPage(operationId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
       GoRoute(
         path: '/account',
         builder: (context, _) => BlocProvider(

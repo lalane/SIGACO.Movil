@@ -12,7 +12,11 @@ enum MobileModule {
   inventory(['INVENTARIO']),
   reports(['REPORTES']),
   tickets(['TICKETS', 'MANTENIMIENTO.NUEVO_TICKET']),
-  alerts(['ALERTAS_OPERATIVAS']);
+  alerts(['ALERTAS_OPERATIVAS']),
+
+  /// Gestor documental (M03): la tarjeta aparece solo si el menu del backend
+  /// trae el modulo.
+  documents(['DOCUMENTOS']);
 
   const MobileModule(this.catalogCodes);
 

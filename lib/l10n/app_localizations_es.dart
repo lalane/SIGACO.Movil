@@ -447,6 +447,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fieldLastConnection => 'Última conexión';
 
   @override
+  String get fieldTimezone => 'Zona horaria de la concesión';
+
+  @override
   String get connectionOffline => 'Sin conexión';
 
   @override
@@ -487,4 +490,387 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appTaglineShort => 'Sistema de Gestión de Activos';
+
+  @override
+  String get syncTitle => 'Sincronización';
+
+  @override
+  String syncStripPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count operaciones pendientes de enviar',
+      one: '1 operación pendiente de enviar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncStripAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count operaciones necesitan tu decisión',
+      one: '1 operación necesita tu decisión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncLastSync(String time) {
+    return 'Última sincronización: $time';
+  }
+
+  @override
+  String get syncNever => 'Todavía no se ha sincronizado';
+
+  @override
+  String get syncNow => 'Sincronizar ahora';
+
+  @override
+  String get syncRunning => 'Sincronizando…';
+
+  @override
+  String get syncOfflineHint => 'Sin conexión. Se enviará al recuperarla.';
+
+  @override
+  String get syncAllDone => 'Todo está sincronizado';
+
+  @override
+  String get syncAllDoneBody =>
+      'No hay operaciones pendientes ni que requieran tu decisión.';
+
+  @override
+  String get syncSectionAttention => 'Requieren tu decisión';
+
+  @override
+  String get syncSectionPending => 'Pendientes de enviar';
+
+  @override
+  String get syncStatusPending => 'Pendiente';
+
+  @override
+  String get syncStatusSending => 'Enviando';
+
+  @override
+  String get syncStatusRejected => 'Rechazada';
+
+  @override
+  String get syncStatusConflict => 'En conflicto';
+
+  @override
+  String syncCaptured(String time) {
+    return 'Capturada $time';
+  }
+
+  @override
+  String syncAttempts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count intentos',
+      one: '1 intento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get syncActionRetry => 'Reintentar';
+
+  @override
+  String get syncActionDiscard => 'Descartar';
+
+  @override
+  String get syncActionReview => 'Revisar';
+
+  @override
+  String get syncDiscardTitle => '¿Descartar esta operación?';
+
+  @override
+  String get syncDiscardBody =>
+      'Se perderá lo capturado en este teléfono. Esto no se puede deshacer.';
+
+  @override
+  String get syncEntityDocument => 'Documento';
+
+  @override
+  String get syncEntitySignature => 'Firma de documento';
+
+  @override
+  String get syncEntityTicket => 'Ticket';
+
+  @override
+  String get syncEntityInspection => 'Inspección';
+
+  @override
+  String get syncEntityEvent => 'Evento';
+
+  @override
+  String get syncEntityAsset => 'Activo';
+
+  @override
+  String get syncEntitySurvey => 'Levantamiento';
+
+  @override
+  String get syncEntityMedia => 'Archivo';
+
+  @override
+  String get syncEntityOther => 'Operación';
+
+  @override
+  String get syncKindInsert => 'Alta';
+
+  @override
+  String get syncKindUpdate => 'Cambio';
+
+  @override
+  String get syncKindDelete => 'Baja';
+
+  @override
+  String get syncConflictTitle => 'Conflicto de sincronización';
+
+  @override
+  String get syncConflictIntro =>
+      'Este registro cambió en el servidor mientras estabas sin conexión. Elige con cuál quedarte: nada se aplica en silencio.';
+
+  @override
+  String get syncConflictMine => 'Lo que capturaste';
+
+  @override
+  String get syncConflictServer => 'Lo que hay en el servidor';
+
+  @override
+  String syncConflictVersion(String version) {
+    return 'Versión $version';
+  }
+
+  @override
+  String get syncConflictNoDetail => 'Sin detalle disponible';
+
+  @override
+  String get syncConflictKeepServer => 'Quedarme con el servidor';
+
+  @override
+  String get syncConflictKeepServerBody =>
+      'Se descartará lo capturado en este teléfono.';
+
+  @override
+  String get syncConflictKeepMine => 'Mantener lo mío';
+
+  @override
+  String get syncConflictKeepMineBody =>
+      'Se volverá a enviar sobre la versión actual del servidor, que puede rechazarlo.';
+
+  @override
+  String get syncConflictMissing => 'Este conflicto ya no existe.';
+
+  @override
+  String syncMessageFromServer(String message) {
+    return 'Motivo: $message';
+  }
+
+  @override
+  String get moduleDocuments => 'Gestor documental';
+
+  @override
+  String get moduleDocumentsSub => 'Consulta y firma de documentos';
+
+  @override
+  String get docsTitle => 'Gestor documental';
+
+  @override
+  String get docsViewAll => 'Todos';
+
+  @override
+  String get docsViewRecent => 'Recientes';
+
+  @override
+  String get docsViewFavorites => 'Favoritos';
+
+  @override
+  String get docsViewMine => 'Mis documentos';
+
+  @override
+  String get docsSearchHint => 'Buscar por nombre, propietario o categoría';
+
+  @override
+  String get docsFilters => 'Filtros';
+
+  @override
+  String get docsFiltersApply => 'Aplicar';
+
+  @override
+  String get docsFiltersClear => 'Limpiar filtros';
+
+  @override
+  String get docsFilterType => 'Tipo documental';
+
+  @override
+  String get docsFilterCategory => 'Categoría';
+
+  @override
+  String get docsFilterFolder => 'Carpeta';
+
+  @override
+  String get docsFilterModifiedBy => 'Modificado por';
+
+  @override
+  String get docsFilterFrom => 'Desde';
+
+  @override
+  String get docsFilterTo => 'Hasta';
+
+  @override
+  String get docsFilterAny => 'Cualquiera';
+
+  @override
+  String get docsFilterPickDate => 'Elegir fecha';
+
+  @override
+  String get docsRangeInvalid =>
+      'La fecha Desde no puede ser posterior a Hasta.';
+
+  @override
+  String get docsLoading => 'Cargando documentos…';
+
+  @override
+  String get docsEmptyAllTitle => 'Aún no hay documentos';
+
+  @override
+  String get docsEmptyAllBody =>
+      'Cuando se carguen documentos de esta concesión aparecerán aquí.';
+
+  @override
+  String get docsEmptyRecentTitle => 'Sin actividad reciente';
+
+  @override
+  String get docsEmptyRecentBody =>
+      'Aquí aparecen los documentos que abriste o cargaste en los últimos 30 días.';
+
+  @override
+  String get docsEmptyFavoritesTitle => 'Sin favoritos';
+
+  @override
+  String get docsEmptyFavoritesBody =>
+      'Marca un documento con la estrella para encontrarlo aquí.';
+
+  @override
+  String get docsEmptyMineTitle => 'No has cargado documentos';
+
+  @override
+  String get docsEmptyMineBody => 'Los documentos que cargues aparecerán aquí.';
+
+  @override
+  String get docsNoResultsTitle => 'Sin resultados';
+
+  @override
+  String get docsNoResultsBody =>
+      'Prueba con otra búsqueda o quita algún filtro.';
+
+  @override
+  String get docsErrorTitle => 'No se pudieron cargar los documentos';
+
+  @override
+  String get docsErrorBody => 'Inténtalo de nuevo en unos momentos.';
+
+  @override
+  String get docsOfflineTitle => 'Sin conexión';
+
+  @override
+  String get docsOfflineBody =>
+      'Los documentos necesitan conexión mientras no estén guardados en el teléfono.';
+
+  @override
+  String get docsNoPermissionTitle => 'Sin permiso para ver documentos';
+
+  @override
+  String get docsNoPermissionBody =>
+      'Tu perfil no puede consultar el gestor documental en esta concesión.';
+
+  @override
+  String get docsNotFoundTitle => 'El documento ya no está disponible';
+
+  @override
+  String get docsNotFoundBody => 'Pudo haberse movido o eliminado.';
+
+  @override
+  String get docsNotOfflineTitle => 'Contenido no disponible sin conexión';
+
+  @override
+  String get docsNotOfflineBody => 'Conéctate para consultar este documento.';
+
+  @override
+  String get docsSignatureUnsigned => 'Sin firma';
+
+  @override
+  String get docsSignaturePending => 'Pendiente de validación';
+
+  @override
+  String get docsSignatureValidated => 'Validado';
+
+  @override
+  String get docsFavoriteAdd => 'Marcar como favorito';
+
+  @override
+  String get docsFavoriteRemove => 'Quitar de favoritos';
+
+  @override
+  String get docsFavoriteFailed => 'No se pudo actualizar el favorito.';
+
+  @override
+  String get docsDetailTitle => 'Documento';
+
+  @override
+  String get docsFieldType => 'Tipo documental';
+
+  @override
+  String get docsFieldCategory => 'Categoría';
+
+  @override
+  String get docsFieldDescription => 'Descripción';
+
+  @override
+  String get docsFieldFolder => 'Carpeta';
+
+  @override
+  String get docsFieldOwner => 'Propietario';
+
+  @override
+  String get docsFieldVersion => 'Versión vigente';
+
+  @override
+  String get docsFieldModified => 'Última modificación';
+
+  @override
+  String get docsFieldModifiedBy => 'Modificado por';
+
+  @override
+  String get docsFieldSize => 'Tamaño';
+
+  @override
+  String get docsFieldFormat => 'Formato';
+
+  @override
+  String get docsNoCategory => 'Sin categoría';
+
+  @override
+  String get docsFolderRoot => 'Nivel inicial de la concesión';
+
+  @override
+  String get docsNoDescription => 'Sin descripción';
+
+  @override
+  String docsVersion(int number) {
+    return 'V$number';
+  }
+
+  @override
+  String docsOwnerLine(String owner, String date) {
+    return '$owner · $date';
+  }
+
+  @override
+  String docsZoneLegend(String zone, String offset) {
+    return 'Fechas en hora de $zone ($offset)';
+  }
 }

@@ -40,6 +40,8 @@ void main() {
     ),
   );
 
+  late FakeLogoStore logos;
+
   Future<(FakeBrandingRepository, FakeAuthRepository)> launch(
     WidgetTester tester, {
     required Map<String, ConcessionBranding> brands,
@@ -50,6 +52,7 @@ void main() {
     useSurface(tester, TestSurface.phone);
     SharedPreferences.setMockInitialValues(prefsValues);
     final brandingRepo = FakeBrandingRepository(brands);
+    logos = FakeLogoStore();
     final authRepo = auth ?? FakeAuthRepository();
     final deps = AppDependencies(
       prefs: await SharedPreferences.getInstance(),
@@ -57,6 +60,7 @@ void main() {
       credentialStore: FakeCredentialStore(supportsBiometrics: false),
       navigationRepository: FakeNavigationRepository(),
       brandingRepository: brandingRepo,
+      logoStore: logos,
     );
     await tester.pumpWidget(SigacoApp(dependencies: deps));
     await tester.pump(const Duration(seconds: 2));
@@ -121,9 +125,9 @@ void main() {
     await launch(tester, brands: {'c0': _blue});
     await signIn(tester);
 
-    final image = tester.widget<Image>(find.byType(Image));
+    expect(find.byType(Image), findsOneWidget);
     expect(
-      (image.image as NetworkImage).url,
+      logos.asked.single.$1,
       'https://cdn.example.com/oscuro.png',
       reason: 'la cabecera va sobre fondo oscuro',
     );

@@ -5,8 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/branding/sigaco_wordmark.dart';
+import '../../core/offline/sync_cubit.dart';
 import '../../core/responsive/responsive.dart';
 import '../../core/theme/sigaco_palette.dart';
+import '../../core/theme/status_colors.dart';
 import '../../core/ui/access_state_view.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
@@ -175,6 +177,8 @@ class _Header extends StatelessWidget {
                   child: ConcessionLogo(
                     height: r.s(34),
                     darkBackground: true,
+                    // La variante reducida, si la concesion la tiene (US-07).
+                    preferReduced: true,
                     semanticLabel: context.select(
                       (AuthBloc b) => b.state.activeConcessionName,
                     ),
@@ -324,6 +328,7 @@ class _Content extends StatelessWidget {
         // En compacta la barra inferior flota sobre el contenido (extendBody).
         padding: EdgeInsets.only(bottom: r.isCompact ? 96 : r.s(32)),
         children: [
+          const _SyncStrip(),
           Padding(
             padding: EdgeInsets.fromLTRB(r.s(20), r.s(20), r.s(20), r.s(24)),
             child: Container(
@@ -441,6 +446,7 @@ IconData _iconFor(MobileModule m) => switch (m) {
   MobileModule.reports => Icons.description_outlined,
   MobileModule.tickets => Icons.confirmation_number_outlined,
   MobileModule.alerts => Icons.notifications_active_outlined,
+  MobileModule.documents => Icons.folder_open_outlined,
 };
 
 (String, String) _labelsFor(AppLocalizations l, MobileModule m) => switch (m) {
@@ -452,7 +458,17 @@ IconData _iconFor(MobileModule m) => switch (m) {
   MobileModule.reports => (l.moduleReports, l.moduleReportsSub),
   MobileModule.tickets => (l.moduleTickets, l.moduleTicketsSub),
   MobileModule.alerts => (l.moduleAlerts, l.moduleAlertsSub),
+  MobileModule.documents => (l.moduleDocuments, l.moduleDocumentsSub),
 };
+
+/// Abre el modulo; los que aun no existen avisan que estan en desarrollo.
+void _open(BuildContext context, MobileModule module) {
+  if (module == MobileModule.documents) {
+    context.push('/documents');
+    return;
+  }
+  _comingSoon(context);
+}
 
 void _comingSoon(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -521,7 +537,7 @@ class _ModuleCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(r.s(22)),
       child: InkWell(
         borderRadius: BorderRadius.circular(r.s(22)),
-        onTap: () => _comingSoon(context),
+        onTap: () => _open(context, module),
         child: Padding(
           padding: EdgeInsets.all(r.s(16)),
           child: Column(
@@ -680,6 +696,76 @@ class _SideRail extends StatelessWidget {
               SizedBox(height: r.s(12)),
               for (final e in entries) _NavItem(e, vertical: true),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Lo capturado sin conexion que aun no llego al servidor (DEV-MOB-063): cuantas
+/// operaciones esperan y cuantas piden una decision. Se toca para abrir el
+/// centro de sincronizacion. Sin nada pendiente no ocupa espacio.
+class _SyncStrip extends StatelessWidget {
+  const _SyncStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final p = context.palette;
+    final r = context.responsive;
+    final state = context.watch<SyncCubit>().state;
+    if (!state.enabled || state.isEmpty) return const SizedBox.shrink();
+    final attention = state.attention > 0;
+    final text = attention
+        ? l10n.syncStripAttention(state.attention)
+        : l10n.syncStripPending(state.pending);
+    final color = attention ? StatusColors.open : StatusColors.attended;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.s(20), r.s(12), r.s(20), 0),
+      child: Material(
+        color: p.card,
+        borderRadius: BorderRadius.circular(r.s(16)),
+        child: InkWell(
+          key: const Key('sync-strip'),
+          borderRadius: BorderRadius.circular(r.s(16)),
+          onTap: () => context.push('/sync'),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: r.s(14),
+              vertical: r.s(12),
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(r.s(16)),
+              border: Border.all(color: color),
+            ),
+            child: Row(
+              children: [
+                state.running
+                    ? SizedBox(
+                        width: r.s(18),
+                        height: r.s(18),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(
+                        attention ? Icons.error_outline : Icons.sync,
+                        color: color,
+                        size: r.s(20),
+                      ),
+                SizedBox(width: r.s(12)),
+                Expanded(
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      color: p.textOnBottom,
+                      fontSize: r.s(13.5),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Icon(Icons.chevron_right, color: p.hint, size: r.s(20)),
+              ],
+            ),
           ),
         ),
       ),
