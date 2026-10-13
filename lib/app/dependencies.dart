@@ -28,6 +28,7 @@ import '../features/branding/domain/repositories/branding_repository.dart';
 import '../features/documents/data/repositories/documents_repository_impl.dart';
 import '../features/documents/data/repositories/sample_documents_repository.dart';
 import '../features/documents/data/repositories/unavailable_documents_repository.dart';
+import '../features/documents/data/sync/documents_sync_remote.dart';
 import '../features/documents/domain/entities/document_access.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
@@ -152,8 +153,27 @@ class AppDependencies {
     final queue = OperationQueue(await OfflineDatabase.open());
     // Lo aceptado hace mas de una semana ya no le sirve a nadie.
     await queue.purgeAccepted();
-    // Hasta que el backend publique los endpoints, nada sale de la cola.
-    final engine = SyncEngine(queue, const UnavailableSyncRemote());
+    final fileStore = DiskLocalFileStore();
+    final DocumentsRepository documents = AppConfig.sampleDocuments
+        ? SampleDocumentsRepository()
+        : DocumentsRepositoryImpl(
+            api,
+            // Etiquetas de tipo y categoria en el idioma elegido (o el del
+            // telefono si no eligio ninguno).
+            language: () {
+              final saved = prefs.getString('app_locale');
+              if (saved == 'es' || saved == 'pt') return saved!;
+              return PlatformDispatcher.instance.locale.languageCode == 'pt'
+                  ? 'pt'
+                  : 'es';
+            },
+          );
+    // Los documentos capturados salen por /api/uploads. Con datos de ejemplo
+    // no hay servidor al que enviar y todo se queda en la cola.
+    final SyncRemote remote = documents is DocumentsRepositoryImpl
+        ? DocumentsSyncRemote(api, documents, fileStore)
+        : const UnavailableSyncRemote();
+    final engine = SyncEngine(queue, remote);
     return AppDependencies(
       sync: SyncCubit(queue, engine),
       prefs: prefs,
@@ -166,26 +186,13 @@ class AppDependencies {
       navigationRepository: AppConfig.sampleDocuments
           ? _WithSampleDocuments(NavigationRepositoryImpl(api))
           : NavigationRepositoryImpl(api),
-      documentsRepository: AppConfig.sampleDocuments
-          ? SampleDocumentsRepository()
-          : DocumentsRepositoryImpl(
-              api,
-              // Etiquetas de tipo y categoria en el idioma elegido (o el del
-              // telefono si no eligio ninguno).
-              language: () {
-                final saved = prefs.getString('app_locale');
-                if (saved == 'es' || saved == 'pt') return saved!;
-                return PlatformDispatcher.instance.locale.languageCode == 'pt'
-                    ? 'pt'
-                    : 'es';
-              },
-            ),
+      documentsRepository: documents,
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
       logoStore: DiskLogoStore(),
       fileSource: PlatformFileSource(),
-      fileStore: DiskLocalFileStore(),
+      fileStore: fileStore,
       brandingRepository: BrandingRepositoryImpl(
         api,
         prefs,

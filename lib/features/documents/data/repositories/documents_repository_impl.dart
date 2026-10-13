@@ -145,6 +145,31 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     return lookups.catalogs;
   });
 
+  /// Identificadores que el servidor pide para abrir una carga, a partir de lo
+  /// que capturo la persona (codigos y ruta). Un valor desconocido (por ejemplo
+  /// un tipo que ya no existe) se devuelve nulo.
+  Future<({String? typeId, String? categoryId, String? folderId})>
+  resolveUploadTarget({
+    String? typeCode,
+    String? categoryCode,
+    String? folder,
+  }) async {
+    var lookups = await _loadLookups();
+    bool complete(_Lookups l) =>
+        (typeCode == null || l.typeIds.containsKey(typeCode)) &&
+        (categoryCode == null || l.categoryIds.containsKey(categoryCode)) &&
+        (folder == null || l.folderIds.containsKey(folder));
+    // Lo guardado pudo cambiar en el servidor (una carpeta nueva, por ejemplo).
+    if (!complete(lookups)) lookups = await _loadLookups(force: true);
+    return (
+      typeId: typeCode == null ? null : lookups.typeIds[typeCode],
+      categoryId: categoryCode == null
+          ? null
+          : lookups.categoryIds[categoryCode],
+      folderId: folder == null ? null : lookups.folderIds[folder],
+    );
+  }
+
   Future<_Lookups> _loadLookups({bool force = false}) async {
     final cached = _lookups;
     if (cached != null && !force) return cached;

@@ -197,6 +197,27 @@ class ApiClient {
     }
   }
 
+  /// PUT de un cuerpo binario (bloques de una carga).
+  Future<Map<String, dynamic>?> putBytes(String path, Uint8List bytes) async {
+    try {
+      final r = await _dio.put<dynamic>(
+        path,
+        data: Stream.fromIterable([bytes]),
+        options: Options(
+          contentType: 'application/octet-stream',
+          headers: {Headers.contentLengthHeader: bytes.length},
+          sendTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+      return r.data is Map<String, dynamic>
+          ? r.data as Map<String, dynamic>
+          : null;
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   Future<Map<String, dynamic>?> delete(String path) async {
     try {
       final r = await _dio.delete<dynamic>(path);
