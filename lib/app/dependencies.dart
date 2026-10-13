@@ -15,6 +15,7 @@ import '../core/offline/offline_database.dart';
 import '../core/offline/operation_queue.dart';
 import '../core/offline/sync_cubit.dart';
 import '../core/offline/sync_engine.dart';
+import '../core/pdf/pdf_renderer.dart';
 import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
 import '../core/ui/logo_store.dart';
@@ -89,6 +90,7 @@ class AppDependencies {
     this.deviceInfo = const NoDeviceInfo(),
     this.logoStore = const DownloadLogoStore(),
     this.fileSource = const NoFileSource(),
+    this.pdfRenderer = const NoPdfRenderer(),
     LocalFileStore? fileStore,
     this.brandingRefreshGap = const Duration(minutes: 1),
     SyncCubit? sync,
@@ -107,6 +109,9 @@ class AppDependencies {
 
   /// De donde salen los archivos que se cargan (selector y camara).
   final FileSource fileSource;
+
+  /// Dibuja las paginas de los PDF en la vista previa.
+  final PdfRenderer pdfRenderer;
 
   /// Donde se guardan los archivos de lo capturado sin conexion.
   final LocalFileStore fileStore;
@@ -192,6 +197,7 @@ class AppDependencies {
       deviceInfo: DeviceInfoPlusSource(),
       logoStore: DiskLogoStore(),
       fileSource: PlatformFileSource(),
+      pdfRenderer: PlatformPdfRenderer(),
       fileStore: fileStore,
       brandingRepository: BrandingRepositoryImpl(
         api,

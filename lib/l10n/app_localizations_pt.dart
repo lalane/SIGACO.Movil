@@ -900,8 +900,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este formato não pode ser exibido no app.';
 
   @override
-  String get docsPreviewPdfPendingBody =>
-      'Este dispositivo ainda não exibe documentos PDF.';
+  String get docsPreviewPdfError => 'Não foi possível exibir o PDF.';
+
+  @override
+  String docsPdfPageOf(int page, int total) {
+    return 'Página $page de $total';
+  }
+
+  @override
+  String get docsPdfZoomIn => 'Aproximar';
+
+  @override
+  String get docsPdfZoomOut => 'Afastar';
 
   @override
   String get docsPreviewImageError => 'Não foi possível exibir a imagem.';

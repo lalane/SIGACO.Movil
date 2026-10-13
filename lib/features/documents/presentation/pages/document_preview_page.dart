@@ -9,8 +9,9 @@ import '../../domain/entities/document_preview.dart';
 import '../../domain/repositories/documents_repository.dart';
 import '../bloc/document_preview_cubit.dart';
 import '../widgets/document_state_view.dart';
+import '../widgets/pdf_preview_view.dart';
 
-/// Vista previa (DEV-MOB-071, MQ-MOB-15): imagenes con zoom y desplazamiento.
+/// Vista previa (DEV-MOB-071, MQ-MOB-15): imagenes con zoom y PDF por paginas.
 /// Solo la representacion para ver: ofrecer descarga o abrir en otra app
 /// requeriria un permiso y un alcance que el movil no tiene (DTF M03 §3.1).
 class DocumentPreviewPage extends StatefulWidget {
@@ -56,7 +57,6 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return BlocBuilder<DocumentPreviewCubit, DocumentPreviewState>(
       builder: (context, state) {
         final cubit = context.read<DocumentPreviewCubit>();
@@ -74,11 +74,9 @@ class _Body extends StatelessWidget {
               case PreviewKind.image:
                 return _ImageViewer(preview: preview);
               case PreviewKind.pdf:
-                // Falta elegir e integrar un visor de PDF (plugin nativo): hasta
-                // entonces se dice con claridad y no se ofrece nada mas.
-                return DocumentStateView(
-                  state: DocumentScreenState.previewUnavailable,
-                  body: l10n.docsPreviewPdfPendingBody,
+                return PdfPreviewView(
+                  key: const Key('docs-preview-pdf-view'),
+                  bytes: preview.bytes,
                 );
               case PreviewKind.unsupported:
                 return const DocumentStateView(

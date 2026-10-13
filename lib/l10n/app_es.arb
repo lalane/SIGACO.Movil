@@ -371,7 +371,16 @@
   "docsPreviewNoneNote": "Este formato no tiene vista previa en la app.",
   "docsPreviewUnavailableTitle": "Vista previa no disponible",
   "docsPreviewUnavailableBody": "Este formato no se puede mostrar en la app.",
-  "docsPreviewPdfPendingBody": "Este dispositivo todavía no muestra documentos PDF.",
+  "docsPreviewPdfError": "No se pudo mostrar el PDF.",
+  "docsPdfPageOf": "Página {page} de {total}",
+  "@docsPdfPageOf": {
+    "placeholders": {
+      "page": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "docsPdfZoomIn": "Acercar",
+  "docsPdfZoomOut": "Alejar",
   "docsPreviewImageError": "No se pudo mostrar la imagen.",
   "docsUploadAction": "Cargar documento",
   "docsUploadTitle": "Cargar documento",

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
 import '../core/files/file_source.dart';
+import '../core/pdf/pdf_renderer.dart';
 import '../core/files/local_file_store.dart';
 import '../core/settings/settings_cubit.dart';
 import '../core/theme/app_theme.dart';
@@ -94,6 +95,9 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<FileSource>.value(
           value: widget.dependencies.fileSource,
+        ),
+        RepositoryProvider<PdfRenderer>.value(
+          value: widget.dependencies.pdfRenderer,
         ),
         RepositoryProvider<LocalFileStore>.value(
           value: widget.dependencies.fileStore,

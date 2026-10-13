@@ -36,11 +36,13 @@ void main() {
   late FakeSyncCubit sync;
   late FakeFileSource files;
   late MemoryFileStore store;
+  late FakePdfRenderer pdf;
 
   Future<void> launch(
     WidgetTester tester, {
     List<String> permissions = _viewAndUpload,
     bool openModule = true,
+    FakePdfRenderer? pdfRenderer,
   }) async {
     await tester.runAsync(loadAppFonts);
     useSurface(tester, TestSurface.phone);
@@ -49,6 +51,7 @@ void main() {
     sync = FakeSyncCubit();
     files = FakeFileSource();
     store = MemoryFileStore();
+    pdf = pdfRenderer ?? FakePdfRenderer();
     final deps = AppDependencies(
       prefs: await SharedPreferences.getInstance(),
       authRepository: FakeAuthRepository(),
@@ -65,6 +68,7 @@ void main() {
       logoStore: FakeLogoStore(),
       documentsRepository: repo,
       fileSource: files,
+      pdfRenderer: pdf,
       fileStore: store,
       accessRefreshGap: Duration.zero,
       brandingRefreshGap: Duration.zero,
@@ -113,10 +117,25 @@ void main() {
       expect(find.byIcon(Icons.open_in_new), findsNothing);
     });
 
-    testWidgets('un PDF avisa que este dispositivo aun no lo muestra', (
+    testWidgets('un PDF se muestra por paginas con el visor', (tester) async {
+      await launch(tester, permissions: _viewOnly);
+      await openDoc(tester, 'd-001');
+      await tester.tap(find.byKey(const Key('docs-detail-preview')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('docs-preview-pdf')), findsOneWidget);
+      expect(find.byKey(const Key('docs-pdf-page-1')), findsOneWidget);
+      expect(find.text('Página 1 de 3'), findsWidgets);
+      expect(pdf.opened, 1);
+    });
+
+    testWidgets('si el PDF no se puede abrir, lo dice sin inventar nada', (
       tester,
     ) async {
-      await launch(tester, permissions: _viewOnly);
+      await launch(
+        tester,
+        permissions: _viewOnly,
+        pdfRenderer: FakePdfRenderer(failOpen: true),
+      );
       await openDoc(tester, 'd-001');
       await tester.tap(find.byKey(const Key('docs-detail-preview')));
       await tester.pumpAndSettle();
@@ -124,10 +143,42 @@ void main() {
         find.byKey(const Key('docs-state-previewUnavailable')),
         findsOneWidget,
       );
-      expect(
-        find.text('Este dispositivo todavía no muestra documentos PDF.'),
-        findsOneWidget,
+      expect(find.text('No se pudo mostrar el PDF.'), findsOneWidget);
+    });
+
+    testWidgets('al salir de la vista previa se libera el PDF', (tester) async {
+      await launch(tester, permissions: _viewOnly);
+      await openDoc(tester, 'd-001');
+      await tester.tap(find.byKey(const Key('docs-detail-preview')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(BackButton));
+      await tester.pumpAndSettle();
+      expect(pdf.closed, 1);
+    });
+
+    testWidgets('acercar vuelve a dibujar las paginas mas anchas', (
+      tester,
+    ) async {
+      await launch(tester, permissions: _viewOnly);
+      await openDoc(tester, 'd-001');
+      await tester.tap(find.byKey(const Key('docs-detail-preview')));
+      await tester.pumpAndSettle();
+      final before = pdf.rendered
+          .map((r) => r.$2)
+          .reduce((a, b) => a > b ? a : b);
+      await tester.tap(find.byKey(const Key('docs-pdf-zoom-in')));
+      await tester.pumpAndSettle();
+      final after = pdf.rendered
+          .map((r) => r.$2)
+          .reduce((a, b) => a > b ? a : b);
+      expect(after, greaterThan(before));
+      // Alejar hasta el minimo deja el boton sin efecto.
+      await tester.tap(find.byKey(const Key('docs-pdf-zoom-out')));
+      await tester.pumpAndSettle();
+      final out = tester.widget<IconButton>(
+        find.byKey(const Key('docs-pdf-zoom-out')),
       );
+      expect(out.onPressed, isNull);
     });
 
     testWidgets('un formato sin visor no ofrece la vista previa y lo dice', (

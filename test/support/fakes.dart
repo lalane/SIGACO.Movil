@@ -8,6 +8,7 @@ import 'package:sigaco_movil/core/files/file_source.dart';
 import 'package:sigaco_movil/core/files/local_file_store.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/pdf/pdf_renderer.dart';
 import 'package:sigaco_movil/core/permissions/permission_keys.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
 import 'package:sigaco_movil/core/ui/logo_store.dart';
@@ -487,4 +488,47 @@ class MemoryFileStore implements LocalFileStore {
     kept.remove(path);
     removed.add(path);
   }
+}
+
+/// Visor de PDF de pruebas: un documento con las paginas que se le pidan y una
+/// imagen de 1x1 por pagina.
+class FakePdfRenderer implements PdfRenderer {
+  FakePdfRenderer({this.pages = 3, this.failOpen = false, this.failPage});
+
+  final int pages;
+  final bool failOpen;
+
+  /// Pagina (desde 0) que no se puede dibujar.
+  final int? failPage;
+
+  int opened = 0;
+  int closed = 0;
+  final rendered = <(int, int)>[];
+
+  static final _png = base64Decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  );
+
+  @override
+  Future<PdfDocumentHandle> open(Uint8List bytes) async {
+    if (failOpen) throw StateError('PDF danado');
+    opened++;
+    return PdfDocumentHandle('pdf-$opened', [
+      for (var i = 0; i < pages; i++) const PdfPageSize(595, 842),
+    ]);
+  }
+
+  @override
+  Future<Uint8List> renderPage(
+    PdfDocumentHandle document,
+    int index, {
+    required int width,
+  }) async {
+    if (index == failPage) throw StateError('pagina danada');
+    rendered.add((index, width));
+    return _png;
+  }
+
+  @override
+  Future<void> close(PdfDocumentHandle document) async => closed++;
 }

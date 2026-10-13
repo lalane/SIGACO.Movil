@@ -1700,11 +1700,29 @@ abstract class AppLocalizations {
   /// **'Este formato no se puede mostrar en la app.'**
   String get docsPreviewUnavailableBody;
 
-  /// No description provided for @docsPreviewPdfPendingBody.
+  /// No description provided for @docsPreviewPdfError.
   ///
   /// In es, this message translates to:
-  /// **'Este dispositivo todavía no muestra documentos PDF.'**
-  String get docsPreviewPdfPendingBody;
+  /// **'No se pudo mostrar el PDF.'**
+  String get docsPreviewPdfError;
+
+  /// No description provided for @docsPdfPageOf.
+  ///
+  /// In es, this message translates to:
+  /// **'Página {page} de {total}'**
+  String docsPdfPageOf(int page, int total);
+
+  /// No description provided for @docsPdfZoomIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Acercar'**
+  String get docsPdfZoomIn;
+
+  /// No description provided for @docsPdfZoomOut.
+  ///
+  /// In es, this message translates to:
+  /// **'Alejar'**
+  String get docsPdfZoomOut;
 
   /// No description provided for @docsPreviewImageError.
   ///
