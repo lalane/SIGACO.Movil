@@ -8,9 +8,9 @@ abstract final class PermissionKeys {
   /// Gestor documental: cargar documentos.
   static const documentsUpload = 'DOCUMENTOS:CARGAR_INFORMACION';
 
-  /// Gestor documental: firmar una version. SUPUESTA: el backend todavia no
-  /// tiene esta accion (ver SIGACO_Permisos_Backend_vs_Movil.xlsx).
-  static const documentsSign = 'DOCUMENTOS:FIRMAR_DOCUMENTO';
+  /// Gestor documental: firmar una version (accion FIRMAR del backend; la
+  /// reciben DIRECTOR_NOVA, GERENTE_NOVA y SUPERVISION).
+  static const documentsSign = 'DOCUMENTOS:FIRMAR';
 
   /// Inventario: consultar activos (tambien sirve de base del mapa).
   static const inventoryView = 'INVENTARIO:VISUALIZAR_CONTENIDO';

@@ -789,6 +789,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Seu perfil não pode consultar o gestor documental nesta concessão.';
 
   @override
+  String get docsNoRoadTitle => 'Sem rodovias atribuídas';
+
+  @override
+  String get docsNoRoadBody =>
+      'Seu usuário não tem rodovias atribuídas nesta concessão. Peça ao administrador que as atribua.';
+
+  @override
   String get docsNotFoundTitle => 'O documento não está mais disponível';
 
   @override

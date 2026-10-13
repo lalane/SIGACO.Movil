@@ -491,6 +491,7 @@ void main() {
       (DocumentScreenState.error, 'No se pudieron cargar los documentos'),
       (DocumentScreenState.offline, 'Sin conexión'),
       (DocumentScreenState.noPermission, 'Sin permiso para ver documentos'),
+      (DocumentScreenState.noRoadAccess, 'Sin carreteras asignadas'),
       (DocumentScreenState.notFound, 'El documento ya no está disponible'),
       (
         DocumentScreenState.notAvailableOffline,

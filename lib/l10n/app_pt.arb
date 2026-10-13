@@ -289,6 +289,8 @@
   "docsOfflineBody": "Os documentos precisam de conexão enquanto não estiverem salvos no telefone.",
   "docsNoPermissionTitle": "Sem permissão para ver documentos",
   "docsNoPermissionBody": "Seu perfil não pode consultar o gestor documental nesta concessão.",
+  "docsNoRoadTitle": "Sem rodovias atribuídas",
+  "docsNoRoadBody": "Seu usuário não tem rodovias atribuídas nesta concessão. Peça ao administrador que as atribua.",
   "docsNotFoundTitle": "O documento não está mais disponível",
   "docsNotFoundBody": "Ele pode ter sido movido ou excluído.",
   "docsNotOfflineTitle": "Conteúdo indisponível sem conexão",

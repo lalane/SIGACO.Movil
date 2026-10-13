@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math';
 
@@ -146,6 +147,89 @@ class ApiClient {
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
     }
+  }
+
+  /// GET que devuelve el JSON tal cual llega (objeto o lista).
+  Future<Object?> getJson(String path, {Map<String, Object?>? query}) async {
+    try {
+      final r = await _dio.get<dynamic>(path, queryParameters: _clean(query));
+      return r.data;
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  /// GET de un archivo (vista previa): los bytes y su tipo de contenido.
+  Future<({Uint8List bytes, String contentType})> getBytes(
+    String path, {
+    Map<String, Object?>? query,
+  }) async {
+    try {
+      final r = await _dio.get<List<int>>(
+        path,
+        queryParameters: _clean(query),
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+      return (
+        bytes: Uint8List.fromList(r.data ?? const []),
+        contentType: (r.headers.value(Headers.contentTypeHeader) ?? '')
+            .split(';')
+            .first
+            .trim()
+            .toLowerCase(),
+      );
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(await _readBytesError(e));
+    }
+  }
+
+  Future<Map<String, dynamic>?> put(String path, {Object? data}) async {
+    try {
+      final r = await _dio.put<dynamic>(path, data: data);
+      return r.data is Map<String, dynamic>
+          ? r.data as Map<String, dynamic>
+          : null;
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  Future<Map<String, dynamic>?> delete(String path) async {
+    try {
+      final r = await _dio.delete<dynamic>(path);
+      return r.data is Map<String, dynamic>
+          ? r.data as Map<String, dynamic>
+          : null;
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
+  static Map<String, Object?>? _clean(Map<String, Object?>? query) =>
+      query == null
+      ? null
+      : {
+          for (final e in query.entries)
+            if (e.value != null && e.value.toString().isNotEmpty)
+              e.key: e.value,
+        };
+
+  /// Con respuesta en bytes, el error JSON del servidor llega como bytes: se
+  /// vuelve a leer para conservar su `code`.
+  static Future<DioException> _readBytesError(DioException e) async {
+    final data = e.response?.data;
+    if (data is List<int>) {
+      try {
+        final decoded = jsonDecode(utf8.decode(data));
+        if (decoded is Map<String, dynamic>) {
+          e.response!.data = decoded;
+        }
+      } catch (_) {}
+    }
+    return e;
   }
 
   Future<Map<String, dynamic>?> get(String path) async {

@@ -7,8 +7,8 @@ import '../../../../core/permissions/permission_keys.dart';
 /// lo que el servidor no permitiria (DEV-MOB-092).
 ///
 /// Las claves de Ver y Cargar son las que el backend entrega hoy en
-/// `/api/context/navigation` (`MODULO:ACCION`). La de Firmar es una suposicion:
-/// el backend aun no publica ese permiso. Las claves viven en
+/// `/api/context/navigation` (`MODULO:ACCION`). La de Firmar es
+/// `DOCUMENTOS:FIRMAR`. Las claves viven en
 /// `core/permissions/permission_keys.dart`.
 class DocumentAccess extends Equatable {
   const DocumentAccess({
@@ -25,7 +25,7 @@ class DocumentAccess extends Equatable {
   /// Cargar: ademas de Ver.
   static const uploadKey = PermissionKeys.documentsUpload;
 
-  /// Firmar: ademas de Ver. SUPUESTA: el backend todavia no la entrega.
+  /// Firmar: ademas de Ver.
   static const signKey = PermissionKeys.documentsSign;
 
   /// Cargar y Firmar suponen Ver (§3.1: «Ver + Cargar», «Ver + Firmar»): sin

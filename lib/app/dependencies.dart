@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -23,6 +25,7 @@ import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/branding/data/repositories/branding_repository_impl.dart';
 import '../features/branding/domain/entities/concession_branding.dart';
 import '../features/branding/domain/repositories/branding_repository.dart';
+import '../features/documents/data/repositories/documents_repository_impl.dart';
 import '../features/documents/data/repositories/sample_documents_repository.dart';
 import '../features/documents/data/repositories/unavailable_documents_repository.dart';
 import '../features/documents/domain/entities/document_access.dart';
@@ -165,7 +168,18 @@ class AppDependencies {
           : NavigationRepositoryImpl(api),
       documentsRepository: AppConfig.sampleDocuments
           ? SampleDocumentsRepository()
-          : const UnavailableDocumentsRepository(),
+          : DocumentsRepositoryImpl(
+              api,
+              // Etiquetas de tipo y categoria en el idioma elegido (o el del
+              // telefono si no eligio ninguno).
+              language: () {
+                final saved = prefs.getString('app_locale');
+                if (saved == 'es' || saved == 'pt') return saved!;
+                return PlatformDispatcher.instance.locale.languageCode == 'pt'
+                    ? 'pt'
+                    : 'es';
+              },
+            ),
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),

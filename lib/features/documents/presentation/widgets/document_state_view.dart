@@ -18,6 +18,7 @@ enum DocumentScreenState {
   error,
   offline,
   noPermission,
+  noRoadAccess,
   notFound,
   notAvailableOffline,
   previewUnavailable,
@@ -27,6 +28,7 @@ enum DocumentScreenState {
 DocumentScreenState screenStateFor(DocumentsError error) => switch (error) {
   DocumentsError.network => DocumentScreenState.offline,
   DocumentsError.permissionDenied => DocumentScreenState.noPermission,
+  DocumentsError.noRoadAccess => DocumentScreenState.noRoadAccess,
   DocumentsError.notFound => DocumentScreenState.notFound,
   DocumentsError.notAvailableOffline => DocumentScreenState.notAvailableOffline,
   DocumentsError.server => DocumentScreenState.error,
@@ -128,6 +130,13 @@ class DocumentStateView extends StatelessWidget {
           body: l10n.docsOfflineBody,
           actionLabel: l10n.retry,
           onAction: onRetry,
+        );
+      case DocumentScreenState.noRoadAccess:
+        return _Message(
+          key: key,
+          icon: Icons.add_road_outlined,
+          title: l10n.docsNoRoadTitle,
+          body: l10n.docsNoRoadBody,
         );
       case DocumentScreenState.notFound:
         return _Message(

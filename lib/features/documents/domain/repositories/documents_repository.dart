@@ -10,6 +10,10 @@ enum DocumentsError {
   /// El servidor nego Ver (o la sesion ya no lo permite).
   permissionDenied,
 
+  /// El usuario tiene permiso, pero no carreteras asignadas en la concesion
+  /// activa: el servidor no le muestra documentos (ROAD_ACCESS_REQUIRED).
+  noRoadAccess,
+
   /// El documento ya no existe o no es de esta concesion.
   notFound,
 

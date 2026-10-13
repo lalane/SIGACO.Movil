@@ -1496,6 +1496,18 @@ abstract class AppLocalizations {
   /// **'Tu perfil no puede consultar el gestor documental en esta concesión.'**
   String get docsNoPermissionBody;
 
+  /// No description provided for @docsNoRoadTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin carreteras asignadas'**
+  String get docsNoRoadTitle;
+
+  /// No description provided for @docsNoRoadBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu usuario no tiene carreteras asignadas en esta concesión. Pide al administrador que te las asigne.'**
+  String get docsNoRoadBody;
+
   /// No description provided for @docsNotFoundTitle.
   ///
   /// In es, this message translates to:

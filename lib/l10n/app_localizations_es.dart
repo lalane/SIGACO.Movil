@@ -788,6 +788,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tu perfil no puede consultar el gestor documental en esta concesión.';
 
   @override
+  String get docsNoRoadTitle => 'Sin carreteras asignadas';
+
+  @override
+  String get docsNoRoadBody =>
+      'Tu usuario no tiene carreteras asignadas en esta concesión. Pide al administrador que te las asigne.';
+
+  @override
   String get docsNotFoundTitle => 'El documento ya no está disponible';
 
   @override

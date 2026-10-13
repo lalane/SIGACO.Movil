@@ -195,7 +195,10 @@ class _Form extends StatelessWidget {
           fieldKey: const Key('upload-type'),
           label: l10n.docsUploadType,
           value: state.metadata.typeCode,
-          options: [for (final e in state.catalogs.types) (e.code, e.label)],
+          options: [
+            for (final e in state.catalogs.types)
+              if (e.active) (e.code, e.label),
+          ],
           errorText: error(UploadIssue.typeMissing),
           onChanged: saving ? null : cubit.setType,
         ),
@@ -205,7 +208,8 @@ class _Form extends StatelessWidget {
           value: state.metadata.categoryCode,
           nullLabel: l10n.docsUploadNoCategory,
           options: [
-            for (final e in state.catalogs.categories) (e.code, e.label),
+            for (final e in state.catalogs.categories)
+              if (e.active) (e.code, e.label),
           ],
           onChanged: saving ? null : cubit.setCategory,
         ),
