@@ -80,6 +80,12 @@ class _DocumentsPageState extends State<DocumentsPage> {
     if (picked != null) await cubit.applyFilters(picked);
   }
 
+  Future<void> _upload() async {
+    final cubit = context.read<DocumentsCubit>();
+    await context.push<bool>('/documents/upload');
+    if (mounted && !cubit.isClosed) cubit.refresh();
+  }
+
   Future<void> _open(DocumentSummary doc) async {
     final cubit = context.read<DocumentsCubit>();
     await context.push('/documents/${doc.id}');
@@ -98,6 +104,15 @@ class _DocumentsPageState extends State<DocumentsPage> {
     final p = context.palette;
     return Scaffold(
       backgroundColor: p.gradientBottom,
+      // Cargar exige Ver + Cargar; sin Cargar el boton no se ofrece (DEV-MOB-092).
+      floatingActionButton: widget.access.canView && widget.access.canUpload
+          ? FloatingActionButton.extended(
+              key: const Key('docs-upload'),
+              onPressed: _upload,
+              icon: const Icon(Icons.upload_file),
+              label: Text(l10n.docsUploadAction),
+            )
+          : null,
       body: Column(
         children: [
           SigacoPageHeader(title: l10n.docsTitle),
@@ -282,7 +297,7 @@ class _Results extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: r
                   .sidePadding(minGutter: r.s(20))
-                  .copyWith(top: r.s(4), bottom: r.s(32)),
+                  .copyWith(top: r.s(4), bottom: r.s(96)),
               children: [
                 for (final d in state.items)
                   DocumentTile(

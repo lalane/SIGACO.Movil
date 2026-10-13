@@ -58,6 +58,24 @@ void main() {
       }
     });
 
+    test('con los permisos reales del backend (usuario de pruebas)', () {
+      // Tal como llegan en /api/context/navigation para el modulo DOCUMENTOS.
+      final a = access(const [
+        'DOCUMENTOS:CARGAR_INFORMACION',
+        'DOCUMENTOS:VISUALIZAR_CONTENIDO',
+        'INVENTARIO:VISUALIZAR_CONTENIDO',
+        'TICKETS:CREAR_TICKET',
+      ]);
+      expect((a.canView, a.canUpload, a.canSign), (true, true, false));
+    });
+
+    test('las claves de antes de conocer las del backend ya no valen', () {
+      expect(
+        access(const ['DOCUMENTOS:R', 'DOCUMENTOS:C']),
+        DocumentAccess.none,
+      );
+    });
+
     test('otras claves del menu no cuentan', () {
       expect(access(['MANTENIMIENTO:R', 'DOCUMENTOS:X']), DocumentAccess.none);
     });

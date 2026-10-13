@@ -20,6 +20,7 @@ enum DocumentScreenState {
   noPermission,
   notFound,
   notAvailableOffline,
+  previewUnavailable,
 }
 
 /// El estado de pantalla que corresponde a un fallo del repositorio.
@@ -38,6 +39,7 @@ class DocumentStateView extends StatelessWidget {
     this.view = DocumentView.all,
     this.onRetry,
     this.onClear,
+    this.body,
   });
 
   final DocumentScreenState state;
@@ -50,6 +52,9 @@ class DocumentStateView extends StatelessWidget {
 
   /// Quitar la busqueda y los filtros (sin resultados).
   final VoidCallback? onClear;
+
+  /// Otro texto para la vista previa no disponible (el formato, o el visor).
+  final String? body;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +135,13 @@ class DocumentStateView extends StatelessWidget {
           icon: Icons.find_in_page_outlined,
           title: l10n.docsNotFoundTitle,
           body: l10n.docsNotFoundBody,
+        );
+      case DocumentScreenState.previewUnavailable:
+        return _Message(
+          key: key,
+          icon: Icons.visibility_off_outlined,
+          title: l10n.docsPreviewUnavailableTitle,
+          body: body ?? l10n.docsPreviewUnavailableBody,
         );
       case DocumentScreenState.notAvailableOffline:
         return _Message(

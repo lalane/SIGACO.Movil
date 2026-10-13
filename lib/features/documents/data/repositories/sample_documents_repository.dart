@@ -1,5 +1,9 @@
 import '../../domain/entities/document.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+
 import '../../domain/entities/document_catalogs.dart';
+import '../../domain/entities/document_preview.dart';
 import '../../domain/entities/document_query.dart';
 import '../../domain/repositories/documents_repository.dart';
 
@@ -123,6 +127,25 @@ class SampleDocumentsRepository implements DocumentsRepository {
   }
 
   @override
+  Future<DocumentPreview> preview(String id) async {
+    await _wait();
+    final d = _documents[id];
+    if (d == null) throw const DocumentsException(DocumentsError.notFound);
+    if (!d.previewAvailable) {
+      return DocumentPreview(
+        kind: PreviewKind.unsupported,
+        bytes: Uint8List(0),
+      );
+    }
+    _activity[id] = _clock().toUtc();
+    final kind = PreviewKind.forFormat(d.summary.format);
+    return DocumentPreview(
+      kind: kind,
+      bytes: kind == PreviewKind.image ? _png : Uint8List.fromList(_pdf),
+    );
+  }
+
+  @override
   Future<void> setFavorite(String id, {required bool favorite}) async {
     await _wait();
     final d = _documents[id];
@@ -147,6 +170,19 @@ class SampleDocumentsRepository implements DocumentsRepository {
     );
   }
 }
+
+/// Un PNG de 1x1 y un PDF minimo: lo justo para ejercitar el visor.
+final _png = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+final _pdf = utf8.encode(
+  '%PDF-1.1\n'
+  '1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n'
+  '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n'
+  '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\n'
+  'trailer<</Root 1 0 R>>\n'
+  '%%EOF',
+);
 
 /// Catalogo inicial de tipos documentales (DTF M03 §5.1).
 const sampleTypes = [

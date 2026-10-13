@@ -12,6 +12,7 @@ import 'package:sigaco_movil/features/documents/data/repositories/sample_documen
 import 'package:sigaco_movil/features/documents/domain/entities/document.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_access.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_catalogs.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_preview.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_query.dart';
 import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
 import 'package:sigaco_movil/features/documents/presentation/widgets/document_filters_sheet.dart';
@@ -570,6 +571,12 @@ class _Counting implements DocumentsRepository {
 
   @override
   Future<DocumentDetail> detail(String id) async {
+    calls++;
+    throw const DocumentsException(DocumentsError.notFound);
+  }
+
+  @override
+  Future<DocumentPreview> preview(String id) async {
     calls++;
     throw const DocumentsException(DocumentsError.notFound);
   }

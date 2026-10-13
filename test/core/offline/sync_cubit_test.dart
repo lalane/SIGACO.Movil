@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sigaco_movil/core/offline/uuid.dart';
 import 'package:sigaco_movil/core/offline/offline_database.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
 import 'package:sigaco_movil/core/offline/operation_queue.dart';
@@ -393,6 +394,82 @@ void main() {
       );
       // Si hay informe, es de la pasada vacia de la concesion nueva, no de la vieja.
       expect(cubit.state.lastReport?.accepted ?? 0, 0);
+    });
+  });
+
+  group('guardar una captura (enqueue)', () {
+    test(
+      'entra a la cola de la persona y concesion activas y se envia',
+      () async {
+        await cubit.setScope(_ana);
+        final op = await cubit.enqueue(
+          entity: 'documento',
+          kind: OperationKind.insert,
+          payload: {'name': 'acta.pdf'},
+        );
+        expect(op, isNotNull);
+        expect(op!.scope, _ana);
+        expect(isUuid(op.id), isTrue);
+        await _until(() => remote.sent.contains(op.id), reason: 'se envia');
+        await _until(
+          () => cubit.state.items.every(
+            (o) => o.status != OperationStatus.pending,
+          ),
+        );
+      },
+    );
+
+    test('sin conexion se queda en la cola y no se envia', () async {
+      // Sin red desde el principio: ninguna pasada arranca.
+      cubit.setOnline(false);
+      await cubit.setScope(_ana);
+      final op = await cubit.enqueue(
+        entity: 'documento',
+        kind: OperationKind.insert,
+        payload: {'name': 'acta.pdf'},
+      );
+      await _until(() => cubit.state.pending == 1, reason: 'aparece pendiente');
+      await _quiet();
+      expect(remote.sent, isEmpty);
+      expect(op!.status, OperationStatus.pending);
+    });
+
+    test('sin sesion no guarda nada y lo dice con null', () async {
+      expect(
+        await cubit.enqueue(
+          entity: 'documento',
+          kind: OperationKind.insert,
+          payload: {'name': 'x'},
+        ),
+        isNull,
+      );
+      expect(await queue.list(_ana), isEmpty);
+    });
+
+    test('con la sincronizacion deshabilitada devuelve null', () async {
+      final off = SyncCubit.disabled();
+      await off.setScope(_ana);
+      expect(
+        await off.enqueue(
+          entity: 'documento',
+          kind: OperationKind.insert,
+          payload: const {},
+        ),
+        isNull,
+      );
+      await off.close();
+    });
+
+    test('lo guardado por una persona no lo ve otra', () async {
+      await cubit.setScope(_ana);
+      cubit.setOnline(false);
+      await cubit.enqueue(
+        entity: 'documento',
+        kind: OperationKind.insert,
+        payload: {'name': 'a'},
+      );
+      await cubit.setScope(_anaOtra);
+      expect(cubit.state.items, isEmpty);
     });
   });
 

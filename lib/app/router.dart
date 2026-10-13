@@ -22,7 +22,14 @@ import '../features/auth/presentation/pages/mfa_page.dart';
 import '../features/auth/presentation/pages/recovery_page.dart';
 import '../features/documents/domain/entities/document_access.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
+import '../core/files/file_source.dart';
+import '../core/files/local_file_store.dart';
+import '../core/offline/sync_cubit.dart';
 import '../features/documents/presentation/bloc/document_detail_cubit.dart';
+import '../features/documents/presentation/bloc/document_preview_cubit.dart';
+import '../features/documents/presentation/bloc/document_upload_cubit.dart';
+import '../features/documents/presentation/pages/document_preview_page.dart';
+import '../features/documents/presentation/pages/document_upload_page.dart';
 import '../features/documents/presentation/bloc/documents_cubit.dart';
 import '../features/documents/presentation/pages/document_detail_page.dart';
 import '../features/documents/presentation/pages/documents_page.dart';
@@ -117,6 +124,22 @@ GoRouter createRouter(AuthBloc auth) {
           ),
         ),
         routes: [
+          // Antes que ':id', o "upload" se tomaria por un documento.
+          GoRoute(
+            path: 'upload',
+            builder: (context, _) => BlocProvider(
+              create: (_) => DocumentUploadCubit(
+                repository: context.read<DocumentsRepository>(),
+                sync: context.read<SyncCubit>(),
+                files: context.read<FileSource>(),
+                store: context.read<LocalFileStore>(),
+              ),
+              child: Builder(
+                builder: (context) =>
+                    DocumentUploadPage(access: _documentAccess(context)),
+              ),
+            ),
+          ),
           GoRoute(
             path: ':id',
             builder: (context, state) => BlocProvider(
@@ -129,6 +152,21 @@ GoRouter createRouter(AuthBloc auth) {
                     DocumentDetailPage(access: _documentAccess(context)),
               ),
             ),
+            routes: [
+              GoRoute(
+                path: 'preview',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => DocumentPreviewCubit(
+                    context.read<DocumentsRepository>(),
+                    state.pathParameters['id']!,
+                  ),
+                  child: Builder(
+                    builder: (context) =>
+                        DocumentPreviewPage(access: _documentAccess(context)),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

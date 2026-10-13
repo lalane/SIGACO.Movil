@@ -1,5 +1,6 @@
 import '../entities/document.dart';
 import '../entities/document_catalogs.dart';
+import '../entities/document_preview.dart';
 import '../entities/document_query.dart';
 
 enum DocumentsError {
@@ -35,6 +36,10 @@ abstract interface class DocumentsRepository {
   Future<List<DocumentSummary>> list(DocumentQuery query);
 
   Future<DocumentDetail> detail(String id);
+
+  /// La representacion para ver el documento (nunca el original). Sin conexion y
+  /// sin copia en el telefono lanza [DocumentsError.notAvailableOffline].
+  Future<DocumentPreview> preview(String id);
 
   /// Marca o desmarca el favorito personal del usuario.
   Future<void> setFavorite(String id, {required bool favorite});

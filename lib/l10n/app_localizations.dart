@@ -1657,6 +1657,234 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Fechas en hora de {zone} ({offset})'**
   String docsZoneLegend(String zone, String offset);
+
+  /// No description provided for @docsPreviewOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Previsualizar'**
+  String get docsPreviewOpen;
+
+  /// No description provided for @docsPreviewTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista previa'**
+  String get docsPreviewTitle;
+
+  /// No description provided for @docsPreviewNoneNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Este formato no tiene vista previa en la app.'**
+  String get docsPreviewNoneNote;
+
+  /// No description provided for @docsPreviewUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista previa no disponible'**
+  String get docsPreviewUnavailableTitle;
+
+  /// No description provided for @docsPreviewUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Este formato no se puede mostrar en la app.'**
+  String get docsPreviewUnavailableBody;
+
+  /// No description provided for @docsPreviewPdfPendingBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Este dispositivo todavía no muestra documentos PDF.'**
+  String get docsPreviewPdfPendingBody;
+
+  /// No description provided for @docsPreviewImageError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo mostrar la imagen.'**
+  String get docsPreviewImageError;
+
+  /// No description provided for @docsUploadAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargar documento'**
+  String get docsUploadAction;
+
+  /// No description provided for @docsUploadTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargar documento'**
+  String get docsUploadTitle;
+
+  /// No description provided for @docsUploadPickFiles.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir archivos'**
+  String get docsUploadPickFiles;
+
+  /// No description provided for @docsUploadTakePhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Tomar foto'**
+  String get docsUploadTakePhoto;
+
+  /// No description provided for @docsUploadNoFiles.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige uno o varios archivos, o toma una foto.'**
+  String get docsUploadNoFiles;
+
+  /// No description provided for @docsUploadFileName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get docsUploadFileName;
+
+  /// No description provided for @docsUploadRemove.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar archivo'**
+  String get docsUploadRemove;
+
+  /// No description provided for @docsUploadType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo documental'**
+  String get docsUploadType;
+
+  /// No description provided for @docsUploadCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría (opcional)'**
+  String get docsUploadCategory;
+
+  /// No description provided for @docsUploadFolder.
+  ///
+  /// In es, this message translates to:
+  /// **'Carpeta (opcional)'**
+  String get docsUploadFolder;
+
+  /// No description provided for @docsUploadNoCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin categoría'**
+  String get docsUploadNoCategory;
+
+  /// No description provided for @docsUploadRoot.
+  ///
+  /// In es, this message translates to:
+  /// **'Nivel inicial'**
+  String get docsUploadRoot;
+
+  /// No description provided for @docsUploadDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción (opcional)'**
+  String get docsUploadDescription;
+
+  /// No description provided for @docsUploadDescriptionOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción (obligatoria para «Otro»)'**
+  String get docsUploadDescriptionOther;
+
+  /// No description provided for @docsUploadSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar documento'**
+  String get docsUploadSave;
+
+  /// No description provided for @docsUploadSaving.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardando…'**
+  String get docsUploadSaving;
+
+  /// No description provided for @docsUploadOfflineNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Se guarda en el dispositivo y se envía cuando haya conexión. No es un documento del servidor hasta que se confirme.'**
+  String get docsUploadOfflineNote;
+
+  /// No description provided for @docsUploadSaveFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Algunos archivos no se pudieron guardar en el teléfono. Siguen aquí para que lo intentes de nuevo.'**
+  String get docsUploadSaveFailed;
+
+  /// No description provided for @docsIssueNoFile.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige al menos un archivo.'**
+  String get docsIssueNoFile;
+
+  /// No description provided for @docsIssueEmptyFile.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo está vacío.'**
+  String get docsIssueEmptyFile;
+
+  /// No description provided for @docsIssueBlocked.
+  ///
+  /// In es, this message translates to:
+  /// **'Este tipo de archivo no está permitido.'**
+  String get docsIssueBlocked;
+
+  /// No description provided for @docsIssueNameEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un nombre.'**
+  String get docsIssueNameEmpty;
+
+  /// No description provided for @docsIssueNameInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre no puede tener < > : \" / \\ | ? * ni terminar en punto.'**
+  String get docsIssueNameInvalid;
+
+  /// No description provided for @docsIssueNameTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'El nombre pasa de 255 caracteres: acórtalo.'**
+  String get docsIssueNameTooLong;
+
+  /// No description provided for @docsIssueTypeMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo documental.'**
+  String get docsIssueTypeMissing;
+
+  /// No description provided for @docsIssueDescriptionRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Para el tipo «Otro» escribe una descripción de al menos 10 caracteres.'**
+  String get docsIssueDescriptionRequired;
+
+  /// No description provided for @docsIssueDescriptionTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'La descripción pasa de 2000 caracteres.'**
+  String get docsIssueDescriptionTooLong;
+
+  /// No description provided for @docsUploadDoneTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardado en el dispositivo'**
+  String get docsUploadDoneTitle;
+
+  /// No description provided for @docsUploadDoneBody.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 documento pendiente de sincronización. No estará en el servidor hasta que se confirme.} other{{count} documentos pendientes de sincronización. No estarán en el servidor hasta que se confirmen.}}'**
+  String docsUploadDoneBody(int count);
+
+  /// No description provided for @docsUploadDoneSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver pendientes'**
+  String get docsUploadDoneSync;
+
+  /// No description provided for @docsUploadDoneBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver al listado'**
+  String get docsUploadDoneBack;
 }
 
 class _AppLocalizationsDelegate

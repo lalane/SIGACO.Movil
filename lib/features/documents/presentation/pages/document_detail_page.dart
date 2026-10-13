@@ -9,7 +9,10 @@ import '../../../../core/ui/page_header.dart';
 import '../../../../core/ui/zone_format.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/document.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../domain/entities/document_access.dart';
+import '../../domain/entities/document_preview.dart';
 import '../../domain/repositories/documents_repository.dart';
 import '../bloc/document_detail_cubit.dart';
 import '../document_labels.dart';
@@ -139,6 +142,24 @@ class _Detail extends StatelessWidget {
           alignment: Alignment.centerLeft,
           child: SignatureBadge(signature: s.signature),
         ),
+        SizedBox(height: r.s(14)),
+        if (detail.previewAvailable &&
+            PreviewKind.forFormat(s.format) != PreviewKind.unsupported)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              key: const Key('docs-detail-preview'),
+              onPressed: () => context.push('/documents/${s.id}/preview'),
+              icon: const Icon(Icons.visibility_outlined),
+              label: Text(l10n.docsPreviewOpen),
+            ),
+          )
+        else
+          Text(
+            l10n.docsPreviewNoneNote,
+            key: const Key('docs-detail-no-preview'),
+            style: TextStyle(color: p.hint, fontSize: r.s(12.5)),
+          ),
         SizedBox(height: r.s(16)),
         Container(
           padding: EdgeInsets.symmetric(horizontal: r.s(16), vertical: r.s(6)),

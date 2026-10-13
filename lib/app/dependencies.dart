@@ -7,6 +7,8 @@ import '../core/api/api_client.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
 import '../core/device/device_info_source.dart';
+import '../core/files/file_source.dart';
+import '../core/files/local_file_store.dart';
 import '../core/offline/offline_database.dart';
 import '../core/offline/operation_queue.dart';
 import '../core/offline/sync_cubit.dart';
@@ -82,9 +84,12 @@ class AppDependencies {
     this.serverReachable = const Stream<bool>.empty(),
     this.deviceInfo = const NoDeviceInfo(),
     this.logoStore = const DownloadLogoStore(),
+    this.fileSource = const NoFileSource(),
+    LocalFileStore? fileStore,
     this.brandingRefreshGap = const Duration(minutes: 1),
     SyncCubit? sync,
   }) : brandingRepository = brandingRepository ?? const _NoBranding(),
+       fileStore = fileStore ?? DiskLocalFileStore(),
        documentsRepository =
            documentsRepository ?? const UnavailableDocumentsRepository(),
        sessionScope = sessionScope ?? SessionScope(),
@@ -95,6 +100,12 @@ class AppDependencies {
   final CredentialStore credentialStore;
   final NavigationRepository navigationRepository;
   final BrandingRepository brandingRepository;
+
+  /// De donde salen los archivos que se cargan (selector y camara).
+  final FileSource fileSource;
+
+  /// Donde se guardan los archivos de lo capturado sin conexion.
+  final LocalFileStore fileStore;
 
   /// Gestor documental (M03). Hasta que el backend publique sus endpoints, no
   /// hay datos: la pantalla ofrece reintentar.
@@ -159,6 +170,8 @@ class AppDependencies {
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
       logoStore: DiskLogoStore(),
+      fileSource: PlatformFileSource(),
+      fileStore: DiskLocalFileStore(),
       brandingRepository: BrandingRepositoryImpl(
         api,
         prefs,

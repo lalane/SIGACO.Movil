@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sigaco_movil/features/documents/data/repositories/sample_documents_repository.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_catalogs.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_preview.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_query.dart';
 import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
 import 'package:sigaco_movil/features/documents/presentation/bloc/document_detail_cubit.dart';
@@ -42,6 +43,9 @@ class _Spy implements DocumentsRepository {
 
   @override
   Future<DocumentDetail> detail(String id) => inner.detail(id);
+
+  @override
+  Future<DocumentPreview> preview(String id) => inner.preview(id);
 
   @override
   Future<void> setFavorite(String id, {required bool favorite}) async {
@@ -325,6 +329,9 @@ class _Throwing implements DocumentsRepository {
 
   @override
   Future<DocumentDetail> detail(String id) async => throw StateError('x');
+
+  @override
+  Future<DocumentPreview> preview(String id) async => throw StateError('x');
 
   @override
   Future<void> setFavorite(String id, {required bool favorite}) async {}

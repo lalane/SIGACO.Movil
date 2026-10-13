@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/status_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/document.dart';
+import '../domain/entities/document_upload.dart';
 
 String viewLabel(AppLocalizations l10n, DocumentView view) => switch (view) {
   DocumentView.all => l10n.docsViewAll,
@@ -50,3 +51,15 @@ String formatBytes(int bytes) {
       : value.toStringAsFixed(1);
   return '$text ${units[unit]}';
 }
+
+String issueText(AppLocalizations l10n, UploadIssue issue) => switch (issue) {
+  UploadIssue.noFile => l10n.docsIssueNoFile,
+  UploadIssue.emptyFile => l10n.docsIssueEmptyFile,
+  UploadIssue.blockedExtension => l10n.docsIssueBlocked,
+  UploadIssue.nameEmpty => l10n.docsIssueNameEmpty,
+  UploadIssue.nameInvalid => l10n.docsIssueNameInvalid,
+  UploadIssue.nameTooLong => l10n.docsIssueNameTooLong,
+  UploadIssue.typeMissing => l10n.docsIssueTypeMissing,
+  UploadIssue.descriptionRequired => l10n.docsIssueDescriptionRequired,
+  UploadIssue.descriptionTooLong => l10n.docsIssueDescriptionTooLong,
+};

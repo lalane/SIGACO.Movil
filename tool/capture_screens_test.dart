@@ -17,6 +17,14 @@ import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
 import 'package:sigaco_movil/core/connectivity/connectivity_source.dart';
 import 'package:sigaco_movil/core/device/device_info_source.dart';
+import 'package:sigaco_movil/core/files/file_source.dart';
+import 'package:sigaco_movil/core/files/picked_file.dart';
+import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/offline/sync_cubit.dart';
+import 'package:sigaco_movil/features/documents/data/repositories/sample_documents_repository.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_access.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_preview.dart';
+import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
 import 'package:sigaco_movil/features/auth/domain/entities/auth_entities.dart';
 import 'package:sigaco_movil/features/navigation/domain/entities/navigation_entities.dart';
 
@@ -54,6 +62,92 @@ const _allModules = NavigationMenu(
   ],
 );
 
+const _docsMenu = NavigationMenu(
+  modules: [
+    NavigationItem(code: 'PANEL', name: 'Panel'),
+    NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
+    NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+    NavigationItem(code: 'REPORTES', name: 'Reportes'),
+    NavigationItem(code: 'TICKETS', name: 'Tickets'),
+    NavigationItem(code: 'ALERTAS_OPERATIVAS', name: 'Alertas'),
+    NavigationItem(code: 'DOCUMENTOS', name: 'Gestor documental'),
+  ],
+  permissions: [
+    DocumentAccess.viewKey,
+    DocumentAccess.uploadKey,
+    DocumentAccess.signKey,
+  ],
+);
+
+final _docsNow = DateTime.utc(2026, 10, 12, 12);
+
+/// Documentos de ejemplo con una imagen de verdad para la vista previa.
+class _DocsWithImage extends SampleDocumentsRepository {
+  _DocsWithImage(this.image) : super(clock: () => _docsNow);
+
+  final Uint8List image;
+
+  @override
+  Future<DocumentPreview> preview(String id) async {
+    final p = await super.preview(id);
+    return p.kind == PreviewKind.image
+        ? DocumentPreview(kind: PreviewKind.image, bytes: image)
+        : p;
+  }
+}
+
+/// Un plano de ejemplo dibujado a mano: cuadricula, trazo de vialidad y marcas.
+Future<Uint8List> _drawSampleImage() async {
+  const w = 900.0, h = 700.0;
+  final recorder = ui.PictureRecorder();
+  final c = Canvas(recorder);
+  c.drawRect(
+    const Rect.fromLTWH(0, 0, w, h),
+    Paint()..color = const Color(0xFFEFF3F1),
+  );
+  final grid = Paint()
+    ..color = const Color(0xFFCBD5D1)
+    ..strokeWidth = 1;
+  for (var x = 0.0; x <= w; x += 50) {
+    c.drawLine(Offset(x, 0), Offset(x, h), grid);
+  }
+  for (var y = 0.0; y <= h; y += 50) {
+    c.drawLine(Offset(0, y), Offset(w, y), grid);
+  }
+  final road = Path()
+    ..moveTo(-20, 560)
+    ..cubicTo(250, 520, 380, 300, 560, 260)
+    ..cubicTo(700, 230, 800, 140, 940, 90);
+  c.drawPath(
+    road,
+    Paint()
+      ..color = const Color(0xFF7C8794)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 46,
+  );
+  c.drawPath(
+    road,
+    Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4,
+  );
+  for (final (x, y) in [(300.0, 470.0), (560.0, 260.0), (780.0, 160.0)]) {
+    c.drawCircle(Offset(x, y), 26, Paint()..color = const Color(0xFFFBBF24));
+    c.drawCircle(
+      Offset(x, y),
+      26,
+      Paint()
+        ..color = const Color(0xFF160F3E)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5,
+    );
+  }
+  final image = await recorder.endRecording().toImage(w.toInt(), h.toInt());
+  final data = await image.toByteData(format: ui.ImageByteFormat.png);
+  return data!.buffer.asUint8List();
+}
+
 void main() {
   final outDir = Platform.environment['CAPTURE_DIR'] ?? 'capturas';
   final iconsFont = Platform.environment['MATERIAL_ICONS_FONT'];
@@ -82,6 +176,9 @@ void main() {
     FakeNavigationRepository? nav,
     ConnectivitySource? network,
     Stream<bool>? server,
+    DocumentsRepository? documents,
+    SyncCubit? sync,
+    FileSource? files,
   }) async {
     // Enlace que abre la app (por ejemplo el regreso del navegador).
     if (deepLink == null) {
@@ -110,6 +207,10 @@ void main() {
       connectivity: network ?? const AlwaysOnlineSource(),
       serverReachable: server ?? const Stream<bool>.empty(),
       deviceInfo: _CaptureDevice(),
+      documentsRepository: documents,
+      sync: sync,
+      fileSource: files ?? const NoFileSource(),
+      fileStore: MemoryFileStore(),
     );
     boundary = GlobalKey();
     await tester.pumpWidget(
@@ -371,5 +472,222 @@ void main() {
     await shoot(tester, '34_cuenta_dispositivo.png');
     await server.close();
     await network.controller.close();
+  });
+  testWidgets('capturas del gestor documental y la sincronizacion', (
+    tester,
+  ) async {
+    addTearDown(tester.view.reset);
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    late Uint8List sample;
+    await tester.runAsync(() async {
+      await loadAppFonts();
+      if (iconsFont != null && File(iconsFont).existsSync()) {
+        final bytes = File(iconsFont).readAsBytesSync();
+        final loader = FontLoader('MaterialIcons')
+          ..addFont(Future.value(ByteData.sublistView(bytes)));
+        await loader.load();
+      }
+      sample = await _drawSampleImage();
+    });
+
+    const scope = OfflineScope(userId: 'u1', concessionId: 'c0');
+    final pending = SyncState(
+      scope: scope,
+      lastSyncAt: DateTime.utc(2026, 10, 12, 15, 30),
+      items: [
+        fakeOperation('a', name: 'Acta de obra.pdf'),
+        fakeOperation('b', name: 'Foto puente km 87.jpg'),
+        fakeOperation(
+          'c',
+          status: OperationStatus.rejected,
+          name: 'virus.exe',
+          error: 'Extensión bloqueada: .exe',
+          attempts: 2,
+        ),
+        fakeOperation(
+          'd',
+          status: OperationStatus.conflict,
+          entity: 'documento_firma',
+          kind: OperationKind.update,
+        ),
+      ],
+    );
+
+    Future<void> tapKey(WidgetTester t, String key) async {
+      await t.ensureVisible(find.byKey(Key(key)));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(Key(key)));
+      await t.pumpAndSettle();
+    }
+
+    Future<void> back(WidgetTester t) async {
+      await t.tap(find.byType(BackButton));
+      await t.pumpAndSettle();
+    }
+
+    // Menu con el gestor documental y el aviso de lo pendiente.
+    final repo = _DocsWithImage(sample);
+    final sync = FakeSyncCubit(pending);
+    final files = FakeFileSource(
+      files: const [
+        SelectedFile(
+          name: 'Acta de obra.pdf',
+          path: '/tmp/acta.pdf',
+          sizeBytes: 2457600,
+        ),
+        SelectedFile(
+          name: 'Foto puente km 87.jpg',
+          path: '/tmp/foto.jpg',
+          sizeBytes: 3145728,
+        ),
+      ],
+    );
+    await reset(tester);
+    await launch(
+      tester,
+      nav: FakeNavigationRepository(menu: _docsMenu),
+      documents: repo,
+      sync: sync,
+      files: files,
+    );
+    await signIn(tester);
+    await shoot(tester, '35_menu_aviso_pendientes.png');
+    await tester.ensureVisible(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    await shoot(tester, '35b_menu_tarjeta_gestor_documental.png');
+
+    // Consulta
+    await tester.tap(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    await shoot(tester, '36_documentos_todos.png');
+    await tapKey(tester, 'docs-view-recent');
+    await shoot(tester, '37_documentos_recientes.png');
+    await tapKey(tester, 'docs-view-favorites');
+    await shoot(tester, '38_documentos_favoritos.png');
+    await tapKey(tester, 'docs-view-all');
+    await tester.enterText(find.byKey(const Key('docs-search')), 'inspección');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await shoot(tester, '39_documentos_busqueda.png');
+    await tester.enterText(find.byKey(const Key('docs-search')), 'zzz');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    await shoot(tester, '40_documentos_sin_resultados.png');
+    await tester.tap(find.byKey(const Key('docs-state-action')));
+    await tester.pumpAndSettle();
+
+    // Filtros
+    await tapKey(tester, 'docs-filters-button');
+    await tapKey(tester, 'filter-type');
+    await tester.tap(find.text('Registro o evidencia').last);
+    await tester.pumpAndSettle();
+    await shoot(tester, '41_documentos_filtros.png');
+    await tapKey(tester, 'filters-clear');
+
+    // Ficha y vista previa
+    await tester.tap(find.byKey(const Key('doc-tile-d-001')));
+    await tester.pumpAndSettle();
+    await shoot(tester, '42_documento_ficha.png');
+    await tapKey(tester, 'docs-detail-preview');
+    await shoot(tester, '43_vista_previa_pdf_pendiente.png');
+    await back(tester);
+    await back(tester);
+    // La imagen se decodifica de forma asincrona: se precarga para la captura.
+    await tester.runAsync(() async {
+      await precacheImage(
+        MemoryImage(sample),
+        tester.element(find.byType(SigacoApp)),
+      );
+    });
+    await tester.tap(find.byKey(const Key('doc-tile-d-004')));
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'docs-detail-preview');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await shoot(tester, '44_vista_previa_imagen.png');
+    await back(tester);
+    await back(tester);
+
+    // Carga
+    await tapKey(tester, 'docs-upload');
+    await shoot(tester, '45_carga_vacia.png');
+    await tapKey(tester, 'upload-pick');
+    await shoot(tester, '46_carga_con_archivos.png');
+    await tapKey(tester, 'upload-save');
+    await shoot(tester, '47_carga_con_errores.png');
+    await tapKey(tester, 'upload-type');
+    await tester.tap(find.text('Informe').last);
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'upload-save');
+    await shoot(tester, '48_carga_guardada_en_dispositivo.png');
+    await tapKey(tester, 'upload-done-back');
+
+    // Estados
+    await reset(tester);
+    await launch(
+      tester,
+      nav: FakeNavigationRepository(
+        menu: const NavigationMenu(
+          modules: [
+            NavigationItem(code: 'DOCUMENTOS', name: 'Gestor documental'),
+          ],
+          permissions: [DocumentAccess.uploadKey],
+        ),
+      ),
+      documents: _DocsWithImage(sample),
+    );
+    await signIn(tester);
+    await tester.ensureVisible(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    await shoot(tester, '49_documentos_sin_permiso.png');
+
+    await reset(tester);
+    final failing = _DocsWithImage(sample)
+      ..failNextWith = DocumentsError.server;
+    await launch(
+      tester,
+      nav: FakeNavigationRepository(menu: _docsMenu),
+      documents: failing,
+    );
+    await signIn(tester);
+    await tester.ensureVisible(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Gestor documental'));
+    await tester.pumpAndSettle();
+    // El primer fallo lo consume el catalogo; se fuerza otro para la lista.
+    failing.failNextWith = DocumentsError.network;
+    await tapKey(tester, 'docs-view-mine');
+    await shoot(tester, '50_documentos_sin_conexion.png');
+
+    // Centro de sincronizacion y conflicto
+    await reset(tester);
+    final sync2 = FakeSyncCubit(pending);
+    sync2.conflicts['d'] = SyncConflict(
+      operationId: 'd',
+      createdAt: DateTime.utc(2026, 10, 12, 16),
+      localVersion: 3,
+      serverVersion: 4,
+      serverPayload: const {
+        'hash': 'xyz',
+        'estado': 'validado',
+        'nota': 'igual',
+      },
+      message: 'La versión ya fue firmada por otra persona',
+    );
+    await launch(
+      tester,
+      nav: FakeNavigationRepository(menu: _docsMenu),
+      documents: _DocsWithImage(sample),
+      sync: sync2,
+    );
+    await signIn(tester);
+    await tester.tap(find.byKey(const Key('sync-strip')));
+    await tester.pumpAndSettle();
+    await shoot(tester, '51_sincronizacion_centro.png');
+    await tapKey(tester, 'sync-review-d');
+    await shoot(tester, '52_sincronizacion_conflicto.png');
   });
 }

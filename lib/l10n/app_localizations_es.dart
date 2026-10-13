@@ -873,4 +873,139 @@ class AppLocalizationsEs extends AppLocalizations {
   String docsZoneLegend(String zone, String offset) {
     return 'Fechas en hora de $zone ($offset)';
   }
+
+  @override
+  String get docsPreviewOpen => 'Previsualizar';
+
+  @override
+  String get docsPreviewTitle => 'Vista previa';
+
+  @override
+  String get docsPreviewNoneNote =>
+      'Este formato no tiene vista previa en la app.';
+
+  @override
+  String get docsPreviewUnavailableTitle => 'Vista previa no disponible';
+
+  @override
+  String get docsPreviewUnavailableBody =>
+      'Este formato no se puede mostrar en la app.';
+
+  @override
+  String get docsPreviewPdfPendingBody =>
+      'Este dispositivo todavía no muestra documentos PDF.';
+
+  @override
+  String get docsPreviewImageError => 'No se pudo mostrar la imagen.';
+
+  @override
+  String get docsUploadAction => 'Cargar documento';
+
+  @override
+  String get docsUploadTitle => 'Cargar documento';
+
+  @override
+  String get docsUploadPickFiles => 'Elegir archivos';
+
+  @override
+  String get docsUploadTakePhoto => 'Tomar foto';
+
+  @override
+  String get docsUploadNoFiles =>
+      'Elige uno o varios archivos, o toma una foto.';
+
+  @override
+  String get docsUploadFileName => 'Nombre';
+
+  @override
+  String get docsUploadRemove => 'Quitar archivo';
+
+  @override
+  String get docsUploadType => 'Tipo documental';
+
+  @override
+  String get docsUploadCategory => 'Categoría (opcional)';
+
+  @override
+  String get docsUploadFolder => 'Carpeta (opcional)';
+
+  @override
+  String get docsUploadNoCategory => 'Sin categoría';
+
+  @override
+  String get docsUploadRoot => 'Nivel inicial';
+
+  @override
+  String get docsUploadDescription => 'Descripción (opcional)';
+
+  @override
+  String get docsUploadDescriptionOther =>
+      'Descripción (obligatoria para «Otro»)';
+
+  @override
+  String get docsUploadSave => 'Guardar documento';
+
+  @override
+  String get docsUploadSaving => 'Guardando…';
+
+  @override
+  String get docsUploadOfflineNote =>
+      'Se guarda en el dispositivo y se envía cuando haya conexión. No es un documento del servidor hasta que se confirme.';
+
+  @override
+  String get docsUploadSaveFailed =>
+      'Algunos archivos no se pudieron guardar en el teléfono. Siguen aquí para que lo intentes de nuevo.';
+
+  @override
+  String get docsIssueNoFile => 'Elige al menos un archivo.';
+
+  @override
+  String get docsIssueEmptyFile => 'El archivo está vacío.';
+
+  @override
+  String get docsIssueBlocked => 'Este tipo de archivo no está permitido.';
+
+  @override
+  String get docsIssueNameEmpty => 'Escribe un nombre.';
+
+  @override
+  String get docsIssueNameInvalid =>
+      'El nombre no puede tener < > : \" / \\ | ? * ni terminar en punto.';
+
+  @override
+  String get docsIssueNameTooLong =>
+      'El nombre pasa de 255 caracteres: acórtalo.';
+
+  @override
+  String get docsIssueTypeMissing => 'Elige el tipo documental.';
+
+  @override
+  String get docsIssueDescriptionRequired =>
+      'Para el tipo «Otro» escribe una descripción de al menos 10 caracteres.';
+
+  @override
+  String get docsIssueDescriptionTooLong =>
+      'La descripción pasa de 2000 caracteres.';
+
+  @override
+  String get docsUploadDoneTitle => 'Guardado en el dispositivo';
+
+  @override
+  String docsUploadDoneBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count documentos pendientes de sincronización. No estarán en el servidor hasta que se confirmen.',
+      one:
+          '1 documento pendiente de sincronización. No estará en el servidor hasta que se confirme.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get docsUploadDoneSync => 'Ver pendientes';
+
+  @override
+  String get docsUploadDoneBack => 'Volver al listado';
 }

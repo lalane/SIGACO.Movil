@@ -1,5 +1,6 @@
 import '../../domain/entities/document.dart';
 import '../../domain/entities/document_catalogs.dart';
+import '../../domain/entities/document_preview.dart';
 import '../../domain/entities/document_query.dart';
 import '../../domain/repositories/documents_repository.dart';
 
@@ -16,6 +17,9 @@ class UnavailableDocumentsRepository implements DocumentsRepository {
 
   @override
   Future<DocumentDetail> detail(String id) async => throw _error;
+
+  @override
+  Future<DocumentPreview> preview(String id) async => throw _error;
 
   @override
   Future<void> setFavorite(String id, {required bool favorite}) async =>

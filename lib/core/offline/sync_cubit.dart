@@ -150,6 +150,33 @@ class SyncCubit extends Cubit<SyncState> {
     if (online && !was) unawaited(syncNow());
   }
 
+  /// Guarda una captura en la cola de la persona y concesion activas y la
+  /// envia si hay red. Devuelve null si no hay donde guardarla (sin sesion o sin
+  /// base local): quien captura debe avisar que NO quedo guardada.
+  Future<PendingOperation?> enqueue({
+    required String entity,
+    required OperationKind kind,
+    required Map<String, Object?> payload,
+    String? recordId,
+    int? baseVersion,
+    DateTime? capturedAt,
+  }) async {
+    final scope = state.scope;
+    final queue = _queue;
+    if (isClosed || scope == null || queue == null) return null;
+    final operation = await queue.enqueue(
+      scope,
+      entity: entity,
+      kind: kind,
+      payload: payload,
+      recordId: recordId,
+      baseVersion: baseVersion,
+      capturedAt: capturedAt,
+    );
+    unawaited(syncNow());
+    return operation;
+  }
+
   /// Al volver a la app.
   Future<void> onResume() => syncNow(minGap: resumeGap);
 

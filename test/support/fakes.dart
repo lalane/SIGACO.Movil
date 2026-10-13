@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigaco_movil/core/files/file_source.dart';
+import 'package:sigaco_movil/core/files/local_file_store.dart';
+import 'package:sigaco_movil/core/files/picked_file.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
 import 'package:sigaco_movil/core/ui/logo_store.dart';
@@ -333,6 +337,36 @@ class FakeSyncCubit extends Cubit<SyncState> implements SyncCubit {
   @override
   void setOnline(bool online) => calls.add('online:$online');
 
+  /// Lo que se guardo en la cola con [enqueue], en orden.
+  final enqueued = <PendingOperation>[];
+
+  /// Si es true, [enqueue] no guarda nada (sin sesion o sin base local).
+  bool failEnqueue = false;
+
+  @override
+  Future<PendingOperation?> enqueue({
+    required String entity,
+    required OperationKind kind,
+    required Map<String, Object?> payload,
+    String? recordId,
+    int? baseVersion,
+    DateTime? capturedAt,
+  }) async {
+    if (failEnqueue || state.scope == null) return null;
+    final op = fakeOperation(
+      'q${enqueued.length + 1}',
+      entity: entity,
+      kind: kind,
+      payload: payload,
+      scope: state.scope!,
+      baseVersion: baseVersion,
+    );
+    enqueued.add(op);
+    calls.add('enqueue:$entity');
+    emit(state.copyWith(items: [...state.items, op]));
+    return op;
+  }
+
   @override
   Future<void> onResume() async => calls.add('resume');
 
@@ -393,4 +427,53 @@ PendingOperation fakeOperation(
     recordId: kind == OperationKind.insert ? null : 'rec-1',
     baseVersion: kind == OperationKind.insert ? null : baseVersion ?? 1,
   );
+}
+
+/// Selector de archivos de pruebas: devuelve lo que se le prepare.
+class FakeFileSource implements FileSource {
+  FakeFileSource({List<SelectedFile>? files, this.photo})
+    : files = files ?? <SelectedFile>[];
+
+  /// Lo que devolvera el selector la proxima vez (y siempre).
+  List<SelectedFile> files;
+  SelectedFile? photo;
+  int picks = 0;
+  int photos = 0;
+
+  @override
+  Future<List<SelectedFile>> pickFiles() async {
+    picks++;
+    return files;
+  }
+
+  @override
+  Future<SelectedFile?> takePhoto() async {
+    photos++;
+    return photo;
+  }
+}
+
+/// Guarda los archivos en memoria (solo anota rutas) y puede fallar con algunos.
+class MemoryFileStore implements LocalFileStore {
+  final kept = <String, String>{};
+  final removed = <String>[];
+
+  /// Nombres de archivo que no se pueden guardar (disco lleno, por ejemplo).
+  final failNames = <String>{};
+
+  @override
+  Future<String> keep(String sourcePath, {required String name}) async {
+    if (failNames.contains(name)) {
+      throw const FileSystemException('sin espacio');
+    }
+    final path = '/kept/${kept.length + 1}/$name';
+    kept[path] = sourcePath;
+    return path;
+  }
+
+  @override
+  Future<void> remove(String path) async {
+    kept.remove(path);
+    removed.add(path);
+  }
 }

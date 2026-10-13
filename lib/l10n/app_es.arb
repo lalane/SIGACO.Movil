@@ -363,5 +363,50 @@
         "type": "String"
       }
     }
-  }
+  },
+  "docsPreviewOpen": "Previsualizar",
+  "docsPreviewTitle": "Vista previa",
+  "docsPreviewNoneNote": "Este formato no tiene vista previa en la app.",
+  "docsPreviewUnavailableTitle": "Vista previa no disponible",
+  "docsPreviewUnavailableBody": "Este formato no se puede mostrar en la app.",
+  "docsPreviewPdfPendingBody": "Este dispositivo todavía no muestra documentos PDF.",
+  "docsPreviewImageError": "No se pudo mostrar la imagen.",
+  "docsUploadAction": "Cargar documento",
+  "docsUploadTitle": "Cargar documento",
+  "docsUploadPickFiles": "Elegir archivos",
+  "docsUploadTakePhoto": "Tomar foto",
+  "docsUploadNoFiles": "Elige uno o varios archivos, o toma una foto.",
+  "docsUploadFileName": "Nombre",
+  "docsUploadRemove": "Quitar archivo",
+  "docsUploadType": "Tipo documental",
+  "docsUploadCategory": "Categoría (opcional)",
+  "docsUploadFolder": "Carpeta (opcional)",
+  "docsUploadNoCategory": "Sin categoría",
+  "docsUploadRoot": "Nivel inicial",
+  "docsUploadDescription": "Descripción (opcional)",
+  "docsUploadDescriptionOther": "Descripción (obligatoria para «Otro»)",
+  "docsUploadSave": "Guardar documento",
+  "docsUploadSaving": "Guardando…",
+  "docsUploadOfflineNote": "Se guarda en el dispositivo y se envía cuando haya conexión. No es un documento del servidor hasta que se confirme.",
+  "docsUploadSaveFailed": "Algunos archivos no se pudieron guardar en el teléfono. Siguen aquí para que lo intentes de nuevo.",
+  "docsIssueNoFile": "Elige al menos un archivo.",
+  "docsIssueEmptyFile": "El archivo está vacío.",
+  "docsIssueBlocked": "Este tipo de archivo no está permitido.",
+  "docsIssueNameEmpty": "Escribe un nombre.",
+  "docsIssueNameInvalid": "El nombre no puede tener < > : \" / \\ | ? * ni terminar en punto.",
+  "docsIssueNameTooLong": "El nombre pasa de 255 caracteres: acórtalo.",
+  "docsIssueTypeMissing": "Elige el tipo documental.",
+  "docsIssueDescriptionRequired": "Para el tipo «Otro» escribe una descripción de al menos 10 caracteres.",
+  "docsIssueDescriptionTooLong": "La descripción pasa de 2000 caracteres.",
+  "docsUploadDoneTitle": "Guardado en el dispositivo",
+  "docsUploadDoneBody": "{count, plural, =1{1 documento pendiente de sincronización. No estará en el servidor hasta que se confirme.} other{{count} documentos pendientes de sincronización. No estarán en el servidor hasta que se confirmen.}}",
+  "@docsUploadDoneBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "docsUploadDoneSync": "Ver pendientes",
+  "docsUploadDoneBack": "Volver al listado"
 }
