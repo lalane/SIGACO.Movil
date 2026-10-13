@@ -8,6 +8,7 @@ import 'package:sigaco_movil/core/files/file_source.dart';
 import 'package:sigaco_movil/core/files/local_file_store.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/permissions/permission_keys.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
 import 'package:sigaco_movil/core/ui/logo_store.dart';
 import 'package:sigaco_movil/features/auth/domain/entities/auth_entities.dart';
@@ -63,9 +64,19 @@ const testProfile = MyProfile(
   ],
 );
 
-NavigationMenu menuWith(List<String> codes) => NavigationMenu(
-  modules: [for (final c in codes) NavigationItem(code: c, name: c)],
-);
+/// Menu con los modulos dados. Como el backend real, trae el permiso de Ver de
+/// los modulos de consulta (Inventario y Documentos), salvo que se indique otra
+/// lista en [permissions].
+NavigationMenu menuWith(List<String> codes, {List<String>? permissions}) =>
+    NavigationMenu(
+      modules: [for (final c in codes) NavigationItem(code: c, name: c)],
+      permissions:
+          permissions ??
+          [
+            if (codes.contains('INVENTARIO')) PermissionKeys.inventoryView,
+            if (codes.contains('DOCUMENTOS')) PermissionKeys.documentsView,
+          ],
+    );
 
 /// Marca por concesion (`brands['c0']`); sin entrada, la concesion no tiene marca.
 class FakeBrandingRepository implements BrandingRepository {

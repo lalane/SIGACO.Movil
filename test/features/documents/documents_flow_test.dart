@@ -40,6 +40,7 @@ void main() {
   Future<void> launch(
     WidgetTester tester, {
     List<String> permissions = _viewAndUpload,
+    bool openModule = true,
   }) async {
     await tester.runAsync(loadAppFonts);
     useSurface(tester, TestSurface.phone);
@@ -76,8 +77,10 @@ void main() {
     await tester.enterText(find.byType(EditableText).at(1), 'S3creto!x');
     await tester.tap(find.byType(FilledButton).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Gestor documental'));
-    await tester.pumpAndSettle();
+    if (openModule) {
+      await tester.tap(find.text('Gestor documental'));
+      await tester.pumpAndSettle();
+    }
   }
 
   Finder tile(String id) => find.byKey(Key('doc-tile-$id'));
@@ -190,9 +193,14 @@ void main() {
     });
 
     testWidgets('Cargar sin Ver no concede nada', (tester) async {
-      await launch(tester, permissions: const [DocumentAccess.uploadKey]);
+      await launch(
+        tester,
+        permissions: const [DocumentAccess.uploadKey],
+        openModule: false,
+      );
+      // Sin Ver ni siquiera aparece la tarjeta: no habria nada que abrir.
+      expect(find.text('Gestor documental'), findsNothing);
       expect(find.byKey(const Key('docs-upload')), findsNothing);
-      expect(find.byKey(const Key('docs-state-noPermission')), findsOneWidget);
     });
   });
 

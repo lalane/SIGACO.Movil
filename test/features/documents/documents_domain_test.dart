@@ -82,6 +82,37 @@ void main() {
   });
 
   group('tarjeta del menu (DEV-MOB-091)', () {
+    test('sin el permiso Ver no aparece aunque el menu traiga el modulo', () {
+      expect(
+        MobileModule.availableIn(
+          menuWith(
+            ['DOCUMENTOS'],
+            permissions: ['DOCUMENTOS:CARGAR_INFORMACION'],
+          ),
+        ),
+        isNot(contains(MobileModule.documents)),
+      );
+    });
+
+    test('el mapa sale de Inventario, no de Panel (PANEL_WEB es solo web)', () {
+      expect(MobileModule.availableIn(menuWith(['PANEL'])), [
+        MobileModule.dashboard,
+      ]);
+      expect(
+        MobileModule.availableIn(
+          menuWith(
+            ['INVENTARIO'],
+            permissions: ['INVENTARIO:CREAR_NUEVO_ELEMENTO'],
+          ),
+        ),
+        [MobileModule.inventory],
+      );
+      expect(
+        MobileModule.availableIn(menuWith(['INVENTARIO'])),
+        containsAll([MobileModule.map, MobileModule.inventory]),
+      );
+    });
+
     test('aparece solo si el menu trae el modulo', () {
       expect(
         MobileModule.availableIn(menuWith(['DOCUMENTOS'])),

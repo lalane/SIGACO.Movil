@@ -232,7 +232,8 @@ void main() {
       final available = MobileModule.availableIn(
         menuWith(['PANEL', 'CONFIGURACION', 'CONFIGURACION.REGIONAL']),
       );
-      expect(available, [MobileModule.map, MobileModule.dashboard]);
+      // Panel solo trae PANEL:PANEL_WEB (web): no habilita el mapa.
+      expect(available, [MobileModule.dashboard]);
     });
 
     testWidgets('el inicio no ofrece Configuracion aunque el menu la traiga', (

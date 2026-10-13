@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -15,6 +16,8 @@ import 'package:sigaco_movil/features/documents/domain/entities/document_catalog
 import 'package:sigaco_movil/features/documents/domain/entities/document_preview.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_query.dart';
 import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
+import 'package:sigaco_movil/features/documents/presentation/bloc/documents_cubit.dart';
+import 'package:sigaco_movil/features/documents/presentation/pages/documents_page.dart';
 import 'package:sigaco_movil/features/documents/presentation/widgets/document_filters_sheet.dart';
 import 'package:sigaco_movil/features/documents/presentation/widgets/document_state_view.dart';
 import 'package:sigaco_movil/features/navigation/domain/entities/navigation_entities.dart';
@@ -389,14 +392,34 @@ void main() {
   });
 
   group('estados de pantalla (078)', () {
-    testWidgets('sin el permiso Ver no consulta nada (092)', (tester) async {
+    testWidgets('sin el permiso Ver no aparece la tarjeta (092)', (
+      tester,
+    ) async {
       final repo = _Counting();
       await launch(
         tester,
         menu: _menu(permissions: const [DocumentAccess.uploadKey]),
         repo: repo,
       );
-      await openModule(tester);
+      expect(find.text('Gestor documental'), findsNothing);
+      expect(repo.calls, 0);
+    });
+
+    testWidgets('la pantalla tampoco consulta nada sin Ver, aunque se abra', (
+      tester,
+    ) async {
+      await tester.runAsync(loadAppFonts);
+      useSurface(tester, TestSurface.phone);
+      final repo = _Counting();
+      await tester.pumpWidget(
+        _Host(
+          child: BlocProvider(
+            create: (_) => DocumentsCubit(repo),
+            child: const DocumentsPage(access: DocumentAccess.none),
+          ),
+        ),
+      );
+      await tester.pump();
       expect(find.byKey(const Key('docs-state-noPermission')), findsOneWidget);
       expect(find.text('Sin permiso para ver documentos'), findsOneWidget);
       expect(find.byKey(const Key('docs-search')), findsNothing);

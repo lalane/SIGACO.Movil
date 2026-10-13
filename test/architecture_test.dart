@@ -86,6 +86,8 @@ void main() {
       if (_layer(file) != 'domain') return false;
       if (imp.startsWith('dart:')) return false;
       if (imp.startsWith('package:equatable/')) return false;
+      // Constantes de permisos: Dart puro compartido por varios modulos.
+      if (imp.startsWith('core/permissions/')) return false;
       if (imp.startsWith('package:')) return true;
       return _layer(imp) != 'domain' || _feature(imp) != _feature(file);
     });

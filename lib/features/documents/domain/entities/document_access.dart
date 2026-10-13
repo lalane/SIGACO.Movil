@@ -1,12 +1,15 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/permissions/permission_keys.dart';
+
 /// Lo que el usuario puede hacer en el gestor documental, segun los permisos de
 /// su sesion (DTF M03 §3.1). La interfaz no concede nada: solo deja de ofrecer
 /// lo que el servidor no permitiria (DEV-MOB-092).
 ///
 /// Las claves de Ver y Cargar son las que el backend entrega hoy en
 /// `/api/context/navigation` (`MODULO:ACCION`). La de Firmar es una suposicion:
-/// el backend aun no publica ese permiso. Estan aqui y en ningun otro lugar.
+/// el backend aun no publica ese permiso. Las claves viven en
+/// `core/permissions/permission_keys.dart`.
 class DocumentAccess extends Equatable {
   const DocumentAccess({
     this.canView = false,
@@ -17,13 +20,13 @@ class DocumentAccess extends Equatable {
   static const none = DocumentAccess();
 
   /// Ver: consulta, ficha y vista previa.
-  static const viewKey = 'DOCUMENTOS:VISUALIZAR_CONTENIDO';
+  static const viewKey = PermissionKeys.documentsView;
 
   /// Cargar: ademas de Ver.
-  static const uploadKey = 'DOCUMENTOS:CARGAR_INFORMACION';
+  static const uploadKey = PermissionKeys.documentsUpload;
 
   /// Firmar: ademas de Ver. SUPUESTA: el backend todavia no la entrega.
-  static const signKey = 'DOCUMENTOS:FIRMAR_DOCUMENTO';
+  static const signKey = PermissionKeys.documentsSign;
 
   /// Cargar y Firmar suponen Ver (§3.1: «Ver + Cargar», «Ver + Firmar»): sin
   /// Ver no se concede ninguna accion.
