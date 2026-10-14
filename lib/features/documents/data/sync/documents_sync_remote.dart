@@ -9,9 +9,11 @@ import '../../../../core/offline/operation.dart';
 import '../../../../core/offline/sync_engine.dart';
 import '../repositories/documents_repository_impl.dart';
 
-/// Envia al servidor los documentos capturados en el telefono (`/api/uploads`):
-/// abre la carga, manda los bloques que faltan, la completa y espera a que el
-/// servidor la valide y publique.
+/// Envia al servidor lo capturado en el telefono del gestor documental:
+///  - `documento`: la carga (`/api/uploads`): abre la carga, manda los bloques
+///    que faltan, la completa y espera a que el servidor la valide y publique;
+///  - `documento_firma`: la firma de una version (HU-MOB-03-03), que antes de
+///    enviarse comprueba que la version no cambio desde la captura.
 ///
 /// Es reanudable: la clave de idempotencia de la operacion es el `uploadId`, y
 /// abrir la carga otra vez devuelve la misma con sus `missingBlocks`, asi que un
@@ -58,13 +60,91 @@ class DocumentsSyncRemote implements SyncRemote {
   }
 
   @override
-  Future<SyncOutcome> send(PendingOperation operation) async {
-    if (operation.entity != 'documento' ||
-        operation.kind != OperationKind.insert) {
-      return SyncRejected(
-        'La app no sabe enviar «${operation.entity}» (${operation.kind.name})',
-      );
+  Future<SyncOutcome> send(PendingOperation operation) {
+    if (operation.kind == OperationKind.insert) {
+      switch (operation.entity) {
+        case 'documento':
+          return _sendDocument(operation);
+        case 'documento_firma':
+          return _sendSignature(operation);
+      }
     }
+    return Future.value(
+      SyncRejected(
+        'La app no sabe enviar «${operation.entity}» (${operation.kind.name})',
+      ),
+    );
+  }
+
+  /// La firma de una version (DTF M03 §3.2): la operacion guarda el documento,
+  /// la version, su hash y la version base que se veia al capturarla. Si el
+  /// documento ya tiene otra version vigente o el archivo cambio, la firma no se
+  /// aplica y queda en conflicto; nunca se firma en silencio otra cosa. El
+  /// servidor valida ademas permiso, estado y hash, y repetir la firma de la
+  /// misma persona no crea otra.
+  Future<SyncOutcome> _sendSignature(PendingOperation operation) async {
+    final documentId = operation.recordId;
+    final versionId = operation.payload['versionId'] as String?;
+    if (documentId == null || versionId == null || versionId.isEmpty) {
+      return const SyncRejected('Falta el documento o la version a firmar');
+    }
+    try {
+      // El historial no cuenta como abrir el documento (no altera «Recientes»).
+      final versions = await _api.getJson(
+        '/api/documents/$documentId/versions',
+      );
+      Map<String, dynamic>? current;
+      if (versions is List) {
+        for (final v in versions) {
+          if (v is Map<String, dynamic> && v['isCurrent'] == true) current = v;
+        }
+      }
+      if (current != null) {
+        final number = (current['number'] as num?)?.toInt();
+        final checksum = current['checksum'] as String?;
+        final captured = operation.payload['checksum'] as String?;
+        final baseChanged =
+            operation.baseVersion != null &&
+            number != null &&
+            number != operation.baseVersion;
+        final fileChanged =
+            current['id'] == versionId &&
+            captured != null &&
+            captured.isNotEmpty &&
+            checksum != null &&
+            checksum != captured;
+        if (baseChanged || fileChanged) {
+          return SyncConflicted(
+            serverVersion: number,
+            serverPayload: {
+              'name': operation.payload['name'],
+              'version': number == null ? null : 'V$number',
+              'versionId': current['id'],
+              'checksum': checksum,
+            },
+            message: baseChanged
+                ? 'El documento ya tiene otra version vigente (V$number).'
+                : 'El archivo de la version cambio desde que se capturo la firma.',
+          );
+        }
+      }
+      final result = await _api.post(
+        '/api/documents/$documentId/versions/$versionId/signature',
+      );
+      return SyncAccepted(
+        response: {
+          'signatureStatus': result?['signatureStatus'],
+          'alreadySigned': result?['alreadySigned'],
+        },
+      );
+    } on ApiFailure catch (f) {
+      return _outcomeFor(f);
+    } on FormatException {
+      return const SyncRetryLater('Respuesta inesperada del servidor');
+    }
+  }
+
+  Future<SyncOutcome> _sendDocument(PendingOperation operation) async {
     final payload = operation.payload;
     final path = payload['localPath'] as String?;
     final name = payload['name'] as String?;

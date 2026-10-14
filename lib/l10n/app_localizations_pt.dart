@@ -914,6 +914,60 @@ class AppLocalizationsPt extends AppLocalizations {
   String get docsPdfZoomOut => 'Afastar';
 
   @override
+  String docsFromPhone(String date) {
+    return 'Sem conexão · salvo no telefone em $date';
+  }
+
+  @override
+  String get docsSignAction => 'Assinar';
+
+  @override
+  String get docsSignConfirmTitle => 'Assinar este documento?';
+
+  @override
+  String docsSignConfirmBody(String name, String version) {
+    return 'Você vai assinar «$name», versão $version. A assinatura fica registrada com seu nome, seu perfil e a data, e não pode ser desfeita.';
+  }
+
+  @override
+  String get docsSignConfirmOffline =>
+      'Sem conexão: a assinatura ficará pendente e será aplicada ao sincronizar, somente se o documento não mudou.';
+
+  @override
+  String get docsSignConfirmButton => 'Assinar';
+
+  @override
+  String get docsSignDone => 'Documento assinado.';
+
+  @override
+  String get docsSignQueued =>
+      'Assinatura salva. Será aplicada ao sincronizar.';
+
+  @override
+  String get docsSignPending => 'Assinatura pendente de sincronização';
+
+  @override
+  String get docsSignAttention =>
+      'A assinatura pendente precisa da sua decisão na central de sincronização.';
+
+  @override
+  String get docsSignAlready => 'Esta versão já foi assinada por outra pessoa.';
+
+  @override
+  String get docsSignMismatch =>
+      'O arquivo não corresponde ao hash da versão: não é possível assinar. Avise um administrador.';
+
+  @override
+  String get docsSignProfile =>
+      'Assinar exige um perfil assinante nesta concessão.';
+
+  @override
+  String get docsSignFailed => 'Não foi possível assinar. Tente novamente.';
+
+  @override
+  String get fieldLastSync => 'Última sincronização';
+
+  @override
   String get docsPreviewImageError => 'Não foi possível exibir a imagem.';
 
   @override

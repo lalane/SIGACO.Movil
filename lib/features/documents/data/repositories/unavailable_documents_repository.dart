@@ -13,7 +13,7 @@ class UnavailableDocumentsRepository implements DocumentsRepository {
   static const _error = DocumentsException(DocumentsError.server);
 
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) async => throw _error;
+  Future<DocumentListing> list(DocumentQuery query) async => throw _error;
 
   @override
   Future<DocumentDetail> detail(String id) async => throw _error;
@@ -27,4 +27,8 @@ class UnavailableDocumentsRepository implements DocumentsRepository {
 
   @override
   Future<DocumentCatalogs> catalogs() async => throw _error;
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) async =>
+      throw _error;
 }

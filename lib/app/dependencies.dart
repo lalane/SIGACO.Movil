@@ -16,8 +16,11 @@ import '../core/offline/operation_queue.dart';
 import '../core/offline/sync_cubit.dart';
 import '../core/offline/sync_engine.dart';
 import '../core/pdf/pdf_renderer.dart';
+import '../core/permissions/permission_keys.dart';
+import 'sync_revalidation.dart';
 import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
+import '../core/time/concession_zone_source.dart';
 import '../core/ui/logo_store.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/data/repositories/credential_vault.dart';
@@ -26,6 +29,8 @@ import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/branding/data/repositories/branding_repository_impl.dart';
 import '../features/branding/domain/entities/concession_branding.dart';
 import '../features/branding/domain/repositories/branding_repository.dart';
+import '../features/documents/data/cache/documents_cache.dart';
+import '../features/documents/data/repositories/cached_documents_repository.dart';
 import '../features/documents/data/repositories/documents_repository_impl.dart';
 import '../features/documents/data/repositories/sample_documents_repository.dart';
 import '../features/documents/data/repositories/unavailable_documents_repository.dart';
@@ -91,6 +96,7 @@ class AppDependencies {
     this.logoStore = const DownloadLogoStore(),
     this.fileSource = const NoFileSource(),
     this.pdfRenderer = const NoPdfRenderer(),
+    this.zoneSource = const NoConcessionZoneSource(),
     LocalFileStore? fileStore,
     this.brandingRefreshGap = const Duration(minutes: 1),
     SyncCubit? sync,
@@ -112,6 +118,9 @@ class AppDependencies {
 
   /// Dibuja las paginas de los PDF en la vista previa.
   final PdfRenderer pdfRenderer;
+
+  /// De donde sale la zona horaria de la concesion cuando la marca no la trae.
+  final ConcessionZoneSource zoneSource;
 
   /// Donde se guardan los archivos de lo capturado sin conexion.
   final LocalFileStore fileStore;
@@ -159,28 +168,70 @@ class AppDependencies {
     // Lo aceptado hace mas de una semana ya no le sirve a nadie.
     await queue.purgeAccepted();
     final fileStore = DiskLocalFileStore();
-    final DocumentsRepository documents = AppConfig.sampleDocuments
-        ? SampleDocumentsRepository()
-        : DocumentsRepositoryImpl(
-            api,
-            // Etiquetas de tipo y categoria en el idioma elegido (o el del
-            // telefono si no eligio ninguno).
-            language: () {
-              final saved = prefs.getString('app_locale');
-              if (saved == 'es' || saved == 'pt') return saved!;
-              return PlatformDispatcher.instance.locale.languageCode == 'pt'
-                  ? 'pt'
-                  : 'es';
-            },
-          );
-    // Los documentos capturados salen por /api/uploads. Con datos de ejemplo
-    // no hay servidor al que enviar y todo se queda en la cola.
-    final SyncRemote remote = documents is DocumentsRepositoryImpl
-        ? DocumentsSyncRemote(api, documents, fileStore)
-        : const UnavailableSyncRemote();
-    final engine = SyncEngine(queue, remote);
+    final scope = SessionScope();
+    final NavigationRepository navigation = AppConfig.sampleDocuments
+        ? _WithSampleDocuments(NavigationRepositoryImpl(api))
+        : NavigationRepositoryImpl(api);
+    final DocumentsRepository documents;
+    final SyncRemote remote;
+    if (AppConfig.sampleDocuments) {
+      // Con datos de ejemplo no hay servidor al que enviar: todo se queda en la
+      // cola.
+      documents = SampleDocumentsRepository();
+      remote = const UnavailableSyncRemote();
+    } else {
+      final server = DocumentsRepositoryImpl(
+        api,
+        // Etiquetas de tipo y categoria en el idioma elegido (o el del
+        // telefono si no eligio ninguno).
+        language: () {
+          final saved = prefs.getString('app_locale');
+          if (saved == 'es' || saved == 'pt') return saved!;
+          return PlatformDispatcher.instance.locale.languageCode == 'pt'
+              ? 'pt'
+              : 'es';
+        },
+      );
+      // Lo ya consultado queda en el telefono para verlo sin conexion; es de la
+      // persona y concesion activas y se descarta al cambiar o cerrar sesion.
+      final cache = FileDocumentsCache();
+      scope
+        ..register(server)
+        ..register(cache);
+      documents = CachedDocumentsRepository(server, cache);
+      // Los documentos y las firmas capturados salen por /api/uploads y
+      // /api/documents.
+      remote = DocumentsSyncRemote(api, server, fileStore);
+    }
+    final engine = SyncEngine(
+      queue,
+      remote,
+      preflight: SyncRevalidation(
+        navigation: navigation,
+        queue: queue,
+        requiredPermissions: const {
+          'documento': [
+            PermissionKeys.documentsView,
+            PermissionKeys.documentsUpload,
+          ],
+          'documento_firma': [
+            PermissionKeys.documentsView,
+            PermissionKeys.documentsSign,
+          ],
+        },
+      ).call,
+    );
     return AppDependencies(
-      sync: SyncCubit(queue, engine),
+      sync: SyncCubit(
+        queue,
+        engine,
+        // Lo que la persona descarta no debe dejar su archivo en el telefono.
+        onDiscarded: (operation) async {
+          final path = operation.payload['localPath'];
+          if (path is String) await fileStore.remove(path);
+        },
+      ),
+      sessionScope: scope,
       prefs: prefs,
       authRepository: AuthRepositoryImpl(api),
       credentialStore: CredentialVault(
@@ -188,9 +239,7 @@ class AppDependencies {
         prefs,
         LocalAuthentication(),
       ),
-      navigationRepository: AppConfig.sampleDocuments
-          ? _WithSampleDocuments(NavigationRepositoryImpl(api))
-          : NavigationRepositoryImpl(api),
+      navigationRepository: navigation,
       documentsRepository: documents,
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
@@ -198,6 +247,7 @@ class AppDependencies {
       logoStore: DiskLogoStore(),
       fileSource: PlatformFileSource(),
       pdfRenderer: PlatformPdfRenderer(),
+      zoneSource: ApiConcessionZoneSource(api),
       fileStore: fileStore,
       brandingRepository: BrandingRepositoryImpl(
         api,

@@ -31,7 +31,10 @@ DocumentScreenState screenStateFor(DocumentsError error) => switch (error) {
   DocumentsError.noRoadAccess => DocumentScreenState.noRoadAccess,
   DocumentsError.notFound => DocumentScreenState.notFound,
   DocumentsError.notAvailableOffline => DocumentScreenState.notAvailableOffline,
-  DocumentsError.server => DocumentScreenState.error,
+  DocumentsError.server ||
+  DocumentsError.alreadySigned ||
+  DocumentsError.contentMismatch ||
+  DocumentsError.signerProfileRequired => DocumentScreenState.error,
 };
 
 class DocumentStateView extends StatelessWidget {

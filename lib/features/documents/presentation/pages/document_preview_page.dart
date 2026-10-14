@@ -10,6 +10,7 @@ import '../../domain/repositories/documents_repository.dart';
 import '../bloc/document_preview_cubit.dart';
 import '../widgets/document_state_view.dart';
 import '../widgets/pdf_preview_view.dart';
+import '../widgets/phone_copy_banner.dart';
 
 /// Vista previa (DEV-MOB-071, MQ-MOB-15): imagenes con zoom y PDF por paginas.
 /// Solo la representacion para ver: ofrecer descarga o abrir en otra app
@@ -70,22 +71,35 @@ class _Body extends StatelessWidget {
             );
           case DocumentPreviewStatus.ready:
             final preview = state.preview!;
-            switch (preview.kind) {
-              case PreviewKind.image:
-                return _ImageViewer(preview: preview);
-              case PreviewKind.pdf:
-                return PdfPreviewView(
-                  key: const Key('docs-preview-pdf-view'),
-                  bytes: preview.bytes,
-                );
-              case PreviewKind.unsupported:
-                return const DocumentStateView(
-                  state: DocumentScreenState.previewUnavailable,
-                );
-            }
+            final saved = preview.cachedAt;
+            final viewer = _viewerFor(preview);
+            return saved == null
+                ? viewer
+                : Column(
+                    children: [
+                      PhoneCopyBanner(savedAt: saved),
+                      Expanded(child: viewer),
+                    ],
+                  );
         }
       },
     );
+  }
+
+  Widget _viewerFor(DocumentPreview preview) {
+    switch (preview.kind) {
+      case PreviewKind.image:
+        return _ImageViewer(preview: preview);
+      case PreviewKind.pdf:
+        return PdfPreviewView(
+          key: const Key('docs-preview-pdf-view'),
+          bytes: preview.bytes,
+        );
+      case PreviewKind.unsupported:
+        return const DocumentStateView(
+          state: DocumentScreenState.previewUnavailable,
+        );
+    }
   }
 }
 

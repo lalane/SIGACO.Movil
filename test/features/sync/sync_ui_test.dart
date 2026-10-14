@@ -136,6 +136,61 @@ void main() {
     });
   });
 
+  group('perfil: ultima sincronizacion (041)', () {
+    Future<void> openAccount(WidgetTester tester, SyncState state) async {
+      await launch(tester, state: state);
+      await tester.tap(find.text('JP'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('dice cuando termino la ultima sincronizacion', (tester) async {
+      await openAccount(
+        tester,
+        withItems(const [], last: DateTime.utc(2026, 10, 12, 15, 30)),
+      );
+      final row = find.text('Última sincronización');
+      await tester.scrollUntilVisible(
+        row,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(row, findsOneWidget);
+      expect(find.text('2026-10-12'), findsNothing);
+      // La fecha concreta depende de la zona del telefono: basta que no sea el guion.
+      final value = find.descendant(
+        of: find.ancestor(of: row, matching: find.byType(Row)).first,
+        matching: find.byType(Text),
+      );
+      expect(
+        tester
+            .widgetList<Text>(value)
+            .any((t) => (t.data ?? '').contains('2026')),
+        isTrue,
+      );
+    });
+
+    testWidgets('si nunca se sincronizo, no inventa una fecha', (tester) async {
+      await openAccount(tester, withItems(const []));
+      final row = find.text('Última sincronización');
+      await tester.scrollUntilVisible(
+        row,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(row, findsOneWidget);
+    });
+
+    testWidgets('sin sincronizacion local no se ofrece la fila', (
+      tester,
+    ) async {
+      await openAccount(tester, const SyncState(enabled: false));
+
+      expect(find.text('Última sincronización'), findsNothing);
+    });
+  });
+
   group('centro de sincronizacion (065)', () {
     Future<FakeSyncCubit> openSync(
       WidgetTester tester,
@@ -152,6 +207,9 @@ void main() {
           200,
           scrollable: find.byType(Scrollable).first,
         );
+        // Con mas filas en la cuenta, el borde de la fila puede quedar fuera.
+        await tester.ensureVisible(find.byKey(const Key('account-sync')));
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const Key('account-sync')));
       } else {
         await tester.tap(strip);

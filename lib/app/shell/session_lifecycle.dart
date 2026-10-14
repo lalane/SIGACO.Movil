@@ -10,6 +10,7 @@ import '../../core/offline/operation.dart';
 import '../../core/offline/sync_cubit.dart';
 import '../../core/settings/settings_cubit.dart';
 import '../../core/time/concession_zone_cubit.dart';
+import '../../core/time/concession_zone_source.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -105,8 +106,11 @@ class _SessionLifecycleState extends State<SessionLifecycle>
         navigation.add(const NavigationRequested());
         // Los colores y el logo son de la concesion activa (MAR-08, MAR-09).
         final id = s.activeConcessionId;
+        // La zona de la concesion anterior no vale para esta.
+        context.read<ConcessionZoneCubit>().setFallback(null);
         if (id != null) {
           branding.load(id);
+          _loadZone(id);
         } else {
           branding.clear();
         }
@@ -115,21 +119,42 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       final userId = s.user?.id;
       final concession = s.activeConcessionId;
       if (userId != null && concession != null) {
+        final offlineScope = OfflineScope(
+          userId: userId,
+          concessionId: concession,
+        );
+        // Los caches de documentos son de esta persona y concesion.
+        widget.scope.bind(offlineScope);
         sync.setOnline(context.read<ConnectivityCubit>().state.online);
-        sync.setScope(OfflineScope(userId: userId, concessionId: concession));
+        sync.setScope(offlineScope);
       } else {
+        widget.scope.bind(null);
         sync.setScope(null);
       }
       timeout.start(Duration(minutes: s.idleTimeoutMinutes));
     } else if (s.step == AuthStep.signedOut) {
       navigation.add(const NavigationCleared());
       branding.clear();
+      context.read<ConcessionZoneCubit>().setFallback(null);
       sync.setScope(null);
       timeout.stop();
       widget.scope.clear();
+      widget.scope.bind(null);
     }
     _lastStep = s.step;
     _lastConcession = s.activeConcessionId;
+  }
+
+  /// La zona horaria de la concesion segun el servidor, para cuando la marca no
+  /// la trae (DEV-MOB-057, RN-04). Si el servidor no responde se usa la del
+  /// telefono y se vuelve a intentar al recuperar la conexion.
+  Future<void> _loadZone(String concessionId) async {
+    final cubit = context.read<ConcessionZoneCubit>();
+    final source = context.read<ConcessionZoneSource>();
+    final zone = await source.load(concessionId);
+    // La persona pudo cambiar de concesion o cerrar sesion mientras tanto.
+    if (!mounted || _lastConcession != concessionId) return;
+    if (zone != null) cubit.setFallback(zone);
   }
 
   bool get _onSignedInRoute {
@@ -242,6 +267,11 @@ class _SessionLifecycleState extends State<SessionLifecycle>
               );
               // Un cambio de marca hecho en el portal mientras no habia red.
               context.read<BrandingCubit>().refresh(gap: Duration.zero);
+              final id = _lastConcession;
+              if (id != null &&
+                  context.read<ConcessionZoneCubit>().state == null) {
+                _loadZone(id);
+              }
             }
           },
         ),

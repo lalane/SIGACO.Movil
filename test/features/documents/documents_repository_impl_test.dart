@@ -146,12 +146,21 @@ class _Server implements HttpClientAdapter {
         'modifiedBy': {'id': userId, 'username': 'ana@idare.mx'},
         'lastModifiedAt': '2026-10-10T15:30:00Z',
         'currentVersion': {
+          'id': 'ver-3',
+          'checksum': 'abc123',
           'number': 3,
           'sizeBytes': 2048,
           'signatureStatus': 'PENDIENTE_VALIDACION',
           'previewStatus': 'SIN_VISOR',
         },
         'isFavorite': false,
+      };
+    }
+    if (path.endsWith('/signature')) {
+      return {
+        'signature': {'id': 'sig-1', 'validationId': 'V-1'},
+        'alreadySigned': false,
+        'signatureStatus': 'VALIDADO',
       };
     }
     return {'documentId': 'd1', 'isFavorite': true};
@@ -299,6 +308,105 @@ void main() {
       expect(d.folder, 'Obras/2026');
       expect(d.summary.signature, DocumentSignature.pending);
       expect(d.previewAvailable, isFalse);
+    });
+
+    test(
+      'trae el id y el hash de la version vigente, que es lo que se firma',
+      () async {
+        final d = await repo.detail('d1');
+
+        expect(d.versionId, 'ver-3');
+        expect(d.checksum, 'abc123');
+      },
+    );
+  });
+
+  group('firma', () {
+    test('firma la version indicada y devuelve el estado', () async {
+      final status = await repo.sign('d1', 'ver-3');
+
+      expect(status, DocumentSignature.validated);
+      final call = server.requests.last;
+      expect(call.method, 'POST');
+      expect(call.path, '/api/documents/d1/versions/ver-3/signature');
+    });
+
+    Matcher fails(DocumentsError error) => throwsA(
+      isA<DocumentsException>().having((e) => e.error, 'error', error),
+    );
+
+    test('otra persona ya la firmo', () async {
+      server.failWith = 409;
+      server.failBody = {'code': 'VERSION_ALREADY_SIGNED'};
+
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.alreadySigned),
+      );
+    });
+
+    test('el archivo no coincide con su hash', () async {
+      server.failWith = 409;
+      server.failBody = {'code': 'HASH_MISMATCH'};
+
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.contentMismatch),
+      );
+    });
+
+    test('falta un perfil firmante en la concesion', () async {
+      server.failWith = 409;
+      server.failBody = {'code': 'SIGNER_PROFILE_REQUIRED'};
+
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.signerProfileRequired),
+      );
+    });
+
+    test('sin permiso, sin red y version inexistente se distinguen', () async {
+      server.failWith = 403;
+      server.failBody = {'code': 'FORBIDDEN'};
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.permissionDenied),
+      );
+      server.failWith = 404;
+      server.failBody = {'code': 'VERSION_NOT_FOUND'};
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.notFound),
+      );
+      server.failWith = null;
+      server.offline = true;
+      await expectLater(
+        repo.sign('d1', 'ver-3'),
+        fails(DocumentsError.network),
+      );
+    });
+  });
+
+  group('concesion activa', () {
+    int catalogLoads() => server.requests
+        .where((r) => r.path == '/api/documents/catalogs')
+        .length;
+
+    test('lo cargado se reutiliza mientras no cambie la concesion', () async {
+      await repo.list(const DocumentQuery());
+      await repo.list(const DocumentQuery());
+
+      expect(catalogLoads(), 1);
+    });
+
+    test('al cambiar de concesion no sobrevive nada en memoria', () async {
+      await repo.list(const DocumentQuery());
+
+      await repo.clear();
+      await repo.list(const DocumentQuery());
+
+      // Las carpetas y catalogos de la concesion anterior se piden otra vez.
+      expect(catalogLoads(), 2);
     });
   });
 

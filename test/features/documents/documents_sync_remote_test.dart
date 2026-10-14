@@ -28,6 +28,13 @@ class _Server implements HttpClientAdapter {
 
   int? failBlocksWith;
   bool offlineOnBlocks = false;
+
+  /// Historial de versiones que responde el servidor y estado de la firma.
+  List<Map<String, Object?>> versions = [];
+  int? signFail;
+  Map<String, Object?>? signError;
+  int signCalls = 0;
+  int versionCalls = 0;
   int? openStatus;
   Map<String, Object?>? openError;
 
@@ -100,6 +107,19 @@ class _Server implements HttpClientAdapter {
       if (failBlocksWith != null) return json({}, failBlocksWith!);
       return json({'index': 0, 'receivedCount': 1, 'totalBlocks': 3});
     }
+    if (path.endsWith('/versions') && options.method == 'GET') {
+      versionCalls++;
+      return json(versions);
+    }
+    if (path.endsWith('/signature')) {
+      signCalls++;
+      if (signFail != null) return json(signError ?? {}, signFail!);
+      return json({
+        'signature': {'id': 'sig-1'},
+        'alreadySigned': false,
+        'signatureStatus': 'VALIDADO',
+      }, 201);
+    }
     return json(next.removeAt(0), path.endsWith('/complete') ? 202 : 200);
   }
 
@@ -130,6 +150,36 @@ PendingOperation _op({Map<String, Object?>? payload, String? entity}) =>
       capturedAt: DateTime.utc(2026, 10, 13),
       updatedAt: DateTime.utc(2026, 10, 13),
     );
+
+PendingOperation _signOp({
+  String? versionId = 'ver-2',
+  String checksum = 'hash-2',
+  int? baseVersion = 2,
+}) => PendingOperation(
+  id: _opId,
+  scope: const OfflineScope(userId: 'u', concessionId: 'c'),
+  entity: 'documento_firma',
+  kind: OperationKind.insert,
+  recordId: 'doc-1',
+  baseVersion: baseVersion,
+  payload: {
+    'name': 'acta.pdf',
+    'version': 'V2',
+    'versionId': ?versionId,
+    'checksum': checksum,
+  },
+  status: OperationStatus.pending,
+  createdAt: DateTime.utc(2026, 10, 13),
+  capturedAt: DateTime.utc(2026, 10, 13),
+  updatedAt: DateTime.utc(2026, 10, 13),
+);
+
+Map<String, Object?> _version(
+  String id,
+  int number,
+  String checksum, {
+  bool current = true,
+}) => {'id': id, 'number': number, 'checksum': checksum, 'isCurrent': current};
 
 void main() {
   late _Server server;
@@ -332,5 +382,135 @@ void main() {
       await remote.send(_op(entity: 'documento_firma')),
       isA<SyncRejected>(),
     );
+  });
+
+  group('firma (HU-MOB-03-03)', () {
+    test('si la version no cambio, firma la que se capturo', () async {
+      server.versions = [_version('ver-2', 2, 'hash-2')];
+
+      final outcome = await remote.send(_signOp());
+
+      expect(outcome, isA<SyncAccepted>());
+      expect(
+        (outcome as SyncAccepted).response!['signatureStatus'],
+        'VALIDADO',
+      );
+      final call = server.requests.last;
+      expect(call.method, 'POST');
+      expect(call.path, '/api/documents/doc-1/versions/ver-2/signature');
+      // El historial no cuenta como abrir el documento.
+      expect(
+        server.requests.any((r) => r.path == '/api/documents/doc-1'),
+        isFalse,
+      );
+    });
+
+    test(
+      'si hay otra version vigente, queda en conflicto y no firma',
+      () async {
+        server.versions = [
+          _version('ver-3', 3, 'hash-3'),
+          _version('ver-2', 2, 'hash-2', current: false),
+        ];
+
+        final outcome = await remote.send(_signOp());
+
+        expect(outcome, isA<SyncConflicted>());
+        final conflict = outcome as SyncConflicted;
+        expect(conflict.serverVersion, 3);
+        expect(conflict.serverPayload!['version'], 'V3');
+        expect(conflict.serverPayload!['name'], 'acta.pdf');
+        expect(conflict.message, contains('V3'));
+        expect(server.signCalls, 0);
+      },
+    );
+
+    test('si el archivo de la version cambio, queda en conflicto', () async {
+      server.versions = [_version('ver-2', 2, 'otro-hash')];
+
+      final outcome = await remote.send(_signOp());
+
+      expect(outcome, isA<SyncConflicted>());
+      expect(server.signCalls, 0);
+    });
+
+    test('al resolver el conflicto manteniendo lo propio, si firma', () async {
+      server.versions = [
+        _version('ver-3', 3, 'hash-3'),
+        _version('ver-2', 2, 'hash-2', current: false),
+      ];
+
+      // La persona decidio firmar la version que capturo: la base pasa a la
+      // vigente del servidor.
+      final outcome = await remote.send(_signOp(baseVersion: 3));
+
+      expect(outcome, isA<SyncAccepted>());
+      expect(
+        server.requests.last.path,
+        '/api/documents/doc-1/versions/ver-2/signature',
+      );
+    });
+
+    test('repetir la firma de la misma persona se acepta', () async {
+      server.versions = [_version('ver-2', 2, 'hash-2')];
+
+      expect(await remote.send(_signOp()), isA<SyncAccepted>());
+      expect(await remote.send(_signOp()), isA<SyncAccepted>());
+    });
+
+    test(
+      'ya firmada por otra persona: se rechaza con el motivo del servidor',
+      () async {
+        server.versions = [_version('ver-2', 2, 'hash-2')];
+        server.signFail = 409;
+        server.signError = {
+          'code': 'VERSION_ALREADY_SIGNED',
+          'title': 'La version ya esta validada',
+        };
+
+        final outcome = await remote.send(_signOp());
+
+        expect(outcome, isA<SyncRejected>());
+        expect((outcome as SyncRejected).code, 'VERSION_ALREADY_SIGNED');
+        expect(outcome.message, 'La version ya esta validada');
+      },
+    );
+
+    test('sin permiso, el servidor lo rechaza', () async {
+      server.versions = [_version('ver-2', 2, 'hash-2')];
+      server.signFail = 403;
+      server.signError = {'code': 'FORBIDDEN', 'title': 'Sin permiso'};
+
+      expect(await remote.send(_signOp()), isA<SyncRejected>());
+    });
+
+    test('un error pasajero del servidor se reintenta', () async {
+      server.versions = [_version('ver-2', 2, 'hash-2')];
+      server.signFail = 503;
+
+      expect(await remote.send(_signOp()), isA<SyncRetryLater>());
+    });
+
+    test('una sesion vencida se avisa', () async {
+      server.versions = [_version('ver-2', 2, 'hash-2')];
+      server.signFail = 401;
+
+      expect(await remote.send(_signOp()), isA<SyncSessionLost>());
+    });
+
+    test('sin version que firmar, se rechaza sin llamar al servidor', () async {
+      final outcome = await remote.send(_signOp(versionId: null));
+
+      expect(outcome, isA<SyncRejected>());
+      expect(server.requests, isEmpty);
+    });
+
+    test('sin version vigente en el historial, decide el servidor', () async {
+      // Si el servidor no marca ninguna version como vigente, no hay base contra
+      // la cual comparar: el servidor igual valida hash, estado y permiso.
+      server.versions = [];
+
+      expect(await remote.send(_signOp()), isA<SyncAccepted>());
+    });
   });
 }

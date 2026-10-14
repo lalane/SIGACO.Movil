@@ -28,11 +28,19 @@ enum PreviewKind {
 /// La representacion que se muestra, no el original: la descarga del original no
 /// forma parte del alcance movil (DTF M03 §3.1).
 class DocumentPreview extends Equatable {
-  const DocumentPreview({required this.kind, required this.bytes});
+  const DocumentPreview({
+    required this.kind,
+    required this.bytes,
+    this.cachedAt,
+  });
 
   final PreviewKind kind;
   final Uint8List bytes;
 
+  /// UTC. Si no es null, la representacion se guardo en el telefono en ese
+  /// momento y se muestra sin conexion.
+  final DateTime? cachedAt;
+
   @override
-  List<Object?> get props => [kind, bytes.length];
+  List<Object?> get props => [kind, bytes.length, cachedAt];
 }

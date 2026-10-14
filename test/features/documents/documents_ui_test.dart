@@ -587,10 +587,10 @@ class _Counting implements DocumentsRepository {
   int calls = 0;
 
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) async {
+  Future<DocumentListing> list(DocumentQuery query) async {
     calls++;
     if (fail != null) throw DocumentsException(fail!);
-    return const [];
+    return DocumentListing(const []);
   }
 
   @override
@@ -614,6 +614,12 @@ class _Counting implements DocumentsRepository {
   Future<DocumentCatalogs> catalogs() async {
     calls++;
     return const DocumentCatalogs();
+  }
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) async {
+    calls++;
+    throw const DocumentsException(DocumentsError.notFound);
   }
 }
 

@@ -336,6 +336,9 @@ class FakeSyncCubit extends Cubit<SyncState> implements SyncCubit {
   Duration get resumeGap => Duration.zero;
 
   @override
+  Future<void> Function(PendingOperation operation)? get onDiscarded => null;
+
+  @override
   OfflineScope? get scope => state.scope;
 
   void show(SyncState next) => emit(next);
@@ -372,6 +375,7 @@ class FakeSyncCubit extends Cubit<SyncState> implements SyncCubit {
       payload: payload,
       scope: state.scope!,
       baseVersion: baseVersion,
+      recordId: recordId,
     );
     enqueued.add(op);
     calls.add('enqueue:$entity');
@@ -421,6 +425,7 @@ PendingOperation fakeOperation(
   DateTime? capturedAt,
   int attempts = 0,
   int? baseVersion,
+  String? recordId,
   Map<String, Object?>? payload,
 }) {
   final at = capturedAt ?? DateTime.utc(2026, 10, 12, 15, 30);
@@ -436,8 +441,8 @@ PendingOperation fakeOperation(
     updatedAt: at,
     attempts: attempts,
     lastError: error,
-    recordId: kind == OperationKind.insert ? null : 'rec-1',
-    baseVersion: kind == OperationKind.insert ? null : baseVersion ?? 1,
+    recordId: recordId ?? (kind == OperationKind.insert ? null : 'rec-1'),
+    baseVersion: baseVersion ?? (kind == OperationKind.insert ? null : 1),
   );
 }
 

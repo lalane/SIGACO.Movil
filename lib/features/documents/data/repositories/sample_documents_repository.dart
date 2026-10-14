@@ -50,7 +50,7 @@ class SampleDocumentsRepository implements DocumentsRepository {
   }
 
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) async {
+  Future<DocumentListing> list(DocumentQuery query) async {
     await _wait();
     var rows = [for (final d in _documents.values) d];
 
@@ -90,7 +90,7 @@ class SampleDocumentsRepository implements DocumentsRepository {
     if (query.view != DocumentView.recent) {
       rows.sort((a, b) => b.summary.modifiedAt.compareTo(a.summary.modifiedAt));
     }
-    return [for (final d in rows) d.summary];
+    return DocumentListing([for (final d in rows) d.summary]);
   }
 
   bool _matches(DocumentDetail d, String needle, DocumentFilters f) {
@@ -151,6 +151,18 @@ class SampleDocumentsRepository implements DocumentsRepository {
     final d = _documents[id];
     if (d == null) throw const DocumentsException(DocumentsError.notFound);
     _documents[id] = d.withFavorite(favorite);
+  }
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) async {
+    await _wait();
+    final d = _documents[id];
+    if (d == null) throw const DocumentsException(DocumentsError.notFound);
+    if (d.summary.signature == DocumentSignature.validated) {
+      throw const DocumentsException(DocumentsError.alreadySigned);
+    }
+    _documents[id] = d.withSignature(DocumentSignature.validated);
+    return DocumentSignature.validated;
   }
 
   @override

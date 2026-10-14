@@ -264,6 +264,18 @@ class _Body extends StatelessWidget {
                 Localizations.localeOf(context).toString(),
               ).add_Hm().format(lastContact),
       ),
+      // Lo capturado sin conexion se envia por pasadas: cuando termino la
+      // ultima sin problemas de red ni de sesion.
+      if (sync.enabled)
+        (
+          Icons.sync,
+          l10n.fieldLastSync,
+          sync.lastSyncAt == null
+              ? '—'
+              : DateFormat.yMd(
+                  Localizations.localeOf(context).toString(),
+                ).add_Hm().format(sync.lastSyncAt!.toLocal()),
+        ),
     ];
 
     return BlocListener<AuthBloc, AuthState>(

@@ -1724,6 +1724,96 @@ abstract class AppLocalizations {
   /// **'Alejar'**
   String get docsPdfZoomOut;
 
+  /// No description provided for @docsFromPhone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión · guardado en el teléfono el {date}'**
+  String docsFromPhone(String date);
+
+  /// No description provided for @docsSignAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Firmar'**
+  String get docsSignAction;
+
+  /// No description provided for @docsSignConfirmTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Firmar este documento?'**
+  String get docsSignConfirmTitle;
+
+  /// No description provided for @docsSignConfirmBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Vas a firmar «{name}», versión {version}. La firma queda registrada con tu nombre, tu perfil y la fecha, y no se puede deshacer.'**
+  String docsSignConfirmBody(String name, String version);
+
+  /// No description provided for @docsSignConfirmOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión: la firma quedará pendiente y se aplicará al sincronizar, solo si el documento no cambió.'**
+  String get docsSignConfirmOffline;
+
+  /// No description provided for @docsSignConfirmButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Firmar'**
+  String get docsSignConfirmButton;
+
+  /// No description provided for @docsSignDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento firmado.'**
+  String get docsSignDone;
+
+  /// No description provided for @docsSignQueued.
+  ///
+  /// In es, this message translates to:
+  /// **'Firma guardada. Se aplicará al sincronizar.'**
+  String get docsSignQueued;
+
+  /// No description provided for @docsSignPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Firma pendiente de sincronizar'**
+  String get docsSignPending;
+
+  /// No description provided for @docsSignAttention.
+  ///
+  /// In es, this message translates to:
+  /// **'La firma pendiente necesita tu decisión en el centro de sincronización.'**
+  String get docsSignAttention;
+
+  /// No description provided for @docsSignAlready.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta versión ya fue firmada por otra persona.'**
+  String get docsSignAlready;
+
+  /// No description provided for @docsSignMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo no coincide con el hash de la versión: no se puede firmar. Avisa a un administrador.'**
+  String get docsSignMismatch;
+
+  /// No description provided for @docsSignProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Firmar requiere un perfil firmante en esta concesión.'**
+  String get docsSignProfile;
+
+  /// No description provided for @docsSignFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo firmar. Inténtalo de nuevo.'**
+  String get docsSignFailed;
+
+  /// No description provided for @fieldLastSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Última sincronización'**
+  String get fieldLastSync;
+
   /// No description provided for @docsPreviewImageError.
   ///
   /// In es, this message translates to:

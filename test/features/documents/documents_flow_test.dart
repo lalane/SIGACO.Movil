@@ -1,10 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
+import 'package:sigaco_movil/core/connectivity/connectivity_source.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
+import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/offline/sync_cubit.dart';
+import 'package:sigaco_movil/core/session/session_scope.dart';
+import 'package:sigaco_movil/core/time/concession_zone.dart';
+import 'package:sigaco_movil/core/time/concession_zone_source.dart';
 import 'package:sigaco_movil/features/documents/data/repositories/sample_documents_repository.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_access.dart';
 import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
@@ -18,6 +26,46 @@ final _now = DateTime.utc(2026, 10, 12, 12);
 
 const _viewOnly = [DocumentAccess.viewKey];
 const _viewAndUpload = [DocumentAccess.viewKey, DocumentAccess.uploadKey];
+const _viewAndSign = [DocumentAccess.viewKey, DocumentAccess.signKey];
+
+/// Una red que se puede apagar: sin ella, firmar deja la firma pendiente.
+class _Network implements ConnectivitySource {
+  _Network({this.online = true});
+
+  final bool online;
+
+  @override
+  Future<bool> get isConnected async => online;
+
+  @override
+  Stream<bool> get changes => const Stream.empty();
+}
+
+/// La zona que el servidor dice para la concesion (nula si no la sabe).
+class _Zones implements ConcessionZoneSource {
+  _Zones(this.zone);
+
+  final ConcessionZone? zone;
+  final loaded = <String>[];
+
+  @override
+  Future<ConcessionZone?> load(String concessionId) async {
+    loaded.add(concessionId);
+    return zone;
+  }
+}
+
+/// Un cache de sesion que anota a quien se le fijo el alcance.
+class _RecordingScope implements ScopeBound {
+  final events = <String>[];
+
+  @override
+  Future<void> bind(OfflineScope? scope) async =>
+      events.add('bind:${scope?.userId}/${scope?.concessionId}');
+
+  @override
+  Future<void> clear() async => events.add('clear');
+}
 
 /// Vista previa y carga de documentos de punta a punta (DEV-MOB-071, 072, 073,
 /// 082, 083 y 092).
@@ -43,12 +91,19 @@ void main() {
     List<String> permissions = _viewAndUpload,
     bool openModule = true,
     FakePdfRenderer? pdfRenderer,
+    bool online = true,
+    SessionScope? scope,
+    ConcessionZoneSource? zones,
   }) async {
     await tester.runAsync(loadAppFonts);
     useSurface(tester, TestSurface.phone);
     SharedPreferences.setMockInitialValues({});
     repo = SampleDocumentsRepository(clock: () => _now);
-    sync = FakeSyncCubit();
+    sync = FakeSyncCubit(
+      const SyncState(
+        scope: OfflineScope(userId: 'u1', concessionId: 'c0'),
+      ),
+    );
     files = FakeFileSource();
     store = MemoryFileStore();
     pdf = pdfRenderer ?? FakePdfRenderer();
@@ -70,6 +125,9 @@ void main() {
       fileSource: files,
       pdfRenderer: pdf,
       fileStore: store,
+      connectivity: _Network(online: online),
+      sessionScope: scope,
+      zoneSource: zones ?? const NoConcessionZoneSource(),
       accessRefreshGap: Duration.zero,
       brandingRefreshGap: Duration.zero,
       sync: sync,
@@ -506,6 +564,215 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('docs-list')), findsOneWidget);
       expect(sync.enqueued, isEmpty);
+    });
+  });
+
+  group('firma (074, 075, 084)', () {
+    Future<void> openSignable(
+      WidgetTester tester, {
+      List<String> permissions = _viewAndSign,
+      String id = 'd-006',
+      bool online = true,
+    }) async {
+      await launch(tester, permissions: permissions, online: online);
+      await openDoc(tester, id);
+    }
+
+    final signButton = find.byKey(const Key('docs-detail-sign'));
+
+    Future<void> confirm(WidgetTester tester) async {
+      await tester.ensureVisible(signButton);
+      await tester.tap(signButton);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('docs-sign-confirm')));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('con Ver y Firmar, un documento sin firma se puede firmar', (
+      tester,
+    ) async {
+      await openSignable(tester);
+      expect(signButton, findsOneWidget);
+      expect(find.text('Sin firma'), findsOneWidget);
+
+      await confirm(tester);
+
+      expect(find.text('Validado'), findsOneWidget);
+      expect(find.text('Documento firmado.'), findsOneWidget);
+      expect(signButton, findsNothing);
+      expect(sync.enqueued, isEmpty);
+    });
+
+    testWidgets('pide confirmacion con el nombre y la version', (tester) async {
+      await openSignable(tester);
+      await tester.ensureVisible(signButton);
+      await tester.tap(signButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('¿Firmar este documento?'), findsOneWidget);
+      expect(
+        find.textContaining('Licencia ambiental tramo sur.pdf'),
+        findsWidgets,
+      );
+      expect(find.textContaining('V1'), findsWidgets);
+      // Con conexion no se habla de dejarla pendiente.
+      expect(find.textContaining('Sin conexión:'), findsNothing);
+    });
+
+    testWidgets('cancelar no firma nada', (tester) async {
+      await openSignable(tester);
+      await tester.ensureVisible(signButton);
+      await tester.tap(signButton);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('docs-sign-cancel')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sin firma'), findsOneWidget);
+      expect(signButton, findsOneWidget);
+      expect(sync.enqueued, isEmpty);
+    });
+
+    testWidgets('sin el permiso Firmar no se ofrece', (tester) async {
+      await openSignable(tester, permissions: _viewOnly);
+
+      expect(signButton, findsNothing);
+    });
+
+    testWidgets('con Firmar pero sin Ver no hay nada que firmar', (
+      tester,
+    ) async {
+      await launch(
+        tester,
+        permissions: const [DocumentAccess.signKey],
+        openModule: false,
+      );
+
+      // La tarjeta del gestor no aparece sin Ver.
+      expect(find.text('Gestor documental'), findsNothing);
+    });
+
+    testWidgets('un documento ya validado no se ofrece', (tester) async {
+      await openSignable(tester, id: 'd-001');
+
+      expect(find.text('Validado'), findsOneWidget);
+      expect(signButton, findsNothing);
+    });
+
+    testWidgets('sin conexion queda pendiente y no se presenta como firmada', (
+      tester,
+    ) async {
+      await openSignable(tester, online: false);
+      await tester.ensureVisible(signButton);
+      await tester.tap(signButton);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Sin conexión:'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('docs-sign-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(sync.enqueued.single.entity, 'documento_firma');
+      expect(
+        find.text('Firma guardada. Se aplicará al sincronizar.'),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('docs-detail-sign-pending')), findsOneWidget);
+      expect(find.text('Firma pendiente de sincronizar'), findsOneWidget);
+      expect(find.text('Sin firma'), findsOneWidget);
+      expect(signButton, findsNothing);
+    });
+
+    testWidgets('si la firma pendiente pide decision, lo dice', (tester) async {
+      await openSignable(tester, online: false);
+      await confirm(tester);
+
+      final op = sync.enqueued.single;
+      sync.show(
+        sync.state.copyWith(
+          items: [
+            fakeOperation(
+              op.id,
+              entity: 'documento_firma',
+              status: OperationStatus.conflict,
+              recordId: 'd-006',
+              baseVersion: 1,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'La firma pendiente necesita tu decisión en el centro de sincronización.',
+        ),
+        findsOneWidget,
+      );
+      expect(signButton, findsNothing);
+    });
+
+    testWidgets('al aplicarse la firma pendiente, la ficha se actualiza', (
+      tester,
+    ) async {
+      await openSignable(tester, online: false);
+      await confirm(tester);
+      expect(find.text('Sin firma'), findsOneWidget);
+
+      // El sincronizador la envio y el servidor la acepto: ya no esta en la cola.
+      await repo.sign('d-006', '');
+      sync.show(sync.state.copyWith(items: const []));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Validado'), findsOneWidget);
+      expect(find.byKey(const Key('docs-detail-sign-pending')), findsNothing);
+    });
+
+    testWidgets('si otra persona la firmo antes, se avisa y se actualiza', (
+      tester,
+    ) async {
+      await openSignable(tester);
+      // Entre abrir la ficha y firmar, otra persona la firmo.
+      await repo.sign('d-006', '');
+
+      await confirm(tester);
+
+      expect(
+        find.text('Esta versión ya fue firmada por otra persona.'),
+        findsOneWidget,
+      );
+      expect(find.text('Validado'), findsOneWidget);
+      expect(signButton, findsNothing);
+    });
+  });
+
+  group('zona horaria de la concesion (057, RN-04)', () {
+    testWidgets('sin zona de la marca, se usa la que dice el servidor', (
+      tester,
+    ) async {
+      final zones = _Zones(ConcessionZone.tryParse('America/Sao_Paulo'));
+      await launch(tester, zones: zones);
+
+      expect(zones.loaded, ['c0']);
+      expect(find.byKey(const Key('docs-zone-legend')), findsOneWidget);
+      expect(find.textContaining('America/Sao_Paulo'), findsOneWidget);
+    });
+
+    testWidgets('si el servidor no la sabe, no se inventa una', (tester) async {
+      await launch(tester, zones: _Zones(null));
+
+      expect(find.byKey(const Key('docs-zone-legend')), findsNothing);
+    });
+  });
+
+  group('lo guardado es de una persona y una concesion (RN-CTX-02)', () {
+    testWidgets('al iniciar sesion se fija el alcance en los caches', (
+      tester,
+    ) async {
+      final scope = _RecordingScope();
+      await launch(tester, scope: SessionScope()..register(scope));
+
+      expect(scope.events, contains(startsWith('bind:')));
+      expect(scope.events.where((e) => e.startsWith('bind:null')), isEmpty);
     });
   });
 }

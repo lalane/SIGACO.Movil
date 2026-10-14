@@ -125,5 +125,41 @@ void main() {
       await sub.cancel();
       await cubit.close();
     });
+
+    test('la zona de la marca manda sobre la del servidor', () async {
+      final cubit = ConcessionZoneCubit();
+      addTearDown(cubit.close);
+
+      cubit.setFallback(ConcessionZone.tryParse('America/Manaus'));
+      expect(cubit.state?.id, 'America/Manaus');
+
+      cubit.set(ConcessionZone.tryParse('America/Sao_Paulo'));
+      expect(cubit.state?.id, 'America/Sao_Paulo');
+
+      // Una zona de respaldo nueva no pisa la de la marca.
+      cubit.setFallback(ConcessionZone.tryParse('America/Bahia'));
+      expect(cubit.state?.id, 'America/Sao_Paulo');
+    });
+
+    test('si la marca deja de traer zona, vuelve la del servidor', () async {
+      final cubit = ConcessionZoneCubit();
+      addTearDown(cubit.close);
+      cubit.setFallback(ConcessionZone.tryParse('America/Manaus'));
+      cubit.set(ConcessionZone.tryParse('America/Sao_Paulo'));
+
+      cubit.set(null);
+
+      expect(cubit.state?.id, 'America/Manaus');
+    });
+
+    test('sin ninguna fuente no hay zona (se usa la del telefono)', () async {
+      final cubit = ConcessionZoneCubit();
+      addTearDown(cubit.close);
+      cubit.setFallback(ConcessionZone.tryParse('America/Manaus'));
+
+      cubit.setFallback(null);
+
+      expect(cubit.state, isNull);
+    });
   });
 }

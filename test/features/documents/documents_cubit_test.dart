@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sigaco_movil/core/offline/operation.dart';
+import 'package:sigaco_movil/core/offline/sync_cubit.dart';
 import 'package:sigaco_movil/features/documents/data/repositories/sample_documents_repository.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_catalogs.dart';
@@ -9,6 +11,8 @@ import 'package:sigaco_movil/features/documents/domain/entities/document_query.d
 import 'package:sigaco_movil/features/documents/domain/repositories/documents_repository.dart';
 import 'package:sigaco_movil/features/documents/presentation/bloc/document_detail_cubit.dart';
 import 'package:sigaco_movil/features/documents/presentation/bloc/documents_cubit.dart';
+
+import '../../support/fakes.dart';
 
 final _now = DateTime.utc(2026, 10, 12, 12);
 
@@ -29,7 +33,7 @@ class _Spy implements DocumentsRepository {
   DocumentsError? failList;
 
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) async {
+  Future<DocumentListing> list(DocumentQuery query) async {
     queries.add(query);
     final error = failList;
     if (error != null) {
@@ -53,6 +57,10 @@ class _Spy implements DocumentsRepository {
     if (failFavorites) throw const DocumentsException(DocumentsError.server);
     return inner.setFavorite(id, favorite: favorite);
   }
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) =>
+      inner.sign(id, versionId);
 
   @override
   Future<DocumentCatalogs> catalogs() {
@@ -320,11 +328,155 @@ void main() {
       expect(cubit.state.status, DocumentDetailStatus.ready);
     });
   });
+
+  group('firma (074, 075, 084)', () {
+    const scope = OfflineScope(userId: 'u1', concessionId: 'c0');
+    late _Spy repo;
+    late FakeSyncCubit sync;
+    late DocumentDetailCubit cubit;
+
+    // d-006 es un PDF sin firma; d-001 ya esta validado.
+    Future<DocumentDetailCubit> open(String id, {SyncCubit? withSync}) async {
+      final c = DocumentDetailCubit(repo, id, sync: withSync ?? sync);
+      addTearDown(c.close);
+      await c.load();
+      return c;
+    }
+
+    setUp(() async {
+      repo = _Spy();
+      sync = FakeSyncCubit(const SyncState(scope: scope));
+      cubit = await open('d-006');
+    });
+    tearDown(() => sync.close());
+
+    test('con conexion se firma al momento y queda validada', () async {
+      expect(cubit.state.detail!.summary.signature, DocumentSignature.unsigned);
+
+      await cubit.sign(online: true);
+
+      expect(
+        cubit.state.detail!.summary.signature,
+        DocumentSignature.validated,
+      );
+      expect(cubit.state.feedback, SignFeedback.signed);
+      expect(cubit.state.signing, isFalse);
+      expect(sync.enqueued, isEmpty);
+    });
+
+    test(
+      'sin conexion queda pendiente, con version, hash y version base',
+      () async {
+        await cubit.sign(online: false);
+
+        // No se presenta como firmada hasta que el servidor la acepte.
+        expect(
+          cubit.state.detail!.summary.signature,
+          DocumentSignature.unsigned,
+        );
+        expect(cubit.state.feedback, SignFeedback.queued);
+        final op = sync.enqueued.single;
+        expect(op.entity, 'documento_firma');
+        expect(op.kind, OperationKind.insert);
+        expect(op.recordId, 'd-006');
+        expect(op.baseVersion, cubit.state.detail!.version);
+        expect(op.payload['name'], 'Licencia ambiental tramo sur.pdf');
+        expect(op.payload['version'], 'V${cubit.state.detail!.version}');
+        expect(op.payload.containsKey('versionId'), isTrue);
+        expect(op.payload.containsKey('checksum'), isTrue);
+      },
+    );
+
+    test('si la red falla a medias, tambien queda pendiente', () async {
+      repo.inner.failNextWith = DocumentsError.network;
+
+      await cubit.sign(online: true);
+
+      expect(cubit.state.feedback, SignFeedback.queued);
+      expect(sync.enqueued, hasLength(1));
+      expect(cubit.state.detail!.summary.signature, DocumentSignature.unsigned);
+    });
+
+    test(
+      'otra persona ya la firmo: se avisa y la ficha se actualiza',
+      () async {
+        final signed = await open('d-001');
+
+        await signed.sign(online: true);
+
+        expect(signed.state.feedback, SignFeedback.alreadySigned);
+        expect(sync.enqueued, isEmpty);
+        expect(signed.state.status, DocumentDetailStatus.ready);
+      },
+    );
+
+    test('un rechazo del servidor no se guarda para despues', () async {
+      repo.inner.failNextWith = DocumentsError.contentMismatch;
+
+      await cubit.sign(online: true);
+
+      expect(cubit.state.feedback, SignFeedback.contentMismatch);
+      expect(sync.enqueued, isEmpty);
+    });
+
+    test('sin perfil firmante se avisa', () async {
+      repo.inner.failNextWith = DocumentsError.signerProfileRequired;
+
+      await cubit.sign(online: true);
+
+      expect(cubit.state.feedback, SignFeedback.signerProfileRequired);
+    });
+
+    test('sin donde guardarla, avisa que no se pudo', () async {
+      sync.failEnqueue = true;
+
+      await cubit.sign(online: false);
+
+      expect(cubit.state.feedback, SignFeedback.failed);
+      expect(cubit.state.signing, isFalse);
+    });
+
+    test('sin cola local, avisa que no se pudo', () async {
+      final bare = DocumentDetailCubit(repo, 'd-006');
+      addTearDown(bare.close);
+      await bare.load();
+
+      await bare.sign(online: false);
+
+      expect(bare.state.feedback, SignFeedback.failed);
+    });
+
+    test('un error inesperado no deja el boton bloqueado', () async {
+      final broken = DocumentDetailCubit(_Throwing(), 'd-006', sync: sync);
+      addTearDown(broken.close);
+      // Sin ficha cargada no se firma nada.
+      await broken.sign(online: true);
+      expect(broken.state.feedback, isNull);
+      expect(broken.state.signing, isFalse);
+    });
+
+    test('tocar dos veces no firma dos veces', () async {
+      final first = cubit.sign(online: false);
+      final second = cubit.sign(online: false);
+      await Future.wait([first, second]);
+
+      expect(sync.enqueued, hasLength(1));
+    });
+
+    test('cada aviso se puede volver a mostrar', () async {
+      await cubit.sign(online: false);
+      final first = cubit.state.feedbackSeq;
+      sync.failEnqueue = true;
+      await cubit.sign(online: false);
+
+      expect(cubit.state.feedbackSeq, greaterThan(first));
+    });
+  });
 }
 
 class _Throwing implements DocumentsRepository {
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) async =>
+  Future<DocumentListing> list(DocumentQuery query) async =>
       throw StateError('inesperado');
 
   @override
@@ -338,6 +490,10 @@ class _Throwing implements DocumentsRepository {
 
   @override
   Future<DocumentCatalogs> catalogs() async => throw StateError('x');
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) async =>
+      throw StateError('x');
 }
 
 class _NoCatalogs extends SampleDocumentsRepository {

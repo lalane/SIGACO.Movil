@@ -22,6 +22,15 @@ enum DocumentsError {
 
   /// Cualquier otro fallo del servidor.
   server,
+
+  /// La version ya esta validada por otra persona (VERSION_ALREADY_SIGNED).
+  alreadySigned,
+
+  /// El archivo guardado no coincide con el hash de la version (HASH_MISMATCH).
+  contentMismatch,
+
+  /// Firmar exige un perfil firmante en la concesion (SIGNER_PROFILE_REQUIRED).
+  signerProfileRequired,
 }
 
 class DocumentsException implements Exception {
@@ -37,7 +46,7 @@ abstract interface class DocumentsRepository {
   /// Documentos activos de la concesion activa que cumplen [query]. El servidor
   /// aplica las vistas, la busqueda y los filtros (y limita Recientes a los
   /// ultimos 30 dias y 50 documentos); la app no recalcula nada.
-  Future<List<DocumentSummary>> list(DocumentQuery query);
+  Future<DocumentListing> list(DocumentQuery query);
 
   Future<DocumentDetail> detail(String id);
 
@@ -49,4 +58,9 @@ abstract interface class DocumentsRepository {
   Future<void> setFavorite(String id, {required bool favorite});
 
   Future<DocumentCatalogs> catalogs();
+
+  /// Firma la version [versionId] del documento [id] con la persona de la
+  /// sesion. Devuelve el estado de firma que quedo; repetir la firma de la misma
+  /// persona no crea otra (el servidor devuelve la existente).
+  Future<DocumentSignature> sign(String id, String versionId);
 }

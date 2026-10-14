@@ -17,6 +17,7 @@ class DocumentsState extends Equatable {
     this.catalogs = const DocumentCatalogs(),
     this.rangeRejected = false,
     this.favoriteFailed = 0,
+    this.cachedAt,
   });
 
   final DocumentQuery query;
@@ -31,6 +32,10 @@ class DocumentsState extends Equatable {
   /// Cuenta de favoritos que no se pudieron guardar (para avisar una vez cada uno).
   final int favoriteFailed;
 
+  /// UTC. Si no es null, la lista es la ultima guardada en el telefono (sin
+  /// conexion), no la de ahora.
+  final DateTime? cachedAt;
+
   DocumentsState copyWith({
     DocumentQuery? query,
     DocumentsStatus? status,
@@ -40,6 +45,8 @@ class DocumentsState extends Equatable {
     DocumentCatalogs? catalogs,
     bool? rangeRejected,
     int? favoriteFailed,
+    DateTime? cachedAt,
+    bool clearCachedAt = false,
   }) => DocumentsState(
     query: query ?? this.query,
     status: status ?? this.status,
@@ -48,6 +55,7 @@ class DocumentsState extends Equatable {
     catalogs: catalogs ?? this.catalogs,
     rangeRejected: rangeRejected ?? this.rangeRejected,
     favoriteFailed: favoriteFailed ?? this.favoriteFailed,
+    cachedAt: clearCachedAt ? null : (cachedAt ?? this.cachedAt),
   );
 
   @override
@@ -59,6 +67,7 @@ class DocumentsState extends Equatable {
     catalogs,
     rangeRejected,
     favoriteFailed,
+    cachedAt,
   ];
 }
 
@@ -124,12 +133,20 @@ class DocumentsCubit extends Cubit<DocumentsState> {
             : DocumentsStatus.loading,
         items: keepItems ? state.items : const [],
         clearError: true,
+        clearCachedAt: !keepItems,
       ),
     );
     try {
       final items = await _repository.list(query);
       if (generation != _generation || isClosed) return;
-      emit(state.copyWith(status: DocumentsStatus.ready, items: items));
+      emit(
+        state.copyWith(
+          status: DocumentsStatus.ready,
+          items: items,
+          cachedAt: items.cachedAt,
+          clearCachedAt: items.cachedAt == null,
+        ),
+      );
     } on DocumentsException catch (e) {
       if (generation != _generation || isClosed) return;
       emit(state.copyWith(status: DocumentsStatus.failure, error: e.error));

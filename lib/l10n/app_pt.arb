@@ -360,6 +360,38 @@
   },
   "docsPdfZoomIn": "Aproximar",
   "docsPdfZoomOut": "Afastar",
+  "docsFromPhone": "Sem conexão · salvo no telefone em {date}",
+  "@docsFromPhone": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "docsSignAction": "Assinar",
+  "docsSignConfirmTitle": "Assinar este documento?",
+  "docsSignConfirmBody": "Você vai assinar «{name}», versão {version}. A assinatura fica registrada com seu nome, seu perfil e a data, e não pode ser desfeita.",
+  "@docsSignConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "docsSignConfirmOffline": "Sem conexão: a assinatura ficará pendente e será aplicada ao sincronizar, somente se o documento não mudou.",
+  "docsSignConfirmButton": "Assinar",
+  "docsSignDone": "Documento assinado.",
+  "docsSignQueued": "Assinatura salva. Será aplicada ao sincronizar.",
+  "docsSignPending": "Assinatura pendente de sincronização",
+  "docsSignAttention": "A assinatura pendente precisa da sua decisão na central de sincronização.",
+  "docsSignAlready": "Esta versão já foi assinada por outra pessoa.",
+  "docsSignMismatch": "O arquivo não corresponde ao hash da versão: não é possível assinar. Avise um administrador.",
+  "docsSignProfile": "Assinar exige um perfil assinante nesta concessão.",
+  "docsSignFailed": "Não foi possível assinar. Tente novamente.",
+  "fieldLastSync": "Última sincronização",
   "docsPreviewImageError": "Não foi possível exibir a imagem.",
   "docsUploadAction": "Carregar documento",
   "docsUploadTitle": "Carregar documento",

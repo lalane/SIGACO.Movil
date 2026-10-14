@@ -17,6 +17,7 @@ import '../document_labels.dart';
 import '../widgets/document_filters_sheet.dart';
 import '../widgets/document_state_view.dart';
 import '../widgets/document_tile.dart';
+import '../widgets/phone_copy_banner.dart';
 
 /// Consulta de documentos (DEV-MOB-068 y 069): Todos, Recientes, Favoritos y
 /// Mis documentos, con busqueda y filtros. Sin el permiso Ver no consulta nada.
@@ -239,6 +240,8 @@ class _Content extends StatelessWidget {
                 ),
               ),
             SizedBox(height: r.s(8)),
+            if (state.status == DocumentsStatus.ready && state.cachedAt != null)
+              PhoneCopyBanner(savedAt: state.cachedAt!),
             Expanded(
               child: _Results(state: state, onOpen: onOpen, onClear: onClear),
             ),

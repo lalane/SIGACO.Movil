@@ -381,6 +381,38 @@
   },
   "docsPdfZoomIn": "Acercar",
   "docsPdfZoomOut": "Alejar",
+  "docsFromPhone": "Sin conexión · guardado en el teléfono el {date}",
+  "@docsFromPhone": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "docsSignAction": "Firmar",
+  "docsSignConfirmTitle": "¿Firmar este documento?",
+  "docsSignConfirmBody": "Vas a firmar «{name}», versión {version}. La firma queda registrada con tu nombre, tu perfil y la fecha, y no se puede deshacer.",
+  "@docsSignConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "docsSignConfirmOffline": "Sin conexión: la firma quedará pendiente y se aplicará al sincronizar, solo si el documento no cambió.",
+  "docsSignConfirmButton": "Firmar",
+  "docsSignDone": "Documento firmado.",
+  "docsSignQueued": "Firma guardada. Se aplicará al sincronizar.",
+  "docsSignPending": "Firma pendiente de sincronizar",
+  "docsSignAttention": "La firma pendiente necesita tu decisión en el centro de sincronización.",
+  "docsSignAlready": "Esta versión ya fue firmada por otra persona.",
+  "docsSignMismatch": "El archivo no coincide con el hash de la versión: no se puede firmar. Avisa a un administrador.",
+  "docsSignProfile": "Firmar requiere un perfil firmante en esta concesión.",
+  "docsSignFailed": "No se pudo firmar. Inténtalo de nuevo.",
+  "fieldLastSync": "Última sincronización",
   "docsPreviewImageError": "No se pudo mostrar la imagen.",
   "docsUploadAction": "Cargar documento",
   "docsUploadTitle": "Cargar documento",

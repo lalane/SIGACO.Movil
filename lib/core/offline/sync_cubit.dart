@@ -95,6 +95,7 @@ class SyncCubit extends Cubit<SyncState> {
     OperationQueue queue,
     SyncEngine engine, {
     this.resumeGap = const Duration(seconds: 30),
+    this.onDiscarded,
     DateTime Function()? clock,
   }) : _queue = queue,
        _engine = engine,
@@ -109,6 +110,7 @@ class SyncCubit extends Cubit<SyncState> {
       _engine = null,
       _now = DateTime.now,
       resumeGap = Duration.zero,
+      onDiscarded = null,
       super(const SyncState(enabled: false));
 
   final OperationQueue? _queue;
@@ -117,6 +119,10 @@ class SyncCubit extends Cubit<SyncState> {
 
   /// Tiempo minimo entre dos pasadas al volver a la app.
   final Duration resumeGap;
+
+  /// Se llama con la operacion que la persona descarto, para borrar lo que
+  /// guardo en el telefono (por ejemplo la copia de un archivo).
+  final Future<void> Function(PendingOperation operation)? onDiscarded;
 
   StreamSubscription<void>? _sub;
   Timer? _retryTimer;
@@ -301,8 +307,20 @@ class SyncCubit extends Cubit<SyncState> {
   }
 
   /// Descarta lo capturado en el telefono (y deja lo del servidor).
-  Future<bool> discard(String operationId) async =>
-      await _queue?.discard(operationId) ?? false;
+  Future<bool> discard(String operationId) async {
+    final queue = _queue;
+    if (queue == null) return false;
+    final operation = await queue.find(operationId);
+    final discarded = await queue.discard(operationId);
+    if (discarded && operation != null) {
+      try {
+        await onDiscarded?.call(operation);
+      } catch (_) {
+        // Un archivo que no se pudo borrar no deshace el descarte.
+      }
+    }
+    return discarded;
+  }
 
   /// Cierra esperando a que termine la pasada y la lectura en curso: la base
   /// no se debe cerrar con trabajo a medias.

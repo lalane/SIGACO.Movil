@@ -146,6 +146,7 @@ GoRouter createRouter(AuthBloc auth) {
               create: (_) => DocumentDetailCubit(
                 context.read<DocumentsRepository>(),
                 state.pathParameters['id']!,
+                sync: context.read<SyncCubit>(),
               ),
               child: Builder(
                 builder: (context) =>

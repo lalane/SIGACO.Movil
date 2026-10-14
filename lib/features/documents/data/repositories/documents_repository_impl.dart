@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
+import '../../../../core/session/session_scope.dart';
 import '../../domain/entities/document.dart';
 import '../../domain/entities/document_catalogs.dart';
 import '../../domain/entities/document_preview.dart';
@@ -11,7 +12,7 @@ import '../../domain/repositories/documents_repository.dart';
 /// Gestor documental contra el backend (`/api/documents`). El servidor aplica
 /// vistas, busqueda, filtros y permisos; la app solo traduce lo que ya existe
 /// en su modelo (codigos y rutas legibles) a los identificadores del servidor.
-class DocumentsRepositoryImpl implements DocumentsRepository {
+class DocumentsRepositoryImpl implements DocumentsRepository, ScopeCleaner {
   DocumentsRepositoryImpl(this._api, {required this._language});
 
   final ApiClient _api;
@@ -24,8 +25,13 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
 
   _Lookups? _lookups;
 
+  /// Catalogos, carpetas y usuarios son de la concesion activa: al cambiarla o
+  /// cerrar sesion no deben sobrevivir en memoria (RN-CTX-02).
   @override
-  Future<List<DocumentSummary>> list(DocumentQuery query) => _guard(() async {
+  Future<void> clear() async => _lookups = null;
+
+  @override
+  Future<DocumentListing> list(DocumentQuery query) => _guard(() async {
     final lookups = await _loadLookups();
     final filters = query.filters;
     // «Todos» sin criterios navega por carpetas en el servidor; en el telefono
@@ -68,7 +74,7 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
       }
       page++;
     } while (page <= totalPages && page <= _maxPages);
-    return result;
+    return DocumentListing(result);
   });
 
   @override
@@ -103,6 +109,8 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
       description: map['description'] as String? ?? '',
       folder: _isRoot(folderPath) ? null : folderPath,
       previewAvailable: version['previewStatus'] != 'SIN_VISOR',
+      versionId: version['id'] as String? ?? '',
+      checksum: version['checksum'] as String? ?? '',
     );
   });
 
@@ -137,6 +145,15 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
         } else {
           await _api.delete('/api/documents/$id/favorite');
         }
+      });
+
+  @override
+  Future<DocumentSignature> sign(String id, String versionId) =>
+      _guard(() async {
+        final json = await _api.post(
+          '/api/documents/$id/versions/$versionId/signature',
+        );
+        return _signature(json?['signatureStatus'] as String?);
       });
 
   @override
@@ -236,6 +253,12 @@ class DocumentsRepositoryImpl implements DocumentsRepository {
     e.isNetwork
         ? DocumentsError.network
         : switch (e.status) {
+            409 when e.code == 'VERSION_ALREADY_SIGNED' =>
+              DocumentsError.alreadySigned,
+            409 when e.code == 'HASH_MISMATCH' =>
+              DocumentsError.contentMismatch,
+            409 when e.code == 'SIGNER_PROFILE_REQUIRED' =>
+              DocumentsError.signerProfileRequired,
             403 when e.code == 'ROAD_ACCESS_REQUIRED' =>
               DocumentsError.noRoadAccess,
             403 => DocumentsError.permissionDenied,

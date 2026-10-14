@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:equatable/equatable.dart';
 
 /// Estado de firma de la version vigente (D-03-50): M03 no tiene flujo de
@@ -41,6 +43,20 @@ class DocumentSummary extends Equatable {
   /// Extension del archivo en minusculas, sin punto (`pdf`, `jpg`...).
   final String format;
 
+  DocumentSummary withSignature(DocumentSignature value) => DocumentSummary(
+    id: id,
+    name: name,
+    typeCode: typeCode,
+    typeLabel: typeLabel,
+    categoryCode: categoryCode,
+    categoryLabel: categoryLabel,
+    ownerUsername: ownerUsername,
+    modifiedAt: modifiedAt,
+    signature: value,
+    isFavorite: isFavorite,
+    format: format,
+  );
+
   DocumentSummary withFavorite(bool value) => DocumentSummary(
     id: id,
     name: name,
@@ -71,6 +87,36 @@ class DocumentSummary extends Equatable {
   ];
 }
 
+/// El resultado de una consulta. Se comporta como la lista de documentos; ademas
+/// dice si salio del telefono (sin conexion) y de cuando son esos datos, para no
+/// presentar informacion atrasada como si fuera nueva (CA-HU-MOB-03-01-06).
+class DocumentListing extends ListBase<DocumentSummary> {
+  DocumentListing(List<DocumentSummary> items, {this.cachedAt})
+    : _items = List.unmodifiable(items);
+
+  final List<DocumentSummary> _items;
+
+  /// UTC. Si no es null, la lista no viene del servidor: es la ultima que se
+  /// pudo consultar, guardada en el telefono en ese momento.
+  final DateTime? cachedAt;
+
+  bool get fromPhone => cachedAt != null;
+
+  @override
+  int get length => _items.length;
+
+  @override
+  set length(int newLength) =>
+      throw UnsupportedError('La consulta no se puede modificar');
+
+  @override
+  DocumentSummary operator [](int index) => _items[index];
+
+  @override
+  void operator []=(int index, DocumentSummary value) =>
+      throw UnsupportedError('La consulta no se puede modificar');
+}
+
 /// La ficha: la version vigente y sus metadatos. El historial completo de
 /// versiones queda fuera de la app movil (HU-MOB-03-01, regla 7).
 class DocumentDetail extends Equatable {
@@ -82,6 +128,9 @@ class DocumentDetail extends Equatable {
     this.description = '',
     this.folder,
     this.previewAvailable = true,
+    this.versionId = '',
+    this.checksum = '',
+    this.cachedAt,
   });
 
   final DocumentSummary summary;
@@ -98,15 +147,35 @@ class DocumentDetail extends Equatable {
   /// El formato tiene visor o representacion en PDF (D-03-45).
   final bool previewAvailable;
 
-  DocumentDetail withFavorite(bool value) => DocumentDetail(
-    summary: summary.withFavorite(value),
-    version: version,
-    sizeBytes: sizeBytes,
-    modifiedBy: modifiedBy,
-    description: description,
-    folder: folder,
-    previewAvailable: previewAvailable,
-  );
+  /// Identificador de la version vigente y su hash: lo que se firma (HU-MOB-03-03).
+  final String versionId;
+  final String checksum;
+
+  /// UTC. Si no es null, la ficha viene del telefono, no del servidor.
+  final DateTime? cachedAt;
+
+  DocumentDetail withFavorite(bool value) =>
+      _copy(summary: summary.withFavorite(value));
+
+  DocumentDetail withSignature(DocumentSignature value) =>
+      _copy(summary: summary.withSignature(value));
+
+  /// La misma ficha marcada como guardada en el telefono en [at].
+  DocumentDetail fromPhone(DateTime at) => _copy(cachedAt: at);
+
+  DocumentDetail _copy({DocumentSummary? summary, DateTime? cachedAt}) =>
+      DocumentDetail(
+        summary: summary ?? this.summary,
+        version: version,
+        sizeBytes: sizeBytes,
+        modifiedBy: modifiedBy,
+        description: description,
+        folder: folder,
+        previewAvailable: previewAvailable,
+        versionId: versionId,
+        checksum: checksum,
+        cachedAt: cachedAt ?? this.cachedAt,
+      );
 
   @override
   List<Object?> get props => [
@@ -117,5 +186,8 @@ class DocumentDetail extends Equatable {
     description,
     folder,
     previewAvailable,
+    versionId,
+    checksum,
+    cachedAt,
   ];
 }
