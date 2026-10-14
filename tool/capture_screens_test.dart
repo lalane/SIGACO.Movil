@@ -21,6 +21,14 @@ import 'package:sigaco_movil/core/files/file_source.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
+import 'package:sigaco_movil/core/pdf/pdf_renderer.dart';
+import 'package:sigaco_movil/core/time/concession_zone.dart';
+import 'package:sigaco_movil/core/time/concession_zone_source.dart';
+import 'package:sigaco_movil/features/documents/data/cache/documents_cache.dart';
+import 'package:sigaco_movil/features/documents/data/repositories/cached_documents_repository.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_catalogs.dart';
+import 'package:sigaco_movil/features/documents/domain/entities/document_query.dart';
 import 'package:sigaco_movil/features/documents/data/repositories/sample_documents_repository.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_access.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_preview.dart';
@@ -148,6 +156,190 @@ Future<Uint8List> _drawSampleImage() async {
   return data!.buffer.asUint8List();
 }
 
+/// Sin red: lo capturado queda pendiente y los avisos de conexion se ven.
+class _OfflineNetwork implements ConnectivitySource {
+  @override
+  Future<bool> get isConnected async => false;
+
+  @override
+  Stream<bool> get changes => const Stream.empty();
+}
+
+/// La zona que el servidor dice para la concesion de ejemplo.
+class _CaptureZone implements ConcessionZoneSource {
+  const _CaptureZone();
+
+  @override
+  Future<ConcessionZone?> load(String concessionId) async =>
+      ConcessionZone.tryParse('America/Sao_Paulo');
+}
+
+/// Visor de PDF de las capturas: devuelve paginas ya dibujadas (el dibujo de
+/// una imagen es asincrono y no corre dentro de la prueba).
+class _CapturePdfRenderer implements PdfRenderer {
+  _CapturePdfRenderer(this.pages);
+
+  final List<Uint8List> pages;
+
+  @override
+  Future<PdfDocumentHandle> open(Uint8List bytes) async => PdfDocumentHandle(
+    'captura',
+    [for (final _ in pages) const PdfPageSize(595, 842)],
+  );
+
+  @override
+  Future<Uint8List> renderPage(
+    PdfDocumentHandle document,
+    int index, {
+    required int width,
+  }) async => pages[index];
+
+  @override
+  Future<void> close(PdfDocumentHandle document) async {}
+}
+
+/// Tres paginas de un informe de ejemplo: titulo, parrafos como barras grises y
+/// una tabla.
+Future<List<Uint8List>> _drawPdfPages() async {
+  const w = 1190.0, h = 1684.0;
+  final pages = <Uint8List>[];
+  for (var page = 0; page < 3; page++) {
+    final recorder = ui.PictureRecorder();
+    final c = Canvas(recorder);
+    c.drawRect(const Rect.fromLTWH(0, 0, w, h), Paint()..color = Colors.white);
+    void text(String t, double x, double y, double size, {bool bold = false}) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: t,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            color: const Color(0xFF1F2937),
+            fontSize: size,
+            fontWeight: bold ? FontWeight.w800 : FontWeight.w400,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: w - x - 90);
+      tp.paint(c, Offset(x, y));
+    }
+
+    text(
+      page == 0 ? 'INFORME DE INSPECCIÓN' : 'Continuación del informe',
+      90,
+      100,
+      46,
+      bold: true,
+    );
+    text('Tramo km 120 a km 140 · Concesión NOVA 381', 90, 168, 28);
+    c.drawLine(
+      const Offset(90, 230),
+      const Offset(w - 90, 230),
+      Paint()
+        ..color = const Color(0xFF9CA3AF)
+        ..strokeWidth = 3,
+    );
+    var y = 290.0;
+    final bar = Paint()..color = const Color(0xFFD1D5DB);
+    for (var i = 0; i < 22; i++) {
+      final end = (i % 6 == 5) ? 0.55 : 1.0;
+      c.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(90, y, (w - 180) * end, 16),
+          const Radius.circular(8),
+        ),
+        bar,
+      );
+      y += i % 6 == 5 ? 64 : 34;
+    }
+    if (page == 0) {
+      for (var row = 0; row < 4; row++) {
+        for (var col = 0; col < 3; col++) {
+          c.drawRect(
+            Rect.fromLTWH(90 + col * 336.0, y + 30 + row * 64, 336, 64),
+            Paint()
+              ..color = const Color(0xFF9CA3AF)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2,
+          );
+        }
+      }
+    }
+    text('Página ${page + 1} de 3', w / 2 - 70, h - 110, 26);
+    final image = await recorder.endRecording().toImage(w.toInt(), h.toInt());
+    final data = await image.toByteData(format: ui.ImageByteFormat.png);
+    pages.add(data!.buffer.asUint8List());
+  }
+  return pages;
+}
+
+/// Documentos de ejemplo a los que se les puede quitar la red.
+class _FlakyDocs extends _DocsWithImage {
+  _FlakyDocs(super.image);
+
+  bool offline = false;
+
+  void _check() {
+    if (offline) throw const DocumentsException(DocumentsError.network);
+  }
+
+  @override
+  Future<DocumentListing> list(DocumentQuery query) async {
+    _check();
+    return super.list(query);
+  }
+
+  @override
+  Future<DocumentDetail> detail(String id) async {
+    _check();
+    return super.detail(id);
+  }
+
+  @override
+  Future<DocumentPreview> preview(String id) async {
+    _check();
+    return super.preview(id);
+  }
+
+  @override
+  Future<DocumentCatalogs> catalogs() async {
+    _check();
+    return super.catalogs();
+  }
+}
+
+/// Cache de documentos en memoria (el real escribe archivos).
+class _MemoryDocsCache implements DocumentsCache {
+  final _lists = <DocumentQuery, DocumentListing>{};
+  final _details = <String, DocumentDetail>{};
+  DocumentCatalogs? _catalogs;
+  final DateTime savedAt = DateTime.utc(2026, 10, 14, 15, 30);
+
+  @override
+  Future<void> bind(OfflineScope? scope) async {}
+  @override
+  Future<void> clear() async {}
+  @override
+  Future<void> saveList(DocumentQuery q, List<DocumentSummary> items) async =>
+      _lists[q] = DocumentListing(items, cachedAt: savedAt);
+  @override
+  Future<DocumentListing?> readList(DocumentQuery q) async => _lists[q];
+  @override
+  Future<void> saveDetail(DocumentDetail d) async =>
+      _details[d.summary.id] = d.fromPhone(savedAt);
+  @override
+  Future<DocumentDetail?> readDetail(String id) async => _details[id];
+  @override
+  Future<void> savePreview(String id, DocumentPreview preview) async {}
+  @override
+  Future<DocumentPreview?> readPreview(String id) async => null;
+  @override
+  Future<void> saveCatalogs(DocumentCatalogs c) async => _catalogs = c;
+  @override
+  Future<DocumentCatalogs?> readCatalogs() async => _catalogs;
+  @override
+  Future<void> forgetDetail(String id) async => _details.remove(id);
+}
+
 void main() {
   final outDir = Platform.environment['CAPTURE_DIR'] ?? 'capturas';
   final iconsFont = Platform.environment['MATERIAL_ICONS_FONT'];
@@ -179,6 +371,8 @@ void main() {
     DocumentsRepository? documents,
     SyncCubit? sync,
     FileSource? files,
+    PdfRenderer? pdf,
+    ConcessionZoneSource? zones,
   }) async {
     // Enlace que abre la app (por ejemplo el regreso del navegador).
     if (deepLink == null) {
@@ -211,6 +405,8 @@ void main() {
       sync: sync,
       fileSource: files ?? const NoFileSource(),
       fileStore: MemoryFileStore(),
+      pdfRenderer: pdf ?? const NoPdfRenderer(),
+      zoneSource: zones ?? const NoConcessionZoneSource(),
     );
     boundary = GlobalKey();
     await tester.pumpWidget(
@@ -480,6 +676,7 @@ void main() {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 3;
     late Uint8List sample;
+    late List<Uint8List> pdfPages;
     await tester.runAsync(() async {
       await loadAppFonts();
       if (iconsFont != null && File(iconsFont).existsSync()) {
@@ -489,6 +686,7 @@ void main() {
         await loader.load();
       }
       sample = await _drawSampleImage();
+      pdfPages = await _drawPdfPages();
     });
 
     const scope = OfflineScope(userId: 'u1', concessionId: 'c0');
@@ -550,6 +748,8 @@ void main() {
       documents: repo,
       sync: sync,
       files: files,
+      pdf: _CapturePdfRenderer(pdfPages),
+      zones: const _CaptureZone(),
     );
     await signIn(tester);
     await shoot(tester, '35_menu_aviso_pendientes.png');
@@ -589,8 +789,22 @@ void main() {
     await tester.tap(find.byKey(const Key('doc-tile-d-001')));
     await tester.pumpAndSettle();
     await shoot(tester, '42_documento_ficha.png');
+    // Las paginas se decodifican de forma asincrona: se precargan.
+    await tester.runAsync(() async {
+      for (final page in pdfPages) {
+        await precacheImage(
+          MemoryImage(page),
+          tester.element(find.byType(SigacoApp)),
+        );
+      }
+    });
     await tapKey(tester, 'docs-detail-preview');
-    await shoot(tester, '43_vista_previa_pdf_pendiente.png');
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+    await shoot(tester, '43_vista_previa_pdf.png');
+    await tapKey(tester, 'docs-pdf-zoom-in');
+    await tapKey(tester, 'docs-pdf-zoom-in');
+    await shoot(tester, '53_vista_previa_pdf_zoom.png');
     await back(tester);
     await back(tester);
     // La imagen se decodifica de forma asincrona: se precarga para la captura.
@@ -623,25 +837,24 @@ void main() {
     await shoot(tester, '48_carga_guardada_en_dispositivo.png');
     await tapKey(tester, 'upload-done-back');
 
-    // Estados
+    // Estados. La tarjeta del gestor ya no aparece sin el permiso Ver; el
+    // aviso «sin permiso» sale cuando el servidor niega la consulta.
     await reset(tester);
+    final denied = _DocsWithImage(sample)
+      ..failNextWith = DocumentsError.permissionDenied;
     await launch(
       tester,
-      nav: FakeNavigationRepository(
-        menu: const NavigationMenu(
-          modules: [
-            NavigationItem(code: 'DOCUMENTOS', name: 'Gestor documental'),
-          ],
-          permissions: [DocumentAccess.uploadKey],
-        ),
-      ),
-      documents: _DocsWithImage(sample),
+      nav: FakeNavigationRepository(menu: _docsMenu),
+      documents: denied,
+      zones: const _CaptureZone(),
     );
     await signIn(tester);
     await tester.ensureVisible(find.text('Gestor documental'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Gestor documental'));
     await tester.pumpAndSettle();
+    denied.failNextWith = DocumentsError.permissionDenied;
+    await tapKey(tester, 'docs-view-mine');
     await shoot(tester, '49_documentos_sin_permiso.png');
 
     await reset(tester);
@@ -682,6 +895,7 @@ void main() {
       nav: FakeNavigationRepository(menu: _docsMenu),
       documents: _DocsWithImage(sample),
       sync: sync2,
+      zones: const _CaptureZone(),
     );
     await signIn(tester);
     await tester.tap(find.byKey(const Key('sync-strip')));
@@ -689,5 +903,142 @@ void main() {
     await shoot(tester, '51_sincronizacion_centro.png');
     await tapKey(tester, 'sync-review-d');
     await shoot(tester, '52_sincronizacion_conflicto.png');
+  });
+  testWidgets('capturas de firma, consulta sin conexion y estados nuevos', (
+    tester,
+  ) async {
+    addTearDown(tester.view.reset);
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 3;
+    late Uint8List sample;
+    late List<Uint8List> pdfPages;
+    await tester.runAsync(() async {
+      await loadAppFonts();
+      if (iconsFont != null && File(iconsFont).existsSync()) {
+        final bytes = File(iconsFont).readAsBytesSync();
+        final loader = FontLoader('MaterialIcons')
+          ..addFont(Future.value(ByteData.sublistView(bytes)));
+        await loader.load();
+      }
+      sample = await _drawSampleImage();
+      pdfPages = await _drawPdfPages();
+    });
+    const scope = OfflineScope(userId: 'u1', concessionId: 'c0');
+
+    Future<void> tapKey(WidgetTester t, String key) async {
+      await t.ensureVisible(find.byKey(Key(key)));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(Key(key)));
+      await t.pumpAndSettle();
+    }
+
+    Future<void> back(WidgetTester t) async {
+      await t.tap(find.byType(BackButton));
+      await t.pumpAndSettle();
+    }
+
+    Future<void> openModule(WidgetTester t) async {
+      await t.ensureVisible(find.text('Gestor documental'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Gestor documental'));
+      await t.pumpAndSettle();
+    }
+
+    Future<void> openDoc(WidgetTester t, String id) async {
+      final tile = find.byKey(Key('doc-tile-$id'));
+      await t.scrollUntilVisible(
+        tile,
+        200,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('docs-list')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await t.ensureVisible(tile);
+      await t.pumpAndSettle();
+      await t.tap(tile);
+      await t.pumpAndSettle();
+    }
+
+    Future<void> openApp(
+      WidgetTester t, {
+      required DocumentsRepository documents,
+      SyncCubit? sync,
+      ConnectivitySource? network,
+    }) async {
+      await reset(t);
+      await launch(
+        t,
+        nav: FakeNavigationRepository(menu: _docsMenu),
+        documents: documents,
+        sync: sync ?? FakeSyncCubit(const SyncState(scope: scope)),
+        network: network,
+        pdf: _CapturePdfRenderer(pdfPages),
+        zones: const _CaptureZone(),
+      );
+      await signIn(t);
+    }
+
+    // Firma con conexion: boton, confirmacion y resultado.
+    await openApp(tester, documents: _DocsWithImage(sample));
+    await openModule(tester);
+    await openDoc(tester, 'd-006');
+    await shoot(tester, '54_ficha_con_boton_firmar.png');
+    await tapKey(tester, 'docs-detail-sign');
+    await shoot(tester, '55_firma_confirmacion.png');
+    await tapKey(tester, 'docs-sign-confirm');
+    await shoot(tester, '56_firma_realizada.png');
+
+    // Firma sin conexion: queda pendiente y no se presenta como firmada.
+    await openApp(
+      tester,
+      documents: _DocsWithImage(sample),
+      network: _OfflineNetwork(),
+    );
+    await openModule(tester);
+    await openDoc(tester, 'd-006');
+    await tapKey(tester, 'docs-detail-sign');
+    await shoot(tester, '57_firma_confirmacion_sin_conexion.png');
+    await tapKey(tester, 'docs-sign-confirm');
+    await shoot(tester, '58_firma_pendiente_sin_conexion.png');
+
+    // Consulta sin conexion: lo ya visto se ve con su fecha; lo demas pide red.
+    final flaky = _FlakyDocs(sample);
+    final cache = _MemoryDocsCache();
+    await openApp(tester, documents: CachedDocumentsRepository(flaky, cache));
+    await openModule(tester);
+    await openDoc(tester, 'd-004');
+    await back(tester);
+    await back(tester);
+    flaky.offline = true;
+    await openModule(tester);
+    await shoot(tester, '59_documentos_guardados_en_telefono.png');
+    await openDoc(tester, 'd-004');
+    await shoot(tester, '60_ficha_guardada_en_telefono.png');
+    await tapKey(tester, 'docs-detail-preview');
+    await shoot(tester, '61_vista_previa_no_disponible_sin_conexion.png');
+
+    // Sin carreteras asignadas en la concesion (403 ROAD_ACCESS_REQUIRED).
+    final noRoad = _DocsWithImage(sample)
+      ..failNextWith = DocumentsError.noRoadAccess;
+    await openApp(tester, documents: noRoad);
+    await openModule(tester);
+    noRoad.failNextWith = DocumentsError.noRoadAccess;
+    await tapKey(tester, 'docs-view-mine');
+    await shoot(tester, '62_documentos_sin_carreteras.png');
+
+    // Cuenta con la ultima sincronizacion.
+    await openApp(
+      tester,
+      documents: _DocsWithImage(sample),
+      sync: FakeSyncCubit(
+        SyncState(scope: scope, lastSyncAt: DateTime.utc(2026, 10, 14, 16, 20)),
+      ),
+    );
+    await tester.tap(find.text('JP'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -330));
+    await tester.pumpAndSettle();
+    await shoot(tester, '63_cuenta_ultima_sincronizacion.png');
   });
 }
