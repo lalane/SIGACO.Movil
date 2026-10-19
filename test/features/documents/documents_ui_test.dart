@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
+import 'package:sigaco_movil/app/feature_flags.dart';
 import 'package:sigaco_movil/core/settings/settings_cubit.dart';
 import 'package:sigaco_movil/core/theme/app_theme.dart';
 import 'package:sigaco_movil/features/branding/domain/entities/concession_branding.dart';
@@ -71,6 +72,7 @@ void main() {
       navigationRepository: FakeNavigationRepository(menu: menu ?? _menu()),
       brandingRepository: FakeBrandingRepository(brands),
       logoStore: FakeLogoStore(),
+      features: const FeatureFlags(documents: true),
       documentsRepository: repo ?? sample,
       accessRefreshGap: Duration.zero,
       brandingRefreshGap: Duration.zero,

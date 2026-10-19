@@ -2005,6 +2005,1614 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Volver al listado'**
   String get docsUploadDoneBack;
+
+  /// No description provided for @mapTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa'**
+  String get mapTitle;
+
+  /// No description provided for @mapTabTickets.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets'**
+  String get mapTabTickets;
+
+  /// No description provided for @mapTabInventory.
+  ///
+  /// In es, this message translates to:
+  /// **'Inventario'**
+  String get mapTabInventory;
+
+  /// No description provided for @mapTabMaintenance.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento'**
+  String get mapTabMaintenance;
+
+  /// No description provided for @mapTabWorks.
+  ///
+  /// In es, this message translates to:
+  /// **'Obras'**
+  String get mapTabWorks;
+
+  /// No description provided for @mapFilters.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtros'**
+  String get mapFilters;
+
+  /// No description provided for @mapFiltersCount.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtros ({count})'**
+  String mapFiltersCount(int count);
+
+  /// No description provided for @mapFiltersTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar el mapa'**
+  String get mapFiltersTitle;
+
+  /// No description provided for @mapFilterCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Categoría'**
+  String get mapFilterCategory;
+
+  /// No description provided for @mapFilterStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get mapFilterStatus;
+
+  /// No description provided for @mapFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get mapFilterAll;
+
+  /// No description provided for @mapStatusNormal.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get mapStatusNormal;
+
+  /// No description provided for @mapStatusAttention.
+  ///
+  /// In es, this message translates to:
+  /// **'Atención'**
+  String get mapStatusAttention;
+
+  /// No description provided for @mapStatusCritical.
+  ///
+  /// In es, this message translates to:
+  /// **'Crítico'**
+  String get mapStatusCritical;
+
+  /// No description provided for @mapFilterClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar filtros'**
+  String get mapFilterClear;
+
+  /// No description provided for @mapFilterDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo'**
+  String get mapFilterDone;
+
+  /// No description provided for @mapSampleBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo: el servidor aún no publica el mapa.'**
+  String get mapSampleBanner;
+
+  /// No description provided for @mapSegmentTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tramo {code}'**
+  String mapSegmentTitle(String code);
+
+  /// No description provided for @mapDirectionIncreasing.
+  ///
+  /// In es, this message translates to:
+  /// **'Sentido creciente'**
+  String get mapDirectionIncreasing;
+
+  /// No description provided for @mapDirectionDecreasing.
+  ///
+  /// In es, this message translates to:
+  /// **'Sentido decreciente'**
+  String get mapDirectionDecreasing;
+
+  /// No description provided for @mapSegmentRange.
+  ///
+  /// In es, this message translates to:
+  /// **'{from} a {to}'**
+  String mapSegmentRange(String from, String to);
+
+  /// No description provided for @mapSegmentLayerCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{layer}: {count} en este tramo'**
+  String mapSegmentLayerCount(String layer, int count);
+
+  /// No description provided for @mapFromPhone.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión · pines guardados en el teléfono el {date}'**
+  String mapFromPhone(String date);
+
+  /// No description provided for @mapNoTiles.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin mapa base configurado'**
+  String get mapNoTiles;
+
+  /// No description provided for @mapLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando el mapa'**
+  String get mapLoading;
+
+  /// No description provided for @mapEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay elementos en esta pestaña.'**
+  String get mapEmpty;
+
+  /// No description provided for @mapEmptyFiltered.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún elemento coincide con los filtros.'**
+  String get mapEmptyFiltered;
+
+  /// No description provided for @mapErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el mapa'**
+  String get mapErrorTitle;
+
+  /// No description provided for @mapErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get mapErrorBody;
+
+  /// No description provided for @mapRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get mapRetry;
+
+  /// No description provided for @mapUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'El mapa aún no está disponible'**
+  String get mapUnavailableTitle;
+
+  /// No description provided for @mapUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu concesión todavía no tiene el mapa publicado. Se activará cuando el servidor lo ofrezca.'**
+  String get mapUnavailableBody;
+
+  /// No description provided for @mapNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin permiso para ver esta pestaña'**
+  String get mapNoPermissionTitle;
+
+  /// No description provided for @mapNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede consultar esta información. Pide acceso a un administrador.'**
+  String get mapNoPermissionBody;
+
+  /// No description provided for @mapLocate.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicarme'**
+  String get mapLocate;
+
+  /// No description provided for @mapLocating.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscando tu ubicación…'**
+  String get mapLocating;
+
+  /// No description provided for @mapLocateServiceOff.
+  ///
+  /// In es, this message translates to:
+  /// **'El GPS está apagado. Enciéndelo para ubicarte.'**
+  String get mapLocateServiceOff;
+
+  /// No description provided for @mapLocateDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Necesitamos el permiso de ubicación para ubicarte.'**
+  String get mapLocateDenied;
+
+  /// No description provided for @mapLocateDeniedForever.
+  ///
+  /// In es, this message translates to:
+  /// **'El permiso de ubicación está bloqueado. Actívalo en Ajustes.'**
+  String get mapLocateDeniedForever;
+
+  /// No description provided for @mapLocateUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo obtener tu ubicación. Inténtalo de nuevo al aire libre.'**
+  String get mapLocateUnavailable;
+
+  /// No description provided for @mapOpenSettings.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir ajustes'**
+  String get mapOpenSettings;
+
+  /// No description provided for @mapAccuracy.
+  ///
+  /// In es, this message translates to:
+  /// **'Precisión ±{meters} m'**
+  String mapAccuracy(String meters);
+
+  /// No description provided for @mapAccuracyLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Precisión baja (±{meters} m). Para guardar una ubicación se pide {max} m o menos.'**
+  String mapAccuracyLow(String meters, String max);
+
+  /// No description provided for @mapMockedLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'La ubicación parece simulada: no se usará para guardar datos.'**
+  String get mapMockedLocation;
+
+  /// No description provided for @mapNearby.
+  ///
+  /// In es, this message translates to:
+  /// **'Cercanos'**
+  String get mapNearby;
+
+  /// No description provided for @mapNearbyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Activos cercanos'**
+  String get mapNearbyTitle;
+
+  /// No description provided for @mapNearbyRadius.
+  ///
+  /// In es, this message translates to:
+  /// **'Radio'**
+  String get mapNearbyRadius;
+
+  /// No description provided for @mapNearbyEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay activos a menos de {radius} de ti.'**
+  String mapNearbyEmpty(String radius);
+
+  /// No description provided for @mapNearbyNeedLocation.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca «Ubicarme» para ver los activos cercanos.'**
+  String get mapNearbyNeedLocation;
+
+  /// No description provided for @mapNearbyLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando el inventario…'**
+  String get mapNearbyLoading;
+
+  /// No description provided for @mapDistanceMeters.
+  ///
+  /// In es, this message translates to:
+  /// **'{value} m'**
+  String mapDistanceMeters(String value);
+
+  /// No description provided for @mapDistanceKm.
+  ///
+  /// In es, this message translates to:
+  /// **'{value} km'**
+  String mapDistanceKm(String value);
+
+  /// No description provided for @mapDetailReference.
+  ///
+  /// In es, this message translates to:
+  /// **'Referencia'**
+  String get mapDetailReference;
+
+  /// No description provided for @mapDetailDistance.
+  ///
+  /// In es, this message translates to:
+  /// **'A {distance} de ti'**
+  String mapDetailDistance(String distance);
+
+  /// No description provided for @mapDetailClose.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar'**
+  String get mapDetailClose;
+
+  /// No description provided for @mapActionsSoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear un ticket, una inspección o un mantenimiento desde aquí se habilitará cuando esos módulos estén disponibles.'**
+  String get mapActionsSoon;
+
+  /// No description provided for @mapPacksTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapas sin conexión'**
+  String get mapPacksTitle;
+
+  /// No description provided for @mapPacksAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapas sin conexión'**
+  String get mapPacksAction;
+
+  /// No description provided for @mapPacksIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Descarga el mapa de tu concesión para verlo sin internet. Se recomienda usar Wi-Fi: los paquetes pesan decenas de megabytes. Se borran al cambiar de concesión o cerrar sesión.'**
+  String get mapPacksIntro;
+
+  /// No description provided for @mapPacksEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor no tiene mapas para descargar en esta concesión.'**
+  String get mapPacksEmpty;
+
+  /// No description provided for @mapPacksUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Los mapas sin conexión aún no están disponibles'**
+  String get mapPacksUnavailableTitle;
+
+  /// No description provided for @mapPacksUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor todavía no los publica para tu concesión.'**
+  String get mapPacksUnavailableBody;
+
+  /// No description provided for @mapPacksNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin permiso para descargar mapas'**
+  String get mapPacksNoPermissionTitle;
+
+  /// No description provided for @mapPacksNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede descargar mapas. Pide acceso a un administrador.'**
+  String get mapPacksNoPermissionBody;
+
+  /// No description provided for @mapPacksErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los mapas'**
+  String get mapPacksErrorTitle;
+
+  /// No description provided for @mapPacksErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get mapPacksErrorBody;
+
+  /// No description provided for @mapPacksListOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión: se muestran solo los mapas guardados en el teléfono.'**
+  String get mapPacksListOffline;
+
+  /// No description provided for @mapPackVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Versión {version}'**
+  String mapPackVersion(int version);
+
+  /// No description provided for @mapPackZoom.
+  ///
+  /// In es, this message translates to:
+  /// **'Acercamiento {min} a {max}'**
+  String mapPackZoom(int min, int max);
+
+  /// No description provided for @mapPackInstalled.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardado en el teléfono'**
+  String get mapPackInstalled;
+
+  /// No description provided for @mapPackUpdateAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay una versión nueva'**
+  String get mapPackUpdateAvailable;
+
+  /// No description provided for @mapPackPaused.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausado · {size} bajados'**
+  String mapPackPaused(String size);
+
+  /// No description provided for @mapPackDownloading.
+  ///
+  /// In es, this message translates to:
+  /// **'Bajando… {percent} %'**
+  String mapPackDownloading(int percent);
+
+  /// No description provided for @mapPackVerifying.
+  ///
+  /// In es, this message translates to:
+  /// **'Comprobando el archivo…'**
+  String get mapPackVerifying;
+
+  /// No description provided for @mapPackDownload.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar'**
+  String get mapPackDownload;
+
+  /// No description provided for @mapPackResume.
+  ///
+  /// In es, this message translates to:
+  /// **'Reanudar'**
+  String get mapPackResume;
+
+  /// No description provided for @mapPackUpdate.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar'**
+  String get mapPackUpdate;
+
+  /// No description provided for @mapPackPause.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausar'**
+  String get mapPackPause;
+
+  /// No description provided for @mapPackDiscard.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartar lo bajado'**
+  String get mapPackDiscard;
+
+  /// No description provided for @mapPackDelete.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar'**
+  String get mapPackDelete;
+
+  /// No description provided for @mapPackDeleteTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Borrar el mapa sin conexión?'**
+  String get mapPackDeleteTitle;
+
+  /// No description provided for @mapPackDeleteBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se liberan {size} del teléfono. Podrás volver a descargarlo.'**
+  String mapPackDeleteBody(String size);
+
+  /// No description provided for @mapPackCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get mapPackCancel;
+
+  /// No description provided for @mapPackErrNetwork.
+  ///
+  /// In es, this message translates to:
+  /// **'Se cortó la conexión. Puedes reanudar la descarga.'**
+  String get mapPackErrNetwork;
+
+  /// No description provided for @mapPackErrCorrupt.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo descargado no coincide con el original y se descartó. Inténtalo de nuevo.'**
+  String get mapPackErrCorrupt;
+
+  /// No description provided for @mapPackErrNoSpace.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay espacio suficiente en el teléfono.'**
+  String get mapPackErrNoSpace;
+
+  /// No description provided for @mapPackErrNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'Este mapa ya no está disponible en el servidor.'**
+  String get mapPackErrNotFound;
+
+  /// No description provided for @mapPackErrServer.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor no pudo entregar el mapa. Inténtalo más tarde.'**
+  String get mapPackErrServer;
+
+  /// No description provided for @mapPackErrPermission.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede descargar mapas.'**
+  String get mapPackErrPermission;
+
+  /// No description provided for @mapOfflineBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa sin conexión · {name}'**
+  String mapOfflineBadge(String name);
+
+  /// No description provided for @navTabMap.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa'**
+  String get navTabMap;
+
+  /// No description provided for @navTabTicket.
+  ///
+  /// In es, this message translates to:
+  /// **'Ticket'**
+  String get navTabTicket;
+
+  /// No description provided for @navTabMenu.
+  ///
+  /// In es, this message translates to:
+  /// **'Menú'**
+  String get navTabMenu;
+
+  /// No description provided for @navTabInventory.
+  ///
+  /// In es, this message translates to:
+  /// **'Inventario'**
+  String get navTabInventory;
+
+  /// No description provided for @navTabMaintenance.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento'**
+  String get navTabMaintenance;
+
+  /// No description provided for @mapLayerSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Capa: {layer}'**
+  String mapLayerSubtitle(String layer);
+
+  /// No description provided for @mapResultsFound.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =0{Ningún elemento encontrado} =1{1 elemento encontrado} other{{count} elementos encontrados}}'**
+  String mapResultsFound(int count);
+
+  /// No description provided for @mapRefine.
+  ///
+  /// In es, this message translates to:
+  /// **'Refinar búsqueda'**
+  String get mapRefine;
+
+  /// No description provided for @ticketsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial de tickets'**
+  String get ticketsTitle;
+
+  /// No description provided for @ticketsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Consulta de tickets'**
+  String get ticketsSubtitle;
+
+  /// No description provided for @ticketsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por título, ID, km…'**
+  String get ticketsSearchHint;
+
+  /// No description provided for @ticketsSearchTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get ticketsSearchTooltip;
+
+  /// No description provided for @ticketsFilterTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar'**
+  String get ticketsFilterTooltip;
+
+  /// No description provided for @ticketsFilterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar tickets'**
+  String get ticketsFilterTitle;
+
+  /// No description provided for @ticketsFilterStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get ticketsFilterStatus;
+
+  /// No description provided for @ticketsFilterClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar filtros'**
+  String get ticketsFilterClear;
+
+  /// No description provided for @ticketsFilterDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo'**
+  String get ticketsFilterDone;
+
+  /// No description provided for @ticketsDueSort.
+  ///
+  /// In es, this message translates to:
+  /// **'Vencimiento'**
+  String get ticketsDueSort;
+
+  /// No description provided for @ticketsFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get ticketsFilterAll;
+
+  /// No description provided for @ticketsFilterOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abiertos'**
+  String get ticketsFilterOpen;
+
+  /// No description provided for @ticketsFilterAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendidos'**
+  String get ticketsFilterAttended;
+
+  /// No description provided for @ticketsNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo ticket'**
+  String get ticketsNew;
+
+  /// No description provided for @ticketStatusOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abierto'**
+  String get ticketStatusOpen;
+
+  /// No description provided for @ticketStatusAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendido'**
+  String get ticketStatusAttended;
+
+  /// No description provided for @ticketsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún ticket coincide con los filtros.'**
+  String get ticketsEmpty;
+
+  /// No description provided for @ticketsEmptyAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay tickets.'**
+  String get ticketsEmptyAll;
+
+  /// No description provided for @ticketsUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets aún no disponibles'**
+  String get ticketsUnavailableTitle;
+
+  /// No description provided for @ticketsUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor todavía no publica los tickets de esta concesión.'**
+  String get ticketsUnavailableBody;
+
+  /// No description provided for @ticketsErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los tickets'**
+  String get ticketsErrorTitle;
+
+  /// No description provided for @ticketsErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get ticketsErrorBody;
+
+  /// No description provided for @ticketsNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin acceso a tickets'**
+  String get ticketsNoPermissionTitle;
+
+  /// No description provided for @ticketsNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede ver los tickets.'**
+  String get ticketsNoPermissionBody;
+
+  /// No description provided for @ticketsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get ticketsRetry;
+
+  /// No description provided for @ticketsSampleBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo: no son tickets reales.'**
+  String get ticketsSampleBanner;
+
+  /// No description provided for @ticketDueHours.
+  ///
+  /// In es, this message translates to:
+  /// **'{n} h'**
+  String ticketDueHours(int n);
+
+  /// No description provided for @ticketDueDays.
+  ///
+  /// In es, this message translates to:
+  /// **'{n} d'**
+  String ticketDueDays(int n);
+
+  /// No description provided for @ticketDueCaption.
+  ///
+  /// In es, this message translates to:
+  /// **'para vencimiento'**
+  String get ticketDueCaption;
+
+  /// No description provided for @ticketOverdueCaption.
+  ///
+  /// In es, this message translates to:
+  /// **'vencido'**
+  String get ticketOverdueCaption;
+
+  /// No description provided for @ticketBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver'**
+  String get ticketBack;
+
+  /// No description provided for @ticketIdLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'ID TICKET #{code}'**
+  String ticketIdLabel(String code);
+
+  /// No description provided for @ticketCreatedOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Creado el {date}'**
+  String ticketCreatedOn(String date);
+
+  /// No description provided for @ticketInfoGeneratedBy.
+  ///
+  /// In es, this message translates to:
+  /// **'Generado por'**
+  String get ticketInfoGeneratedBy;
+
+  /// No description provided for @ticketInfoProfile.
+  ///
+  /// In es, this message translates to:
+  /// **'Perfil de usuario'**
+  String get ticketInfoProfile;
+
+  /// No description provided for @ticketInfoConcession.
+  ///
+  /// In es, this message translates to:
+  /// **'Concesionaria'**
+  String get ticketInfoConcession;
+
+  /// No description provided for @ticketInfoCompany.
+  ///
+  /// In es, this message translates to:
+  /// **'Empresa de usuario'**
+  String get ticketInfoCompany;
+
+  /// No description provided for @ticketInfoLatitude.
+  ///
+  /// In es, this message translates to:
+  /// **'Latitud'**
+  String get ticketInfoLatitude;
+
+  /// No description provided for @ticketInfoLongitude.
+  ///
+  /// In es, this message translates to:
+  /// **'Longitud'**
+  String get ticketInfoLongitude;
+
+  /// No description provided for @ticketInfoChainage.
+  ///
+  /// In es, this message translates to:
+  /// **'Cadenamiento'**
+  String get ticketInfoChainage;
+
+  /// No description provided for @ticketInfoBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuerpo'**
+  String get ticketInfoBody;
+
+  /// No description provided for @ticketTypeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de ticket'**
+  String get ticketTypeTitle;
+
+  /// No description provided for @ticketDescriptionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get ticketDescriptionTitle;
+
+  /// No description provided for @ticketFollowUpsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguimientos'**
+  String get ticketFollowUpsTitle;
+
+  /// No description provided for @ticketFollowUpsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay seguimientos.'**
+  String get ticketFollowUpsEmpty;
+
+  /// No description provided for @ticketActionDownload.
+  ///
+  /// In es, this message translates to:
+  /// **'Descargar'**
+  String get ticketActionDownload;
+
+  /// No description provided for @ticketActionEdit.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar'**
+  String get ticketActionEdit;
+
+  /// No description provided for @ticketActionFollowUp.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar seguimiento'**
+  String get ticketActionFollowUp;
+
+  /// No description provided for @ticketActionSoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta acción estará disponible pronto.'**
+  String get ticketActionSoon;
+
+  /// No description provided for @ticketNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontró el ticket.'**
+  String get ticketNotFound;
+
+  /// No description provided for @followUpTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguimiento de ticket'**
+  String get followUpTitle;
+
+  /// No description provided for @followUpDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get followUpDate;
+
+  /// No description provided for @followUpTime.
+  ///
+  /// In es, this message translates to:
+  /// **'Hora'**
+  String get followUpTime;
+
+  /// No description provided for @followUpStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del ticket'**
+  String get followUpStatus;
+
+  /// No description provided for @followUpSelect.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccionar'**
+  String get followUpSelect;
+
+  /// No description provided for @followUpDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get followUpDescription;
+
+  /// No description provided for @followUpFillIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Complete información'**
+  String get followUpFillIn;
+
+  /// No description provided for @followUpPhotos.
+  ///
+  /// In es, this message translates to:
+  /// **'Fotografías'**
+  String get followUpPhotos;
+
+  /// No description provided for @followUpPhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Foto {n}'**
+  String followUpPhoto(int n);
+
+  /// No description provided for @followUpPhotoRemove.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar foto'**
+  String get followUpPhotoRemove;
+
+  /// No description provided for @followUpSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar seguimiento'**
+  String get followUpSave;
+
+  /// No description provided for @followUpSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguimiento guardado.'**
+  String get followUpSaved;
+
+  /// No description provided for @followUpErrorStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el estado del ticket.'**
+  String get followUpErrorStatus;
+
+  /// No description provided for @followUpErrorDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe una descripción.'**
+  String get followUpErrorDescription;
+
+  /// No description provided for @ticketSaveFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar. Inténtalo de nuevo.'**
+  String get ticketSaveFailed;
+
+  /// No description provided for @newTicketTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo ticket'**
+  String get newTicketTitle;
+
+  /// No description provided for @newTicketName.
+  ///
+  /// In es, this message translates to:
+  /// **'Título'**
+  String get newTicketName;
+
+  /// No description provided for @newTicketCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de ticket'**
+  String get newTicketCategory;
+
+  /// No description provided for @newTicketChainage.
+  ///
+  /// In es, this message translates to:
+  /// **'Cadenamiento (km)'**
+  String get newTicketChainage;
+
+  /// No description provided for @newTicketCreate.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear ticket'**
+  String get newTicketCreate;
+
+  /// No description provided for @newTicketCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Ticket creado.'**
+  String get newTicketCreated;
+
+  /// No description provided for @newTicketErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un título.'**
+  String get newTicketErrorTitle;
+
+  /// No description provided for @newTicketErrorCategory.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo de ticket.'**
+  String get newTicketErrorCategory;
+
+  /// No description provided for @accidentsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Accidentes'**
+  String get accidentsTitle;
+
+  /// No description provided for @accidentsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por título, ID, km…'**
+  String get accidentsSearchHint;
+
+  /// No description provided for @accidentsSearchTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get accidentsSearchTooltip;
+
+  /// No description provided for @accidentsFilterTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar'**
+  String get accidentsFilterTooltip;
+
+  /// No description provided for @accidentsNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo accidente'**
+  String get accidentsNew;
+
+  /// No description provided for @accidentsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún accidente coincide con los filtros.'**
+  String get accidentsEmpty;
+
+  /// No description provided for @accidentsEmptyAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay accidentes registrados.'**
+  String get accidentsEmptyAll;
+
+  /// No description provided for @accidentsUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Accidentes aún no disponibles'**
+  String get accidentsUnavailableTitle;
+
+  /// No description provided for @accidentsUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor todavía no publica los accidentes de esta concesión.'**
+  String get accidentsUnavailableBody;
+
+  /// No description provided for @accidentsErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar los accidentes'**
+  String get accidentsErrorTitle;
+
+  /// No description provided for @accidentsErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get accidentsErrorBody;
+
+  /// No description provided for @accidentsNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin acceso a accidentes'**
+  String get accidentsNoPermissionTitle;
+
+  /// No description provided for @accidentsNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede ver los accidentes.'**
+  String get accidentsNoPermissionBody;
+
+  /// No description provided for @accidentsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get accidentsRetry;
+
+  /// No description provided for @accidentsSampleBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo: no son accidentes reales.'**
+  String get accidentsSampleBanner;
+
+  /// No description provided for @accidentsStatTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get accidentsStatTotal;
+
+  /// No description provided for @accidentsStatTotalShare.
+  ///
+  /// In es, this message translates to:
+  /// **'100% total'**
+  String get accidentsStatTotalShare;
+
+  /// No description provided for @accidentsStatShare.
+  ///
+  /// In es, this message translates to:
+  /// **'{percent}%'**
+  String accidentsStatShare(String percent);
+
+  /// No description provided for @accidentsFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get accidentsFilterAll;
+
+  /// No description provided for @accidentsFilterTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar accidentes'**
+  String get accidentsFilterTitle;
+
+  /// No description provided for @accidentsFilterSeverity.
+  ///
+  /// In es, this message translates to:
+  /// **'Gravedad'**
+  String get accidentsFilterSeverity;
+
+  /// No description provided for @accidentTypeCollision.
+  ///
+  /// In es, this message translates to:
+  /// **'Choque'**
+  String get accidentTypeCollision;
+
+  /// No description provided for @accidentTypeRollover.
+  ///
+  /// In es, this message translates to:
+  /// **'Volcamiento'**
+  String get accidentTypeRollover;
+
+  /// No description provided for @accidentTypeFire.
+  ///
+  /// In es, this message translates to:
+  /// **'Incendio'**
+  String get accidentTypeFire;
+
+  /// No description provided for @accidentSeverityLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja'**
+  String get accidentSeverityLow;
+
+  /// No description provided for @accidentSeverityMedium.
+  ///
+  /// In es, this message translates to:
+  /// **'Media'**
+  String get accidentSeverityMedium;
+
+  /// No description provided for @accidentSeverityHigh.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta'**
+  String get accidentSeverityHigh;
+
+  /// No description provided for @accidentStatusRegistered.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrado'**
+  String get accidentStatusRegistered;
+
+  /// No description provided for @accidentStatusInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'En proceso'**
+  String get accidentStatusInProgress;
+
+  /// No description provided for @accidentStatusClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrado'**
+  String get accidentStatusClosed;
+
+  /// No description provided for @accidentIdLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'ID ACCIDENTE #{code}'**
+  String accidentIdLabel(String code);
+
+  /// No description provided for @accidentTypeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de accidente'**
+  String get accidentTypeTitle;
+
+  /// No description provided for @accidentSeverityTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gravedad'**
+  String get accidentSeverityTitle;
+
+  /// No description provided for @accidentNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontró el accidente.'**
+  String get accidentNotFound;
+
+  /// No description provided for @newAccidentTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo accidente'**
+  String get newAccidentTitle;
+
+  /// No description provided for @newAccidentCreate.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar accidente'**
+  String get newAccidentCreate;
+
+  /// No description provided for @newAccidentCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Accidente registrado.'**
+  String get newAccidentCreated;
+
+  /// No description provided for @newAccidentErrorType.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo de accidente.'**
+  String get newAccidentErrorType;
+
+  /// No description provided for @newAccidentErrorSeverity.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la gravedad.'**
+  String get newAccidentErrorSeverity;
+
+  /// No description provided for @maintIndicatorsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Seleccione un indicador'**
+  String get maintIndicatorsTitle;
+
+  /// No description provided for @maintIndSgp.
+  ///
+  /// In es, this message translates to:
+  /// **'Pavimentos'**
+  String get maintIndSgp;
+
+  /// No description provided for @maintIndSgs.
+  ///
+  /// In es, this message translates to:
+  /// **'Señalización'**
+  String get maintIndSgs;
+
+  /// No description provided for @maintIndSgoae.
+  ///
+  /// In es, this message translates to:
+  /// **'OAEs'**
+  String get maintIndSgoae;
+
+  /// No description provided for @maintIndSgoac.
+  ///
+  /// In es, this message translates to:
+  /// **'OACs'**
+  String get maintIndSgoac;
+
+  /// No description provided for @maintIndSgits.
+  ///
+  /// In es, this message translates to:
+  /// **'Equipos ITS'**
+  String get maintIndSgits;
+
+  /// No description provided for @maintIndSgf.
+  ///
+  /// In es, this message translates to:
+  /// **'Faixa de dominio'**
+  String get maintIndSgf;
+
+  /// No description provided for @maintIndSgtec.
+  ///
+  /// In es, this message translates to:
+  /// **'Terraplenos y estructuras'**
+  String get maintIndSgtec;
+
+  /// No description provided for @maintIndSge.
+  ///
+  /// In es, this message translates to:
+  /// **'Edificaciones e instalaciones'**
+  String get maintIndSge;
+
+  /// No description provided for @maintTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento'**
+  String get maintTitle;
+
+  /// No description provided for @maintSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Consulta y gestión de infraestructura de concesión'**
+  String get maintSubtitle;
+
+  /// No description provided for @maintStatusOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abierto'**
+  String get maintStatusOpen;
+
+  /// No description provided for @maintStatusInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Proceso'**
+  String get maintStatusInProgress;
+
+  /// No description provided for @maintStatusClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrado'**
+  String get maintStatusClosed;
+
+  /// No description provided for @maintStatTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get maintStatTotal;
+
+  /// No description provided for @maintStatTotalCaption.
+  ///
+  /// In es, this message translates to:
+  /// **'100% total'**
+  String get maintStatTotalCaption;
+
+  /// No description provided for @maintStatOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abiertos'**
+  String get maintStatOpen;
+
+  /// No description provided for @maintStatInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Proceso'**
+  String get maintStatInProgress;
+
+  /// No description provided for @maintStatClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrados'**
+  String get maintStatClosed;
+
+  /// No description provided for @maintStatShare.
+  ///
+  /// In es, this message translates to:
+  /// **'{percent}% del total'**
+  String maintStatShare(String percent);
+
+  /// No description provided for @maintFilterState.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get maintFilterState;
+
+  /// No description provided for @maintFilterAllStates.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos'**
+  String get maintFilterAllStates;
+
+  /// No description provided for @maintDateHint.
+  ///
+  /// In es, this message translates to:
+  /// **'DD/MM/AAAA'**
+  String get maintDateHint;
+
+  /// No description provided for @maintDateFrom.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha inicial'**
+  String get maintDateFrom;
+
+  /// No description provided for @maintDateTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha final'**
+  String get maintDateTo;
+
+  /// No description provided for @maintFilterClear.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar filtros'**
+  String get maintFilterClear;
+
+  /// No description provided for @maintSearchTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get maintSearchTooltip;
+
+  /// No description provided for @maintSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar por ubicación o actividad…'**
+  String get maintSearchHint;
+
+  /// No description provided for @maintFilterTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Filtrar'**
+  String get maintFilterTooltip;
+
+  /// No description provided for @maintEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún mantenimiento coincide con los filtros.'**
+  String get maintEmpty;
+
+  /// No description provided for @maintEmptyAll.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay mantenimientos para este indicador.'**
+  String get maintEmptyAll;
+
+  /// No description provided for @maintUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento aún no disponible'**
+  String get maintUnavailableTitle;
+
+  /// No description provided for @maintUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor todavía no publica el mantenimiento de esta concesión.'**
+  String get maintUnavailableBody;
+
+  /// No description provided for @maintErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el mantenimiento'**
+  String get maintErrorTitle;
+
+  /// No description provided for @maintErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get maintErrorBody;
+
+  /// No description provided for @maintNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin acceso a mantenimiento'**
+  String get maintNoPermissionTitle;
+
+  /// No description provided for @maintNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede ver este indicador.'**
+  String get maintNoPermissionBody;
+
+  /// No description provided for @maintRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get maintRetry;
+
+  /// No description provided for @maintSampleBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo: no son mantenimientos reales.'**
+  String get maintSampleBanner;
+
+  /// No description provided for @maintTotalVolume.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen Total: {value}'**
+  String maintTotalVolume(String value);
+
+  /// No description provided for @maintUnitDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción: {unit}'**
+  String maintUnitDescription(String unit);
+
+  /// No description provided for @maintProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance'**
+  String get maintProgress;
+
+  /// No description provided for @maintActivity.
+  ///
+  /// In es, this message translates to:
+  /// **'Actividad: {activity}'**
+  String maintActivity(String activity);
+
+  /// No description provided for @maintProjectProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance del proyecto'**
+  String get maintProjectProgress;
+
+  /// No description provided for @maintExecutedAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Importe Ejec.'**
+  String get maintExecutedAmount;
+
+  /// No description provided for @maintPendingAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Por Ejecutar'**
+  String get maintPendingAmount;
+
+  /// No description provided for @maintDetailsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalles de mantenimiento'**
+  String get maintDetailsTitle;
+
+  /// No description provided for @maintKmStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Km inicial'**
+  String get maintKmStart;
+
+  /// No description provided for @maintKmEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Km final'**
+  String get maintKmEnd;
+
+  /// No description provided for @maintDirection.
+  ///
+  /// In es, this message translates to:
+  /// **'Dirección'**
+  String get maintDirection;
+
+  /// No description provided for @maintSense.
+  ///
+  /// In es, this message translates to:
+  /// **'Sentido'**
+  String get maintSense;
+
+  /// No description provided for @maintVolumeTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen total'**
+  String get maintVolumeTotal;
+
+  /// No description provided for @maintVolumeExecuted.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen ejecutado'**
+  String get maintVolumeExecuted;
+
+  /// No description provided for @maintUnitCost.
+  ///
+  /// In es, this message translates to:
+  /// **'Costo unitario'**
+  String get maintUnitCost;
+
+  /// No description provided for @maintProgrammedAmount.
+  ///
+  /// In es, this message translates to:
+  /// **'Importe programado'**
+  String get maintProgrammedAmount;
+
+  /// No description provided for @maintStartDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha inicio'**
+  String get maintStartDate;
+
+  /// No description provided for @maintEndDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha fin'**
+  String get maintEndDate;
+
+  /// No description provided for @maintNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontró el mantenimiento.'**
+  String get maintNotFound;
 }
 
 class _AppLocalizationsDelegate

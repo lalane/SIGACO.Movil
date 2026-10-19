@@ -149,6 +149,31 @@ class ApiClient {
     }
   }
 
+  /// Direccion base de la API, sin barra final.
+  String get baseUrl {
+    final base = _dio.options.baseUrl;
+    return base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+  }
+
+  /// Descarga un archivo de la propia API con la sesion iniciada (los logos de
+  /// la concesion piden autorizacion). [url] es absoluta bajo [baseUrl] o una
+  /// ruta que empieza con `/`. Devuelve null si falla, esta vacio o pasa de
+  /// [maxBytes]; una direccion de otro servidor tambien da null.
+  Future<Uint8List?> downloadFile(
+    String url, {
+    int maxBytes = 1024 * 1024,
+  }) async {
+    final path = url.startsWith(baseUrl) ? url.substring(baseUrl.length) : url;
+    if (!path.startsWith('/')) return null;
+    try {
+      final r = await getBytes(path);
+      if (r.bytes.isEmpty || r.bytes.length > maxBytes) return null;
+      return r.bytes;
+    } on ApiFailure {
+      return null;
+    }
+  }
+
   /// GET que devuelve el JSON tal cual llega (objeto o lista).
   Future<Object?> getJson(String path, {Map<String, Object?>? query}) async {
     try {
@@ -156,6 +181,35 @@ class ApiClient {
       return r.data;
     } on DioException catch (e) {
       throw ApiFailure.fromDio(e);
+    }
+  }
+
+  /// GET en flujo de un archivo grande (paquetes de mapa). Con [from] mayor que
+  /// cero pide solo desde ese byte (`Range`): si el servidor lo respeta responde
+  /// 206 y [resumed] es true; si responde 200 manda todo desde el principio.
+  /// Un error devuelve solo el estado HTTP (el cuerpo no se lee).
+  Future<({Stream<List<int>> body, bool resumed, int? contentLength})>
+  getStream(String path, {int from = 0}) async {
+    try {
+      final r = await _dio.get<ResponseBody>(
+        path,
+        options: Options(
+          responseType: ResponseType.stream,
+          headers: {if (from > 0) 'Range': 'bytes=$from-'},
+          receiveTimeout: const Duration(seconds: 60),
+          validateStatus: (s) => s == 200 || s == 206,
+        ),
+      );
+      final body = r.data!;
+      return (
+        body: body.stream,
+        resumed: r.statusCode == 206,
+        contentLength: int.tryParse(
+          r.headers.value(Headers.contentLengthHeader) ?? '',
+        ),
+      );
+    } on DioException catch (e) {
+      throw ApiFailure(status: e.response?.statusCode);
     }
   }
 

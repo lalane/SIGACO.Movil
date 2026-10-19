@@ -354,8 +354,12 @@
   "docsPdfPageOf": "Página {page} de {total}",
   "@docsPdfPageOf": {
     "placeholders": {
-      "page": {"type": "int"},
-      "total": {"type": "int"}
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "docsPdfZoomIn": "Aproximar",
@@ -430,5 +434,398 @@
     }
   },
   "docsUploadDoneSync": "Ver pendentes",
-  "docsUploadDoneBack": "Voltar à lista"
+  "docsUploadDoneBack": "Voltar à lista",
+  "mapTitle": "Mapa",
+  "mapTabTickets": "Tickets",
+  "mapTabInventory": "Inventário",
+  "mapTabMaintenance": "Manutenção",
+  "mapTabWorks": "Obras",
+  "mapFilters": "Filtros",
+  "mapFiltersCount": "Filtros ({count})",
+  "mapFiltersTitle": "Filtrar o mapa",
+  "mapFilterCategory": "Categoria",
+  "mapFilterStatus": "Situação",
+  "mapFilterAll": "Todos",
+  "mapStatusNormal": "Normal",
+  "mapStatusAttention": "Atenção",
+  "mapStatusCritical": "Crítico",
+  "mapFilterClear": "Limpar filtros",
+  "mapFilterDone": "Pronto",
+  "mapSampleBanner": "Dados de exemplo: o servidor ainda não publica o mapa.",
+  "mapSegmentTitle": "Trecho {code}",
+  "@mapSegmentTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "mapDirectionIncreasing": "Sentido crescente",
+  "mapDirectionDecreasing": "Sentido decrescente",
+  "mapSegmentRange": "{from} a {to}",
+  "@mapSegmentRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "mapSegmentLayerCount": "{layer}: {count} neste trecho",
+  "@mapSegmentLayerCount": {
+    "placeholders": {
+      "layer": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapFromPhone": "Sem conexão · pins salvos no telefone em {date}",
+  "@mapFromPhone": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "mapNoTiles": "Sem mapa base configurado",
+  "mapLoading": "Carregando o mapa",
+  "mapEmpty": "Não há itens nesta aba.",
+  "mapEmptyFiltered": "Nenhum item corresponde aos filtros.",
+  "mapErrorTitle": "Não foi possível carregar o mapa",
+  "mapErrorBody": "Verifique sua conexão e tente novamente.",
+  "mapRetry": "Tentar novamente",
+  "mapUnavailableTitle": "O mapa ainda não está disponível",
+  "mapUnavailableBody": "Sua concessão ainda não tem o mapa publicado. Será ativado quando o servidor o oferecer.",
+  "mapNoPermissionTitle": "Sem permissão para ver esta aba",
+  "mapNoPermissionBody": "Seu perfil não pode consultar esta informação. Peça acesso a um administrador.",
+  "mapLocate": "Minha localização",
+  "mapLocating": "Buscando sua localização…",
+  "mapLocateServiceOff": "O GPS está desligado. Ligue-o para se localizar.",
+  "mapLocateDenied": "Precisamos da permissão de localização para localizar você.",
+  "mapLocateDeniedForever": "A permissão de localização está bloqueada. Ative-a em Configurações.",
+  "mapLocateUnavailable": "Não foi possível obter sua localização. Tente novamente ao ar livre.",
+  "mapOpenSettings": "Abrir configurações",
+  "mapAccuracy": "Precisão ±{meters} m",
+  "mapAccuracyLow": "Precisão baixa (±{meters} m). Para salvar uma localização é preciso {max} m ou menos.",
+  "mapMockedLocation": "A localização parece simulada: não será usada para salvar dados.",
+  "mapNearby": "Próximos",
+  "mapNearbyTitle": "Ativos próximos",
+  "mapNearbyRadius": "Raio",
+  "mapNearbyEmpty": "Não há ativos a menos de {radius} de você.",
+  "mapNearbyNeedLocation": "Toque em «Minha localização» para ver os ativos próximos.",
+  "mapNearbyLoading": "Carregando o inventário…",
+  "mapDistanceMeters": "{value} m",
+  "mapDistanceKm": "{value} km",
+  "mapDetailReference": "Referência",
+  "mapDetailDistance": "A {distance} de você",
+  "mapDetailClose": "Fechar",
+  "mapActionsSoon": "Criar um ticket, uma inspeção ou uma manutenção a partir daqui será habilitado quando esses módulos estiverem disponíveis.",
+  "mapPacksTitle": "Mapas sem conexão",
+  "mapPacksAction": "Mapas sem conexão",
+  "mapPacksIntro": "Baixe o mapa da sua concessão para vê-lo sem internet. Recomenda-se usar Wi-Fi: os pacotes pesam dezenas de megabytes. São apagados ao trocar de concessão ou encerrar a sessão.",
+  "mapPacksEmpty": "O servidor não tem mapas para baixar nesta concessão.",
+  "mapPacksUnavailableTitle": "Os mapas sem conexão ainda não estão disponíveis",
+  "mapPacksUnavailableBody": "O servidor ainda não os publica para a sua concessão.",
+  "mapPacksNoPermissionTitle": "Sem permissão para baixar mapas",
+  "mapPacksNoPermissionBody": "Seu perfil não pode baixar mapas. Peça acesso a um administrador.",
+  "mapPacksErrorTitle": "Não foi possível carregar os mapas",
+  "mapPacksErrorBody": "Verifique sua conexão e tente novamente.",
+  "mapPacksListOffline": "Sem conexão: são exibidos apenas os mapas salvos no telefone.",
+  "mapPackVersion": "Versão {version}",
+  "mapPackZoom": "Aproximação {min} a {max}",
+  "mapPackInstalled": "Salvo no telefone",
+  "mapPackUpdateAvailable": "Há uma versão nova",
+  "mapPackPaused": "Pausado · {size} baixados",
+  "mapPackDownloading": "Baixando… {percent} %",
+  "mapPackVerifying": "Verificando o arquivo…",
+  "mapPackDownload": "Baixar",
+  "mapPackResume": "Retomar",
+  "mapPackUpdate": "Atualizar",
+  "mapPackPause": "Pausar",
+  "mapPackDiscard": "Descartar o baixado",
+  "mapPackDelete": "Apagar",
+  "mapPackDeleteTitle": "Apagar o mapa sem conexão?",
+  "mapPackDeleteBody": "Serão liberados {size} do telefone. Você poderá baixá-lo novamente.",
+  "mapPackCancel": "Cancelar",
+  "mapPackErrNetwork": "A conexão caiu. Você pode retomar o download.",
+  "mapPackErrCorrupt": "O arquivo baixado não corresponde ao original e foi descartado. Tente novamente.",
+  "mapPackErrNoSpace": "Não há espaço suficiente no telefone.",
+  "mapPackErrNotFound": "Este mapa não está mais disponível no servidor.",
+  "mapPackErrServer": "O servidor não conseguiu entregar o mapa. Tente mais tarde.",
+  "mapPackErrPermission": "Seu perfil não pode baixar mapas.",
+  "mapOfflineBadge": "Mapa sem conexão · {name}",
+  "navTabMap": "Mapa",
+  "navTabTicket": "Ticket",
+  "navTabMenu": "Menu",
+  "navTabInventory": "Inventário",
+  "navTabMaintenance": "Manutenção",
+  "mapLayerSubtitle": "Camada: {layer}",
+  "@mapLayerSubtitle": {
+    "placeholders": {
+      "layer": {
+        "type": "String"
+      }
+    }
+  },
+  "mapResultsFound": "{count, plural, =0{Nenhum elemento encontrado} =1{1 elemento encontrado} other{{count} elementos encontrados}}",
+  "@mapResultsFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapRefine": "Refinar busca",
+  "ticketsTitle": "Histórico de tickets",
+  "ticketsSubtitle": "Consulta de tickets",
+  "ticketsSearchHint": "Buscar por título, ID, km…",
+  "ticketsSearchTooltip": "Buscar",
+  "ticketsFilterTooltip": "Filtrar",
+  "ticketsFilterTitle": "Filtrar tickets",
+  "ticketsFilterStatus": "Status",
+  "ticketsFilterClear": "Limpar filtros",
+  "ticketsFilterDone": "Pronto",
+  "ticketsDueSort": "Vencimento",
+  "ticketsFilterAll": "Todos",
+  "ticketsFilterOpen": "Abertos",
+  "ticketsFilterAttended": "Atendidos",
+  "ticketsNew": "Novo ticket",
+  "ticketStatusOpen": "Aberto",
+  "ticketStatusAttended": "Atendido",
+  "ticketsEmpty": "Nenhum ticket corresponde aos filtros.",
+  "ticketsEmptyAll": "Ainda não há tickets.",
+  "ticketsUnavailableTitle": "Tickets ainda não disponíveis",
+  "ticketsUnavailableBody": "O servidor ainda não publica os tickets desta concessão.",
+  "ticketsErrorTitle": "Não foi possível carregar os tickets",
+  "ticketsErrorBody": "Verifique sua conexão e tente novamente.",
+  "ticketsNoPermissionTitle": "Sem acesso a tickets",
+  "ticketsNoPermissionBody": "Seu perfil não pode ver os tickets.",
+  "ticketsRetry": "Tentar novamente",
+  "ticketsSampleBanner": "Dados de exemplo: não são tickets reais.",
+  "ticketDueHours": "{n} h",
+  "@ticketDueHours": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketDueDays": "{n} d",
+  "@ticketDueDays": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketDueCaption": "para vencer",
+  "ticketOverdueCaption": "vencido",
+  "ticketBack": "Voltar",
+  "ticketIdLabel": "ID TICKET #{code}",
+  "@ticketIdLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketCreatedOn": "Criado em {date}",
+  "@ticketCreatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketInfoGeneratedBy": "Gerado por",
+  "ticketInfoProfile": "Perfil do usuário",
+  "ticketInfoConcession": "Concessionária",
+  "ticketInfoCompany": "Empresa do usuário",
+  "ticketInfoLatitude": "Latitude",
+  "ticketInfoLongitude": "Longitude",
+  "ticketInfoChainage": "Quilometragem",
+  "ticketInfoBody": "Pista",
+  "ticketTypeTitle": "Tipo de ticket",
+  "ticketDescriptionTitle": "Descrição",
+  "ticketFollowUpsTitle": "Acompanhamentos",
+  "ticketFollowUpsEmpty": "Ainda não há acompanhamentos.",
+  "ticketActionDownload": "Baixar",
+  "ticketActionEdit": "Editar",
+  "ticketActionFollowUp": "Adicionar acompanhamento",
+  "ticketActionSoon": "Esta ação estará disponível em breve.",
+  "ticketNotFound": "Ticket não encontrado.",
+  "followUpTitle": "Acompanhamento do ticket",
+  "followUpDate": "Data",
+  "followUpTime": "Hora",
+  "followUpStatus": "Status do ticket",
+  "followUpSelect": "Selecionar",
+  "followUpDescription": "Descrição",
+  "followUpFillIn": "Preencha as informações",
+  "followUpPhotos": "Fotografias",
+  "followUpPhoto": "Foto {n}",
+  "@followUpPhoto": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "followUpPhotoRemove": "Remover foto",
+  "followUpSave": "Salvar acompanhamento",
+  "followUpSaved": "Acompanhamento salvo.",
+  "followUpErrorStatus": "Escolha o status do ticket.",
+  "followUpErrorDescription": "Escreva uma descrição.",
+  "ticketSaveFailed": "Não foi possível salvar. Tente novamente.",
+  "newTicketTitle": "Novo ticket",
+  "newTicketName": "Título",
+  "newTicketCategory": "Tipo de ticket",
+  "newTicketChainage": "Quilometragem (km)",
+  "newTicketCreate": "Criar ticket",
+  "newTicketCreated": "Ticket criado.",
+  "newTicketErrorTitle": "Escreva um título.",
+  "newTicketErrorCategory": "Escolha o tipo de ticket.",
+  "accidentsTitle": "Acidentes",
+  "accidentsSearchHint": "Buscar por título, ID, km…",
+  "accidentsSearchTooltip": "Buscar",
+  "accidentsFilterTooltip": "Filtrar",
+  "accidentsNew": "Novo acidente",
+  "accidentsEmpty": "Nenhum acidente corresponde aos filtros.",
+  "accidentsEmptyAll": "Ainda não há acidentes registrados.",
+  "accidentsUnavailableTitle": "Acidentes ainda não disponíveis",
+  "accidentsUnavailableBody": "O servidor ainda não publica os acidentes desta concessão.",
+  "accidentsErrorTitle": "Não foi possível carregar os acidentes",
+  "accidentsErrorBody": "Verifique sua conexão e tente novamente.",
+  "accidentsNoPermissionTitle": "Sem acesso a acidentes",
+  "accidentsNoPermissionBody": "Seu perfil não pode ver os acidentes.",
+  "accidentsRetry": "Tentar novamente",
+  "accidentsSampleBanner": "Dados de exemplo: não são acidentes reais.",
+  "accidentsStatTotal": "Total",
+  "accidentsStatTotalShare": "100% total",
+  "accidentsStatShare": "{percent}%",
+  "@accidentsStatShare": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "accidentsFilterAll": "Todos",
+  "accidentsFilterTitle": "Filtrar acidentes",
+  "accidentsFilterSeverity": "Gravidade",
+  "accidentTypeCollision": "Colisão",
+  "accidentTypeRollover": "Capotamento",
+  "accidentTypeFire": "Incêndio",
+  "accidentSeverityLow": "Baixa",
+  "accidentSeverityMedium": "Média",
+  "accidentSeverityHigh": "Alta",
+  "accidentStatusRegistered": "Registrado",
+  "accidentStatusInProgress": "Em andamento",
+  "accidentStatusClosed": "Fechado",
+  "accidentIdLabel": "ID ACIDENTE #{code}",
+  "@accidentIdLabel": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "accidentTypeTitle": "Tipo de acidente",
+  "accidentSeverityTitle": "Gravidade",
+  "accidentNotFound": "Acidente não encontrado.",
+  "newAccidentTitle": "Novo acidente",
+  "newAccidentCreate": "Registrar acidente",
+  "newAccidentCreated": "Acidente registrado.",
+  "newAccidentErrorType": "Escolha o tipo de acidente.",
+  "newAccidentErrorSeverity": "Escolha a gravidade.",
+  "maintIndicatorsTitle": "Selecione um indicador",
+  "maintIndSgp": "Pavimentos",
+  "maintIndSgs": "Sinalização",
+  "maintIndSgoae": "OAEs",
+  "maintIndSgoac": "OACs",
+  "maintIndSgits": "Equipamentos ITS",
+  "maintIndSgf": "Faixa de domínio",
+  "maintIndSgtec": "Terraplenos e estruturas",
+  "maintIndSge": "Edificações e instalações",
+  "maintTitle": "Manutenção",
+  "maintSubtitle": "Consulta e gestão da infraestrutura da concessão",
+  "maintStatusOpen": "Aberto",
+  "maintStatusInProgress": "Em andamento",
+  "maintStatusClosed": "Fechado",
+  "maintStatTotal": "Total",
+  "maintStatTotalCaption": "100% total",
+  "maintStatOpen": "Abertos",
+  "maintStatInProgress": "Em andamento",
+  "maintStatClosed": "Fechados",
+  "maintStatShare": "{percent}% do total",
+  "@maintStatShare": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "maintFilterState": "Status",
+  "maintFilterAllStates": "Todos",
+  "maintDateHint": "DD/MM/AAAA",
+  "maintDateFrom": "Data inicial",
+  "maintDateTo": "Data final",
+  "maintFilterClear": "Limpar filtros",
+  "maintSearchTooltip": "Buscar",
+  "maintSearchHint": "Buscar por local ou atividade…",
+  "maintFilterTooltip": "Filtrar",
+  "maintEmpty": "Nenhuma manutenção corresponde aos filtros.",
+  "maintEmptyAll": "Não há manutenções para este indicador.",
+  "maintUnavailableTitle": "Manutenção ainda não disponível",
+  "maintUnavailableBody": "O servidor ainda não publica a manutenção desta concessão.",
+  "maintErrorTitle": "Não foi possível carregar a manutenção",
+  "maintErrorBody": "Verifique sua conexão e tente novamente.",
+  "maintNoPermissionTitle": "Sem acesso a manutenção",
+  "maintNoPermissionBody": "Seu perfil não pode ver este indicador.",
+  "maintRetry": "Tentar novamente",
+  "maintSampleBanner": "Dados de exemplo: não são manutenções reais.",
+  "maintTotalVolume": "Volume Total: {value}",
+  "@maintTotalVolume": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "maintUnitDescription": "Descrição: {unit}",
+  "@maintUnitDescription": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgress": "Avanço",
+  "maintActivity": "Atividade: {activity}",
+  "@maintActivity": {
+    "placeholders": {
+      "activity": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProjectProgress": "Avanço do projeto",
+  "maintExecutedAmount": "Valor Exec.",
+  "maintPendingAmount": "A Executar",
+  "maintDetailsTitle": "Detalhes da manutenção",
+  "maintKmStart": "Km inicial",
+  "maintKmEnd": "Km final",
+  "maintDirection": "Direção",
+  "maintSense": "Sentido",
+  "maintVolumeTotal": "Volume total",
+  "maintVolumeExecuted": "Volume executado",
+  "maintUnitCost": "Custo unitário",
+  "maintProgrammedAmount": "Valor programado",
+  "maintStartDate": "Data início",
+  "maintEndDate": "Data fim",
+  "maintNotFound": "Manutenção não encontrada."
 }

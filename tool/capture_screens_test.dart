@@ -15,6 +15,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
+import 'package:sigaco_movil/app/feature_flags.dart';
 import 'package:sigaco_movil/core/connectivity/connectivity_source.dart';
 import 'package:sigaco_movil/core/device/device_info_source.dart';
 import 'package:sigaco_movil/core/files/file_source.dart';
@@ -401,6 +402,7 @@ void main() {
       connectivity: network ?? const AlwaysOnlineSource(),
       serverReachable: server ?? const Stream<bool>.empty(),
       deviceInfo: _CaptureDevice(),
+      features: const FeatureFlags(documents: true),
       documentsRepository: documents,
       sync: sync,
       fileSource: files ?? const NoFileSource(),

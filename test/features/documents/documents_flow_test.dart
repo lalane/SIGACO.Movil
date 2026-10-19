@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
+import 'package:sigaco_movil/app/feature_flags.dart';
 import 'package:sigaco_movil/core/connectivity/connectivity_source.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
@@ -121,6 +122,7 @@ void main() {
       ),
       brandingRepository: FakeBrandingRepository(),
       logoStore: FakeLogoStore(),
+      features: const FeatureFlags(documents: true),
       documentsRepository: repo,
       fileSource: files,
       pdfRenderer: pdf,

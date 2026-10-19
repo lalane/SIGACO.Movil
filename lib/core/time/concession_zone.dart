@@ -53,3 +53,27 @@ class ConcessionZone {
 /// temporal: nunca se muestra UTC tal cual.
 DateTime inConcessionZone(DateTime utc, ConcessionZone? zone) =>
     zone?.fromUtc(utc) ?? utc.toLocal();
+
+/// La hora de reloj [wall] (la que la persona ve y teclea en la zona de la
+/// concesion) como instante UTC. Sin zona se toma la del telefono. Cerca de un
+/// cambio de horario el resultado puede diferir una hora en el instante
+/// ambiguo.
+DateTime wallClockToUtc(DateTime wall, ConcessionZone? zone) {
+  if (zone == null) {
+    return DateTime(
+      wall.year,
+      wall.month,
+      wall.day,
+      wall.hour,
+      wall.minute,
+    ).toUtc();
+  }
+  final naive = DateTime.utc(
+    wall.year,
+    wall.month,
+    wall.day,
+    wall.hour,
+    wall.minute,
+  );
+  return naive.subtract(zone.offsetAt(naive));
+}

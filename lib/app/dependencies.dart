@@ -17,10 +17,12 @@ import '../core/offline/sync_cubit.dart';
 import '../core/offline/sync_engine.dart';
 import '../core/pdf/pdf_renderer.dart';
 import '../core/permissions/permission_keys.dart';
+import 'feature_flags.dart';
 import 'sync_revalidation.dart';
 import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
 import '../core/time/concession_zone_source.dart';
+import '../core/ui/capped_download.dart';
 import '../core/ui/logo_store.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
 import '../features/auth/data/repositories/credential_vault.dart';
@@ -37,7 +39,39 @@ import '../features/documents/data/repositories/unavailable_documents_repository
 import '../features/documents/data/sync/documents_sync_remote.dart';
 import '../features/documents/domain/entities/document_access.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
+import '../features/accidents/data/repositories/sample_accidents_repository.dart';
+import '../features/accidents/data/repositories/unavailable_accidents_repository.dart';
+import '../features/accidents/domain/repositories/accidents_repository.dart';
+import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
+import '../features/maintenance/data/repositories/unavailable_maintenance_repository.dart';
+import '../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../features/map/data/cache/map_pins_cache.dart';
+import '../features/map/data/location/geolocator_location_source.dart';
+import '../features/map/data/packs/file_map_pack_manager.dart';
+import '../features/map/data/packs/map_pack_remote.dart';
+import '../features/map/data/packs/unavailable_map_pack_manager.dart';
+import '../features/map/data/location/unavailable_location_source.dart';
+import '../features/map/data/repositories/cached_map_repository.dart';
+import '../features/map/data/repositories/cached_road_segments_repository.dart';
+import '../features/map/data/repositories/near_me_sample_road_segments_repository.dart';
+import '../features/map/data/repositories/sample_road_segments_repository.dart';
+import '../features/map/data/repositories/unavailable_road_segments_repository.dart';
+import '../features/map/data/repositories/near_me_road.dart';
+import '../features/map/data/repositories/near_me_sample_map_repository.dart';
+import '../features/map/data/repositories/osrm_road_finder.dart';
+import '../features/map/data/repositories/sample_map_repository.dart';
+import '../features/map/data/repositories/unavailable_map_repository.dart';
+import '../features/map/domain/entities/geo_point.dart';
+import '../features/map/domain/entities/map_settings.dart';
+import '../features/map/domain/repositories/location_source.dart';
+import '../features/map/domain/repositories/map_pack_manager.dart';
+import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/domain/repositories/road_segments_repository.dart';
+import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
+import '../features/tickets/data/repositories/sample_tickets_repository.dart';
+import '../features/tickets/data/repositories/unavailable_tickets_repository.dart';
+import '../features/tickets/domain/repositories/tickets_repository.dart';
 import '../features/navigation/domain/entities/navigation_entities.dart';
 import '../features/navigation/domain/repositories/navigation_repository.dart';
 
@@ -78,6 +112,76 @@ class _WithSampleDocuments implements NavigationRepository {
   }
 }
 
+/// Donde esta el telefono, para repartir los pines de ejemplo. Sin ubicacion
+/// (permiso negado, GPS apagado, sin senal) devuelve null.
+Future<GeoPoint?> _phonePosition() async {
+  try {
+    final here = await const GeolocatorLocationSource(
+      timeLimit: Duration(seconds: 8),
+    ).current();
+    return here.position;
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Solo para la prueba con el mapa de ejemplo (`SAMPLE_MAP`): suma el modulo de
+/// inventario y su permiso de Ver al menu que entrega el servidor, que es lo
+/// que habilita la tarjeta Mapa.
+class _WithSampleMap implements NavigationRepository {
+  const _WithSampleMap(this._inner);
+
+  final NavigationRepository _inner;
+
+  @override
+  Stream<void> get accessDenied => _inner.accessDenied;
+
+  @override
+  Future<NavigationMenu> load() async {
+    final menu = await _inner.load();
+    return NavigationMenu(
+      modules: [
+        ...menu.modules,
+        if (!menu.has('INVENTARIO'))
+          const NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+      ],
+      permissions: [
+        ...menu.permissions,
+        if (!menu.permissions.contains(PermissionKeys.inventoryView))
+          PermissionKeys.inventoryView,
+      ],
+    );
+  }
+}
+
+/// Solo para las pruebas con datos de ejemplo (`SAMPLE_TICKETS`,
+/// `SAMPLE_ACCIDENTS`, `SAMPLE_MAINTENANCE`): suma los modulos al menu que
+/// entrega el servidor, que es lo que habilita sus tarjetas.
+class _WithSampleModules implements NavigationRepository {
+  const _WithSampleModules(this._inner, this._extra);
+
+  final NavigationRepository _inner;
+  final List<NavigationItem> _extra;
+
+  @override
+  Stream<void> get accessDenied => _inner.accessDenied;
+
+  @override
+  Future<NavigationMenu> load() async {
+    final menu = await _inner.load();
+    return NavigationMenu(
+      modules: [
+        ...menu.modules,
+        for (final item in _extra)
+          if (!menu.has(item.code) &&
+              !item.submodules.any((s) => menu.has(s.code)))
+            item,
+      ],
+      permissions: menu.permissions,
+    );
+  }
+}
+
 /// Raiz de composicion: aqui se crean las implementaciones concretas.
 /// Las pruebas pasan sus propios fakes por el constructor.
 class AppDependencies {
@@ -88,6 +192,20 @@ class AppDependencies {
     required this.navigationRepository,
     BrandingRepository? brandingRepository,
     DocumentsRepository? documentsRepository,
+    this.mapRepository = const UnavailableMapRepository(),
+    this.roadSegmentsRepository = const UnavailableRoadSegmentsRepository(),
+    this.locationSource = const UnavailableLocationSource(),
+    this.mapTileSource = const NoTileSource(),
+    this.sampleMap = false,
+    this.ticketsRepository = const UnavailableTicketsRepository(),
+    this.sampleTickets = false,
+    this.accidentsRepository = const UnavailableAccidentsRepository(),
+    this.sampleAccidents = false,
+    this.maintenanceRepository = const UnavailableMaintenanceRepository(),
+    this.sampleMaintenance = false,
+    this.features = const FeatureFlags(),
+    this.mapSettings = const MapSettings(),
+    this.mapPacks = const UnavailableMapPackManager(),
     SessionScope? sessionScope,
     this.accessRefreshGap = const Duration(seconds: 30),
     this.connectivity = const AlwaysOnlineSource(),
@@ -129,6 +247,44 @@ class AppDependencies {
   /// hay datos: la pantalla ofrece reintentar.
   final DocumentsRepository documentsRepository;
 
+  /// Pines del mapa. Hasta que el backend publique sus endpoints no hay datos
+  /// (el mapa lo dice); con `SAMPLE_MAP=true` son de ejemplo.
+  final MapRepository mapRepository;
+  final RoadSegmentsRepository roadSegmentsRepository;
+
+  /// La ubicacion del telefono, para "ubicarme" y los activos cercanos.
+  final LocationSource locationSource;
+
+  /// De donde salen las teselas del mapa base; sin proveedor, solo pines.
+  final MapTileSource mapTileSource;
+
+  /// El mapa muestra datos de ejemplo y lo avisa.
+  final bool sampleMap;
+
+  /// Tickets (APP-MOB-03). Hasta que el backend publique sus endpoints no hay
+  /// datos (la pantalla lo dice); con `SAMPLE_TICKETS=true` son de ejemplo.
+  final TicketsRepository ticketsRepository;
+
+  /// Los tickets son de ejemplo y se avisa.
+  final bool sampleTickets;
+
+  /// Accidentes (APP-MOB-05, pendiente de homologacion). Igual que los tickets.
+  final AccidentsRepository accidentsRepository;
+  final bool sampleAccidents;
+
+  /// Mantenimiento (APP-MOB-07). Igual que los tickets.
+  final MaintenanceRepository maintenanceRepository;
+  final bool sampleMaintenance;
+
+  /// Lo que existe en el codigo pero no se ofrece en el menu.
+  final FeatureFlags features;
+
+  /// Radio de cercanos, precision minima del GPS y agrupacion de pines.
+  final MapSettings mapSettings;
+
+  /// Paquetes de mapa para trabajar sin conexion.
+  final MapPackManager mapPacks;
+
   /// Limpiadores de datos locales de la concesion activa (RN-CTX-02).
   final SessionScope sessionScope;
 
@@ -169,9 +325,40 @@ class AppDependencies {
     await queue.purgeAccepted();
     final fileStore = DiskLocalFileStore();
     final scope = SessionScope();
-    final NavigationRepository navigation = AppConfig.sampleDocuments
-        ? _WithSampleDocuments(NavigationRepositoryImpl(api))
-        : NavigationRepositoryImpl(api);
+    // Los paquetes de mapa son de la persona y la concesion activas.
+    final mapPacks = FileMapPackManager(remote: ApiMapPackRemote(api));
+    scope.register(mapPacks);
+    // Los pines ya consultados quedan para ver el mapa sin conexion; son de la
+    // persona y concesion activas.
+    final mapPinsCache = FileMapPinsCache();
+    scope.register(mapPinsCache);
+    // Con el mapa de ejemplo cerca del telefono, los pines y los tramos caen sobre
+    // la misma calle real (se busca una sola vez).
+    final nearMeRoad = NearMeRoad(
+      anchor: _phonePosition,
+      finder: OsrmRoadFinder().find,
+    );
+    NavigationRepository navigation = NavigationRepositoryImpl(api);
+    if (AppConfig.sampleDocuments) {
+      navigation = _WithSampleDocuments(navigation);
+    }
+    if (AppConfig.sampleMap) {
+      navigation = _WithSampleMap(navigation);
+    }
+    navigation = _WithSampleModules(navigation, [
+      if (AppConfig.sampleTickets)
+        const NavigationItem(code: 'TICKETS', name: 'Tickets'),
+      if (AppConfig.sampleAccidents)
+        const NavigationItem(
+          code: 'ANTT',
+          name: 'ANTT',
+          submodules: [
+            NavigationItem(code: 'ANTT.ACCIDENTES', name: 'Accidentes'),
+          ],
+        ),
+      if (AppConfig.sampleMaintenance)
+        const NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
+    ]);
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
@@ -241,10 +428,52 @@ class AppDependencies {
       ),
       navigationRepository: navigation,
       documentsRepository: documents,
+      mapRepository: !AppConfig.sampleMap
+          ? CachedMapRepository(const UnavailableMapRepository(), mapPinsCache)
+          : AppConfig.sampleMapNearMe
+          ? NearMeSampleMapRepository(road: nearMeRoad)
+          : SampleMapRepository(),
+      roadSegmentsRepository: !AppConfig.sampleMap
+          ? CachedRoadSegmentsRepository(
+              const UnavailableRoadSegmentsRepository(),
+              mapPinsCache,
+            )
+          : AppConfig.sampleMapNearMe
+          ? NearMeSampleRoadSegmentsRepository(road: nearMeRoad)
+          : SampleRoadSegmentsRepository(),
+      locationSource: const GeolocatorLocationSource(),
+      mapTileSource: AppConfig.mapTileUrl.isEmpty
+          ? const NoTileSource()
+          : const UrlTemplateTileSource(
+              urlTemplate: AppConfig.mapTileUrl,
+              attributionText: AppConfig.mapTileAttribution,
+              attributionLink: AppConfig.mapTileAttributionUrl,
+            ),
+      sampleMap: AppConfig.sampleMap,
+      ticketsRepository: AppConfig.sampleTickets
+          ? SampleTicketsRepository()
+          : const UnavailableTicketsRepository(),
+      sampleTickets: AppConfig.sampleTickets,
+      accidentsRepository: AppConfig.sampleAccidents
+          ? SampleAccidentsRepository()
+          : const UnavailableAccidentsRepository(),
+      sampleAccidents: AppConfig.sampleAccidents,
+      maintenanceRepository: AppConfig.sampleMaintenance
+          ? SampleMaintenanceRepository()
+          : const UnavailableMaintenanceRepository(),
+      sampleMaintenance: AppConfig.sampleMaintenance,
+      features: const FeatureFlags(documents: AppConfig.documentsModule),
+      mapPacks: mapPacks,
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
-      logoStore: DiskLogoStore(),
+      // Los logos de la propia API piden sesion; los de otro servidor (marca de
+      // prueba) se bajan tal cual.
+      logoStore: DiskLogoStore(
+        download: (url) => url.startsWith(api.baseUrl)
+            ? api.downloadFile(url)
+            : downloadCapped(url),
+      ),
       fileSource: PlatformFileSource(),
       pdfRenderer: PlatformPdfRenderer(),
       zoneSource: ApiConcessionZoneSource(api),

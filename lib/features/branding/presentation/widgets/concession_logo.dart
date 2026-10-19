@@ -110,7 +110,9 @@ class _LogoViewState extends State<_LogoView> {
         final bytes = snapshot.data;
         if (bytes == null || bytes.isEmpty) return const SizedBox.shrink();
         const empty = SizedBox.shrink();
-        if (isSvgLogoUrl(widget.url)) {
+        // El servidor entrega los logos por una ruta sin extension: el SVG se
+        // reconoce tambien por su contenido.
+        if (isSvgLogoUrl(widget.url) || looksLikeSvg(bytes)) {
           if (!looksLikeSvg(bytes)) return empty;
           return SvgPicture.memory(
             bytes,

@@ -208,6 +208,19 @@ void main() {
       expect(find.byType(SvgPicture), findsNothing);
     });
 
+    testWidgets(
+      'un SVG por una ruta sin extension (la de la API) se reconoce por su contenido',
+      (tester) async {
+        await _show(
+          tester,
+          _brand(dark: 'https://api.test/api/configuration-logos/abc'),
+          store: _SvgBytesStore(),
+        );
+        expect(find.byType(SvgPicture), findsOneWidget);
+        expect(find.byType(Image), findsNothing);
+      },
+    );
+
     testWidgets('sin logo no se dibuja nada', (tester) async {
       await _show(tester, _brand());
       expect(find.byType(SvgPicture), findsNothing);
@@ -265,4 +278,12 @@ class _NotAnSvgStore extends FakeLogoStore {
   @override
   Future<Uint8List?> bytesFor(String url, {int version = 0}) async =>
       _bytes('<html>Error 404</html>');
+}
+
+/// Entrega siempre un SVG, sea cual sea la URL (como la ruta de la API, que no
+/// lleva extension).
+class _SvgBytesStore extends FakeLogoStore {
+  @override
+  Future<Uint8List?> bytesFor(String url, {int version = 0}) async =>
+      Uint8List.fromList(utf8.encode(tinySvg));
 }

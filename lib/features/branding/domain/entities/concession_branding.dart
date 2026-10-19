@@ -3,11 +3,12 @@ import 'package:equatable/equatable.dart';
 /// Marca configurada por el administrador de una concesionaria. Los colores
 /// llegan como texto `#RRGGBB`; la app los valida antes de usarlos (MAR-01 a 03).
 ///
-/// Es lo que entrega `GET /api/context/branding` (en la base, `core.fn_branding`).
+/// Sale de `GET /api/app-configuration` (la configuracion vigente de la
+/// concesion activa); ver `brandingFromConfiguration`.
 class ConcessionBranding extends Equatable {
   const ConcessionBranding({
     required this.version,
-    required this.primary,
+    this.primary,
     this.secondary,
     this.headerStart,
     this.headerEnd,
@@ -21,8 +22,9 @@ class ConcessionBranding extends Equatable {
   /// Sube con cada cambio; la app solo reemplaza lo guardado si cambia.
   final int version;
 
-  /// Color de accion.
-  final String primary;
+  /// Color de accion. Null si la concesion no tiene color propio (se usan los
+  /// de SIGACO) y solo hay logos.
+  final String? primary;
   final String? secondary;
   final String? headerStart;
   final String? headerEnd;

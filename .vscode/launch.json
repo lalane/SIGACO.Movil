@@ -8,6 +8,25 @@
       "program": "lib/main.dart"
     },
     {
+      "name": "SIGACO Movil (debug, servidor real sin pines de ejemplo)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=SAMPLE_MAP=false"
+      ]
+    },
+    {
+      "name": "SIGACO Movil (debug, mapa y documentos de ejemplo)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=SAMPLE_DOCUMENTS=true",
+        "--dart-define=DOCUMENTS_MODULE=true"
+      ]
+    },
+    {
       "name": "SIGACO Movil (debug, marca de prueba azul)",
       "request": "launch",
       "type": "dart",

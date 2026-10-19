@@ -1080,4 +1080,902 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get docsUploadDoneBack => 'Voltar à lista';
+
+  @override
+  String get mapTitle => 'Mapa';
+
+  @override
+  String get mapTabTickets => 'Tickets';
+
+  @override
+  String get mapTabInventory => 'Inventário';
+
+  @override
+  String get mapTabMaintenance => 'Manutenção';
+
+  @override
+  String get mapTabWorks => 'Obras';
+
+  @override
+  String get mapFilters => 'Filtros';
+
+  @override
+  String mapFiltersCount(int count) {
+    return 'Filtros ($count)';
+  }
+
+  @override
+  String get mapFiltersTitle => 'Filtrar o mapa';
+
+  @override
+  String get mapFilterCategory => 'Categoria';
+
+  @override
+  String get mapFilterStatus => 'Situação';
+
+  @override
+  String get mapFilterAll => 'Todos';
+
+  @override
+  String get mapStatusNormal => 'Normal';
+
+  @override
+  String get mapStatusAttention => 'Atenção';
+
+  @override
+  String get mapStatusCritical => 'Crítico';
+
+  @override
+  String get mapFilterClear => 'Limpar filtros';
+
+  @override
+  String get mapFilterDone => 'Pronto';
+
+  @override
+  String get mapSampleBanner =>
+      'Dados de exemplo: o servidor ainda não publica o mapa.';
+
+  @override
+  String mapSegmentTitle(String code) {
+    return 'Trecho $code';
+  }
+
+  @override
+  String get mapDirectionIncreasing => 'Sentido crescente';
+
+  @override
+  String get mapDirectionDecreasing => 'Sentido decrescente';
+
+  @override
+  String mapSegmentRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String mapSegmentLayerCount(String layer, int count) {
+    return '$layer: $count neste trecho';
+  }
+
+  @override
+  String mapFromPhone(String date) {
+    return 'Sem conexão · pins salvos no telefone em $date';
+  }
+
+  @override
+  String get mapNoTiles => 'Sem mapa base configurado';
+
+  @override
+  String get mapLoading => 'Carregando o mapa';
+
+  @override
+  String get mapEmpty => 'Não há itens nesta aba.';
+
+  @override
+  String get mapEmptyFiltered => 'Nenhum item corresponde aos filtros.';
+
+  @override
+  String get mapErrorTitle => 'Não foi possível carregar o mapa';
+
+  @override
+  String get mapErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get mapRetry => 'Tentar novamente';
+
+  @override
+  String get mapUnavailableTitle => 'O mapa ainda não está disponível';
+
+  @override
+  String get mapUnavailableBody =>
+      'Sua concessão ainda não tem o mapa publicado. Será ativado quando o servidor o oferecer.';
+
+  @override
+  String get mapNoPermissionTitle => 'Sem permissão para ver esta aba';
+
+  @override
+  String get mapNoPermissionBody =>
+      'Seu perfil não pode consultar esta informação. Peça acesso a um administrador.';
+
+  @override
+  String get mapLocate => 'Minha localização';
+
+  @override
+  String get mapLocating => 'Buscando sua localização…';
+
+  @override
+  String get mapLocateServiceOff =>
+      'O GPS está desligado. Ligue-o para se localizar.';
+
+  @override
+  String get mapLocateDenied =>
+      'Precisamos da permissão de localização para localizar você.';
+
+  @override
+  String get mapLocateDeniedForever =>
+      'A permissão de localização está bloqueada. Ative-a em Configurações.';
+
+  @override
+  String get mapLocateUnavailable =>
+      'Não foi possível obter sua localização. Tente novamente ao ar livre.';
+
+  @override
+  String get mapOpenSettings => 'Abrir configurações';
+
+  @override
+  String mapAccuracy(String meters) {
+    return 'Precisão ±$meters m';
+  }
+
+  @override
+  String mapAccuracyLow(String meters, String max) {
+    return 'Precisão baixa (±$meters m). Para salvar uma localização é preciso $max m ou menos.';
+  }
+
+  @override
+  String get mapMockedLocation =>
+      'A localização parece simulada: não será usada para salvar dados.';
+
+  @override
+  String get mapNearby => 'Próximos';
+
+  @override
+  String get mapNearbyTitle => 'Ativos próximos';
+
+  @override
+  String get mapNearbyRadius => 'Raio';
+
+  @override
+  String mapNearbyEmpty(String radius) {
+    return 'Não há ativos a menos de $radius de você.';
+  }
+
+  @override
+  String get mapNearbyNeedLocation =>
+      'Toque em «Minha localização» para ver os ativos próximos.';
+
+  @override
+  String get mapNearbyLoading => 'Carregando o inventário…';
+
+  @override
+  String mapDistanceMeters(String value) {
+    return '$value m';
+  }
+
+  @override
+  String mapDistanceKm(String value) {
+    return '$value km';
+  }
+
+  @override
+  String get mapDetailReference => 'Referência';
+
+  @override
+  String mapDetailDistance(String distance) {
+    return 'A $distance de você';
+  }
+
+  @override
+  String get mapDetailClose => 'Fechar';
+
+  @override
+  String get mapActionsSoon =>
+      'Criar um ticket, uma inspeção ou uma manutenção a partir daqui será habilitado quando esses módulos estiverem disponíveis.';
+
+  @override
+  String get mapPacksTitle => 'Mapas sem conexão';
+
+  @override
+  String get mapPacksAction => 'Mapas sem conexão';
+
+  @override
+  String get mapPacksIntro =>
+      'Baixe o mapa da sua concessão para vê-lo sem internet. Recomenda-se usar Wi-Fi: os pacotes pesam dezenas de megabytes. São apagados ao trocar de concessão ou encerrar a sessão.';
+
+  @override
+  String get mapPacksEmpty =>
+      'O servidor não tem mapas para baixar nesta concessão.';
+
+  @override
+  String get mapPacksUnavailableTitle =>
+      'Os mapas sem conexão ainda não estão disponíveis';
+
+  @override
+  String get mapPacksUnavailableBody =>
+      'O servidor ainda não os publica para a sua concessão.';
+
+  @override
+  String get mapPacksNoPermissionTitle => 'Sem permissão para baixar mapas';
+
+  @override
+  String get mapPacksNoPermissionBody =>
+      'Seu perfil não pode baixar mapas. Peça acesso a um administrador.';
+
+  @override
+  String get mapPacksErrorTitle => 'Não foi possível carregar os mapas';
+
+  @override
+  String get mapPacksErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get mapPacksListOffline =>
+      'Sem conexão: são exibidos apenas os mapas salvos no telefone.';
+
+  @override
+  String mapPackVersion(int version) {
+    return 'Versão $version';
+  }
+
+  @override
+  String mapPackZoom(int min, int max) {
+    return 'Aproximação $min a $max';
+  }
+
+  @override
+  String get mapPackInstalled => 'Salvo no telefone';
+
+  @override
+  String get mapPackUpdateAvailable => 'Há uma versão nova';
+
+  @override
+  String mapPackPaused(String size) {
+    return 'Pausado · $size baixados';
+  }
+
+  @override
+  String mapPackDownloading(int percent) {
+    return 'Baixando… $percent %';
+  }
+
+  @override
+  String get mapPackVerifying => 'Verificando o arquivo…';
+
+  @override
+  String get mapPackDownload => 'Baixar';
+
+  @override
+  String get mapPackResume => 'Retomar';
+
+  @override
+  String get mapPackUpdate => 'Atualizar';
+
+  @override
+  String get mapPackPause => 'Pausar';
+
+  @override
+  String get mapPackDiscard => 'Descartar o baixado';
+
+  @override
+  String get mapPackDelete => 'Apagar';
+
+  @override
+  String get mapPackDeleteTitle => 'Apagar o mapa sem conexão?';
+
+  @override
+  String mapPackDeleteBody(String size) {
+    return 'Serão liberados $size do telefone. Você poderá baixá-lo novamente.';
+  }
+
+  @override
+  String get mapPackCancel => 'Cancelar';
+
+  @override
+  String get mapPackErrNetwork =>
+      'A conexão caiu. Você pode retomar o download.';
+
+  @override
+  String get mapPackErrCorrupt =>
+      'O arquivo baixado não corresponde ao original e foi descartado. Tente novamente.';
+
+  @override
+  String get mapPackErrNoSpace => 'Não há espaço suficiente no telefone.';
+
+  @override
+  String get mapPackErrNotFound =>
+      'Este mapa não está mais disponível no servidor.';
+
+  @override
+  String get mapPackErrServer =>
+      'O servidor não conseguiu entregar o mapa. Tente mais tarde.';
+
+  @override
+  String get mapPackErrPermission => 'Seu perfil não pode baixar mapas.';
+
+  @override
+  String mapOfflineBadge(String name) {
+    return 'Mapa sem conexão · $name';
+  }
+
+  @override
+  String get navTabMap => 'Mapa';
+
+  @override
+  String get navTabTicket => 'Ticket';
+
+  @override
+  String get navTabMenu => 'Menu';
+
+  @override
+  String get navTabInventory => 'Inventário';
+
+  @override
+  String get navTabMaintenance => 'Manutenção';
+
+  @override
+  String mapLayerSubtitle(String layer) {
+    return 'Camada: $layer';
+  }
+
+  @override
+  String mapResultsFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos encontrados',
+      one: '1 elemento encontrado',
+      zero: 'Nenhum elemento encontrado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mapRefine => 'Refinar busca';
+
+  @override
+  String get ticketsTitle => 'Histórico de tickets';
+
+  @override
+  String get ticketsSubtitle => 'Consulta de tickets';
+
+  @override
+  String get ticketsSearchHint => 'Buscar por título, ID, km…';
+
+  @override
+  String get ticketsSearchTooltip => 'Buscar';
+
+  @override
+  String get ticketsFilterTooltip => 'Filtrar';
+
+  @override
+  String get ticketsFilterTitle => 'Filtrar tickets';
+
+  @override
+  String get ticketsFilterStatus => 'Status';
+
+  @override
+  String get ticketsFilterClear => 'Limpar filtros';
+
+  @override
+  String get ticketsFilterDone => 'Pronto';
+
+  @override
+  String get ticketsDueSort => 'Vencimento';
+
+  @override
+  String get ticketsFilterAll => 'Todos';
+
+  @override
+  String get ticketsFilterOpen => 'Abertos';
+
+  @override
+  String get ticketsFilterAttended => 'Atendidos';
+
+  @override
+  String get ticketsNew => 'Novo ticket';
+
+  @override
+  String get ticketStatusOpen => 'Aberto';
+
+  @override
+  String get ticketStatusAttended => 'Atendido';
+
+  @override
+  String get ticketsEmpty => 'Nenhum ticket corresponde aos filtros.';
+
+  @override
+  String get ticketsEmptyAll => 'Ainda não há tickets.';
+
+  @override
+  String get ticketsUnavailableTitle => 'Tickets ainda não disponíveis';
+
+  @override
+  String get ticketsUnavailableBody =>
+      'O servidor ainda não publica os tickets desta concessão.';
+
+  @override
+  String get ticketsErrorTitle => 'Não foi possível carregar os tickets';
+
+  @override
+  String get ticketsErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get ticketsNoPermissionTitle => 'Sem acesso a tickets';
+
+  @override
+  String get ticketsNoPermissionBody => 'Seu perfil não pode ver os tickets.';
+
+  @override
+  String get ticketsRetry => 'Tentar novamente';
+
+  @override
+  String get ticketsSampleBanner => 'Dados de exemplo: não são tickets reais.';
+
+  @override
+  String ticketDueHours(int n) {
+    return '$n h';
+  }
+
+  @override
+  String ticketDueDays(int n) {
+    return '$n d';
+  }
+
+  @override
+  String get ticketDueCaption => 'para vencer';
+
+  @override
+  String get ticketOverdueCaption => 'vencido';
+
+  @override
+  String get ticketBack => 'Voltar';
+
+  @override
+  String ticketIdLabel(String code) {
+    return 'ID TICKET #$code';
+  }
+
+  @override
+  String ticketCreatedOn(String date) {
+    return 'Criado em $date';
+  }
+
+  @override
+  String get ticketInfoGeneratedBy => 'Gerado por';
+
+  @override
+  String get ticketInfoProfile => 'Perfil do usuário';
+
+  @override
+  String get ticketInfoConcession => 'Concessionária';
+
+  @override
+  String get ticketInfoCompany => 'Empresa do usuário';
+
+  @override
+  String get ticketInfoLatitude => 'Latitude';
+
+  @override
+  String get ticketInfoLongitude => 'Longitude';
+
+  @override
+  String get ticketInfoChainage => 'Quilometragem';
+
+  @override
+  String get ticketInfoBody => 'Pista';
+
+  @override
+  String get ticketTypeTitle => 'Tipo de ticket';
+
+  @override
+  String get ticketDescriptionTitle => 'Descrição';
+
+  @override
+  String get ticketFollowUpsTitle => 'Acompanhamentos';
+
+  @override
+  String get ticketFollowUpsEmpty => 'Ainda não há acompanhamentos.';
+
+  @override
+  String get ticketActionDownload => 'Baixar';
+
+  @override
+  String get ticketActionEdit => 'Editar';
+
+  @override
+  String get ticketActionFollowUp => 'Adicionar acompanhamento';
+
+  @override
+  String get ticketActionSoon => 'Esta ação estará disponível em breve.';
+
+  @override
+  String get ticketNotFound => 'Ticket não encontrado.';
+
+  @override
+  String get followUpTitle => 'Acompanhamento do ticket';
+
+  @override
+  String get followUpDate => 'Data';
+
+  @override
+  String get followUpTime => 'Hora';
+
+  @override
+  String get followUpStatus => 'Status do ticket';
+
+  @override
+  String get followUpSelect => 'Selecionar';
+
+  @override
+  String get followUpDescription => 'Descrição';
+
+  @override
+  String get followUpFillIn => 'Preencha as informações';
+
+  @override
+  String get followUpPhotos => 'Fotografias';
+
+  @override
+  String followUpPhoto(int n) {
+    return 'Foto $n';
+  }
+
+  @override
+  String get followUpPhotoRemove => 'Remover foto';
+
+  @override
+  String get followUpSave => 'Salvar acompanhamento';
+
+  @override
+  String get followUpSaved => 'Acompanhamento salvo.';
+
+  @override
+  String get followUpErrorStatus => 'Escolha o status do ticket.';
+
+  @override
+  String get followUpErrorDescription => 'Escreva uma descrição.';
+
+  @override
+  String get ticketSaveFailed => 'Não foi possível salvar. Tente novamente.';
+
+  @override
+  String get newTicketTitle => 'Novo ticket';
+
+  @override
+  String get newTicketName => 'Título';
+
+  @override
+  String get newTicketCategory => 'Tipo de ticket';
+
+  @override
+  String get newTicketChainage => 'Quilometragem (km)';
+
+  @override
+  String get newTicketCreate => 'Criar ticket';
+
+  @override
+  String get newTicketCreated => 'Ticket criado.';
+
+  @override
+  String get newTicketErrorTitle => 'Escreva um título.';
+
+  @override
+  String get newTicketErrorCategory => 'Escolha o tipo de ticket.';
+
+  @override
+  String get accidentsTitle => 'Acidentes';
+
+  @override
+  String get accidentsSearchHint => 'Buscar por título, ID, km…';
+
+  @override
+  String get accidentsSearchTooltip => 'Buscar';
+
+  @override
+  String get accidentsFilterTooltip => 'Filtrar';
+
+  @override
+  String get accidentsNew => 'Novo acidente';
+
+  @override
+  String get accidentsEmpty => 'Nenhum acidente corresponde aos filtros.';
+
+  @override
+  String get accidentsEmptyAll => 'Ainda não há acidentes registrados.';
+
+  @override
+  String get accidentsUnavailableTitle => 'Acidentes ainda não disponíveis';
+
+  @override
+  String get accidentsUnavailableBody =>
+      'O servidor ainda não publica os acidentes desta concessão.';
+
+  @override
+  String get accidentsErrorTitle => 'Não foi possível carregar os acidentes';
+
+  @override
+  String get accidentsErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get accidentsNoPermissionTitle => 'Sem acesso a acidentes';
+
+  @override
+  String get accidentsNoPermissionBody =>
+      'Seu perfil não pode ver os acidentes.';
+
+  @override
+  String get accidentsRetry => 'Tentar novamente';
+
+  @override
+  String get accidentsSampleBanner =>
+      'Dados de exemplo: não são acidentes reais.';
+
+  @override
+  String get accidentsStatTotal => 'Total';
+
+  @override
+  String get accidentsStatTotalShare => '100% total';
+
+  @override
+  String accidentsStatShare(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get accidentsFilterAll => 'Todos';
+
+  @override
+  String get accidentsFilterTitle => 'Filtrar acidentes';
+
+  @override
+  String get accidentsFilterSeverity => 'Gravidade';
+
+  @override
+  String get accidentTypeCollision => 'Colisão';
+
+  @override
+  String get accidentTypeRollover => 'Capotamento';
+
+  @override
+  String get accidentTypeFire => 'Incêndio';
+
+  @override
+  String get accidentSeverityLow => 'Baixa';
+
+  @override
+  String get accidentSeverityMedium => 'Média';
+
+  @override
+  String get accidentSeverityHigh => 'Alta';
+
+  @override
+  String get accidentStatusRegistered => 'Registrado';
+
+  @override
+  String get accidentStatusInProgress => 'Em andamento';
+
+  @override
+  String get accidentStatusClosed => 'Fechado';
+
+  @override
+  String accidentIdLabel(String code) {
+    return 'ID ACIDENTE #$code';
+  }
+
+  @override
+  String get accidentTypeTitle => 'Tipo de acidente';
+
+  @override
+  String get accidentSeverityTitle => 'Gravidade';
+
+  @override
+  String get accidentNotFound => 'Acidente não encontrado.';
+
+  @override
+  String get newAccidentTitle => 'Novo acidente';
+
+  @override
+  String get newAccidentCreate => 'Registrar acidente';
+
+  @override
+  String get newAccidentCreated => 'Acidente registrado.';
+
+  @override
+  String get newAccidentErrorType => 'Escolha o tipo de acidente.';
+
+  @override
+  String get newAccidentErrorSeverity => 'Escolha a gravidade.';
+
+  @override
+  String get maintIndicatorsTitle => 'Selecione um indicador';
+
+  @override
+  String get maintIndSgp => 'Pavimentos';
+
+  @override
+  String get maintIndSgs => 'Sinalização';
+
+  @override
+  String get maintIndSgoae => 'OAEs';
+
+  @override
+  String get maintIndSgoac => 'OACs';
+
+  @override
+  String get maintIndSgits => 'Equipamentos ITS';
+
+  @override
+  String get maintIndSgf => 'Faixa de domínio';
+
+  @override
+  String get maintIndSgtec => 'Terraplenos e estruturas';
+
+  @override
+  String get maintIndSge => 'Edificações e instalações';
+
+  @override
+  String get maintTitle => 'Manutenção';
+
+  @override
+  String get maintSubtitle =>
+      'Consulta e gestão da infraestrutura da concessão';
+
+  @override
+  String get maintStatusOpen => 'Aberto';
+
+  @override
+  String get maintStatusInProgress => 'Em andamento';
+
+  @override
+  String get maintStatusClosed => 'Fechado';
+
+  @override
+  String get maintStatTotal => 'Total';
+
+  @override
+  String get maintStatTotalCaption => '100% total';
+
+  @override
+  String get maintStatOpen => 'Abertos';
+
+  @override
+  String get maintStatInProgress => 'Em andamento';
+
+  @override
+  String get maintStatClosed => 'Fechados';
+
+  @override
+  String maintStatShare(String percent) {
+    return '$percent% do total';
+  }
+
+  @override
+  String get maintFilterState => 'Status';
+
+  @override
+  String get maintFilterAllStates => 'Todos';
+
+  @override
+  String get maintDateHint => 'DD/MM/AAAA';
+
+  @override
+  String get maintDateFrom => 'Data inicial';
+
+  @override
+  String get maintDateTo => 'Data final';
+
+  @override
+  String get maintFilterClear => 'Limpar filtros';
+
+  @override
+  String get maintSearchTooltip => 'Buscar';
+
+  @override
+  String get maintSearchHint => 'Buscar por local ou atividade…';
+
+  @override
+  String get maintFilterTooltip => 'Filtrar';
+
+  @override
+  String get maintEmpty => 'Nenhuma manutenção corresponde aos filtros.';
+
+  @override
+  String get maintEmptyAll => 'Não há manutenções para este indicador.';
+
+  @override
+  String get maintUnavailableTitle => 'Manutenção ainda não disponível';
+
+  @override
+  String get maintUnavailableBody =>
+      'O servidor ainda não publica a manutenção desta concessão.';
+
+  @override
+  String get maintErrorTitle => 'Não foi possível carregar a manutenção';
+
+  @override
+  String get maintErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get maintNoPermissionTitle => 'Sem acesso a manutenção';
+
+  @override
+  String get maintNoPermissionBody => 'Seu perfil não pode ver este indicador.';
+
+  @override
+  String get maintRetry => 'Tentar novamente';
+
+  @override
+  String get maintSampleBanner =>
+      'Dados de exemplo: não são manutenções reais.';
+
+  @override
+  String maintTotalVolume(String value) {
+    return 'Volume Total: $value';
+  }
+
+  @override
+  String maintUnitDescription(String unit) {
+    return 'Descrição: $unit';
+  }
+
+  @override
+  String get maintProgress => 'Avanço';
+
+  @override
+  String maintActivity(String activity) {
+    return 'Atividade: $activity';
+  }
+
+  @override
+  String get maintProjectProgress => 'Avanço do projeto';
+
+  @override
+  String get maintExecutedAmount => 'Valor Exec.';
+
+  @override
+  String get maintPendingAmount => 'A Executar';
+
+  @override
+  String get maintDetailsTitle => 'Detalhes da manutenção';
+
+  @override
+  String get maintKmStart => 'Km inicial';
+
+  @override
+  String get maintKmEnd => 'Km final';
+
+  @override
+  String get maintDirection => 'Direção';
+
+  @override
+  String get maintSense => 'Sentido';
+
+  @override
+  String get maintVolumeTotal => 'Volume total';
+
+  @override
+  String get maintVolumeExecuted => 'Volume executado';
+
+  @override
+  String get maintUnitCost => 'Custo unitário';
+
+  @override
+  String get maintProgrammedAmount => 'Valor programado';
+
+  @override
+  String get maintStartDate => 'Data início';
+
+  @override
+  String get maintEndDate => 'Data fim';
+
+  @override
+  String get maintNotFound => 'Manutenção não encontrada.';
 }

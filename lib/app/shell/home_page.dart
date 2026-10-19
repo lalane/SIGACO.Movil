@@ -17,6 +17,7 @@ import '../../features/branding/presentation/widgets/concession_logo.dart';
 import '../../features/navigation/domain/entities/mobile_module.dart';
 import '../../features/navigation/domain/entities/navigation_entities.dart';
 import '../../features/navigation/presentation/bloc/navigation_bloc.dart';
+import '../feature_flags.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Menu principal (diseno v2). Los modulos salen de `/api/context/navigation`:
@@ -301,7 +302,11 @@ class _Content extends StatelessWidget {
           ),
         };
       case NavigationStatus.ready:
-        final modules = MobileModule.availableIn(state.menu);
+        final flags = context.read<FeatureFlags>();
+        final modules = [
+          for (final m in MobileModule.availableIn(state.menu))
+            if (m != MobileModule.documents || flags.documents) m,
+        ];
         body = modules.isEmpty
             ? AccessStateView(
                 issue: AccessIssue.noPermission,
@@ -467,6 +472,22 @@ void _open(BuildContext context, MobileModule module) {
     context.push('/documents');
     return;
   }
+  if (module == MobileModule.map) {
+    context.push('/map');
+    return;
+  }
+  if (module == MobileModule.tickets) {
+    context.push('/tickets');
+    return;
+  }
+  if (module == MobileModule.accidents) {
+    context.push('/accidents');
+    return;
+  }
+  if (module == MobileModule.maintenance) {
+    context.push('/maintenance');
+    return;
+  }
   _comingSoon(context);
 }
 
@@ -599,7 +620,7 @@ List<_NavEntry> _navEntries(BuildContext context) {
       _NavEntry(
         Icons.receipt_long,
         l10n.navTickets,
-        () => _comingSoon(context),
+        () => context.push('/tickets'),
       ),
     _NavEntry(Icons.home, l10n.navHome, () {}, selected: true),
     if (MobileModule.alerts.isAvailableIn(menu))

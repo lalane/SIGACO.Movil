@@ -20,9 +20,19 @@ import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/auth/presentation/session/session_timeout_cubit.dart';
 import '../features/branding/presentation/bloc/branding_cubit.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
+import '../features/map/domain/entities/map_settings.dart';
+import '../features/map/domain/repositories/location_source.dart';
+import '../features/map/domain/repositories/map_pack_manager.dart';
+import '../features/map/domain/repositories/map_repository.dart';
+import '../features/map/domain/repositories/road_segments_repository.dart';
+import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
+import '../features/accidents/domain/repositories/accidents_repository.dart';
+import '../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../features/tickets/domain/repositories/tickets_repository.dart';
 import '../l10n/app_localizations.dart';
 import 'dependencies.dart';
+import 'feature_flags.dart';
 import 'router.dart';
 import 'shell/session_lifecycle.dart';
 
@@ -62,7 +72,13 @@ class _SigacoAppState extends State<SigacoApp> {
     widget.dependencies.serverReachable,
   );
   late final ConcessionZoneCubit _zone = ConcessionZoneCubit();
-  late final GoRouter _router = createRouter(_auth);
+  late final GoRouter _router = createRouter(
+    _auth,
+    sampleMap: widget.dependencies.sampleMap,
+    sampleTickets: widget.dependencies.sampleTickets,
+    sampleAccidents: widget.dependencies.sampleAccidents,
+    sampleMaintenance: widget.dependencies.sampleMaintenance,
+  );
 
   @override
   void dispose() {
@@ -108,6 +124,36 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<DocumentsRepository>.value(
           value: widget.dependencies.documentsRepository,
+        ),
+        RepositoryProvider<MapRepository>.value(
+          value: widget.dependencies.mapRepository,
+        ),
+        RepositoryProvider<RoadSegmentsRepository>.value(
+          value: widget.dependencies.roadSegmentsRepository,
+        ),
+        RepositoryProvider<LocationSource>.value(
+          value: widget.dependencies.locationSource,
+        ),
+        RepositoryProvider<MapTileSource>.value(
+          value: widget.dependencies.mapTileSource,
+        ),
+        RepositoryProvider<MapPackManager>.value(
+          value: widget.dependencies.mapPacks,
+        ),
+        RepositoryProvider<FeatureFlags>.value(
+          value: widget.dependencies.features,
+        ),
+        RepositoryProvider<AccidentsRepository>.value(
+          value: widget.dependencies.accidentsRepository,
+        ),
+        RepositoryProvider<MaintenanceRepository>.value(
+          value: widget.dependencies.maintenanceRepository,
+        ),
+        RepositoryProvider<TicketsRepository>.value(
+          value: widget.dependencies.ticketsRepository,
+        ),
+        RepositoryProvider<MapSettings>.value(
+          value: widget.dependencies.mapSettings,
         ),
       ],
       child: MultiBlocProvider(
