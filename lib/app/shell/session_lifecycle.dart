@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/connectivity/connectivity_cubit.dart';
+import '../../core/push/push_registrar.dart';
 import '../../core/session/session_scope.dart';
 import '../../core/offline/operation.dart';
 import '../../core/offline/sync_cubit.dart';
@@ -111,6 +112,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
         if (id != null) {
           branding.load(id);
           _loadZone(id);
+          _syncPush(id);
         } else {
           branding.clear();
         }
@@ -136,6 +138,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       navigation.add(const NavigationCleared());
       branding.clear();
       context.read<ConcessionZoneCubit>().setFallback(null);
+      context.read<PushRegistrar>().forget();
       sync.setScope(null);
       timeout.stop();
       widget.scope.clear();
@@ -143,6 +146,13 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     }
     _lastStep = s.step;
     _lastConcession = s.activeConcessionId;
+  }
+
+  /// Registra el token push en la concesion activa si su canal esta activo
+  /// (RN-19). Un fallo no estorba a la sesion: se reintenta al abrir la app.
+  Future<void> _syncPush(String concessionId) async {
+    final registrar = context.read<PushRegistrar>();
+    await registrar.sync(concessionId);
   }
 
   /// La zona horaria de la concesion segun el servidor, para cuando la marca no

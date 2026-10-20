@@ -76,7 +76,7 @@ void main() {
               {
                 'code': 'MANTENIMIENTO.NUEVO_TICKET',
                 'level': 'SUBMODULE',
-                'name': 'Nuevo ticket',
+                'name': 'Nuevo registro',
                 'permissions': ['MANTENIMIENTO.NUEVO_TICKET:C'],
                 'submodules': <dynamic>[],
               },

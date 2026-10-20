@@ -451,6 +451,8 @@ IconData _iconFor(MobileModule m) => switch (m) {
   MobileModule.reports => Icons.description_outlined,
   MobileModule.tickets => Icons.confirmation_number_outlined,
   MobileModule.alerts => Icons.notifications_active_outlined,
+  MobileModule.inspections => Icons.fact_check_outlined,
+  MobileModule.works => Icons.engineering_outlined,
   MobileModule.documents => Icons.folder_open_outlined,
 };
 
@@ -463,6 +465,8 @@ IconData _iconFor(MobileModule m) => switch (m) {
   MobileModule.reports => (l.moduleReports, l.moduleReportsSub),
   MobileModule.tickets => (l.moduleTickets, l.moduleTicketsSub),
   MobileModule.alerts => (l.moduleAlerts, l.moduleAlertsSub),
+  MobileModule.inspections => (l.moduleInspections, l.moduleInspectionsSub),
+  MobileModule.works => (l.moduleWorks, l.moduleWorksSub),
   MobileModule.documents => (l.moduleDocuments, l.moduleDocumentsSub),
 };
 
@@ -486,6 +490,26 @@ void _open(BuildContext context, MobileModule module) {
   }
   if (module == MobileModule.maintenance) {
     context.push('/maintenance');
+    return;
+  }
+  if (module == MobileModule.inventory) {
+    context.push('/inventory');
+    return;
+  }
+  if (module == MobileModule.reports) {
+    context.push('/reports');
+    return;
+  }
+  if (module == MobileModule.dashboard) {
+    context.push('/dashboard');
+    return;
+  }
+  if (module == MobileModule.inspections) {
+    context.push('/inspections');
+    return;
+  }
+  if (module == MobileModule.works) {
+    context.push('/works');
     return;
   }
   _comingSoon(context);

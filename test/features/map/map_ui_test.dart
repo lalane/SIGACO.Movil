@@ -31,8 +31,7 @@ NavigationMenu _menu({bool module = true, bool permission = true}) =>
     NavigationMenu(
       modules: [
         const NavigationItem(code: 'PANEL', name: 'Panel'),
-        if (module)
-          const NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+        if (module) const NavigationItem(code: 'INVENTARIO', name: 'Catálogo'),
       ],
       permissions: [if (permission) PermissionKeys.inventoryView],
     );

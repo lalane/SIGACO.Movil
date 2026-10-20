@@ -9,7 +9,9 @@ import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc(this._repo, this._store) : super(const AuthState()) {
+  AuthBloc(this._repo, this._store, {Future<void> Function()? beforeLogout})
+    : _beforeLogout = beforeLogout, // ignore: prefer_initializing_formals
+      super(const AuthState()) {
     on<AuthStarted>(_onStarted);
     on<AuthLoginSubmitted>(
       (e, emit) => _login(emit, e.email, e.password, remember: e.remember),
@@ -45,6 +47,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthRepository _repo;
   final CredentialStore _store;
+
+  /// Se ejecuta antes de cerrar la sesion, con ella todavia abierta.
+  final Future<void> Function()? _beforeLogout;
   late final StreamSubscription<void> _expiredSub;
   late final StreamSubscription<SessionRequirement> _requirementSub;
 
@@ -310,6 +315,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogout(AuthLogoutRequested e, Emitter<AuthState> emit) async {
+    // Lo que debe hacerse con la sesion todavia abierta (retirar el dispositivo
+    // push). Un fallo no impide cerrar la sesion.
+    try {
+      await _beforeLogout?.call();
+    } catch (_) {}
     await _repo.logout();
     emit(await _signedOut());
   }

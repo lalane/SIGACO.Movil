@@ -224,6 +224,7 @@ class FileMapPinsCache implements MapPinsCache {
     'segmentCode': pin.segmentCode,
     'direction': pin.direction?.name,
     'status': pin.status.name,
+    'operatingState': pin.operatingState?.name,
     'lat': pin.position.latitude,
     'lon': pin.position.longitude,
   };
@@ -241,6 +242,10 @@ class FileMapPinsCache implements MapPinsCache {
       _ => null,
     },
     status: PinStatus.values.byName(j['status'] as String),
+    operatingState: switch (j['operatingState']) {
+      final String name => OperatingState.values.byName(name),
+      _ => null,
+    },
     position: GeoPoint(
       (j['lat'] as num).toDouble(),
       (j['lon'] as num).toDouble(),

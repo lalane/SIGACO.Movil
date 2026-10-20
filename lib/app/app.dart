@@ -7,6 +7,7 @@ import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
 import '../core/files/file_source.dart';
 import '../core/pdf/pdf_renderer.dart';
+import '../core/push/push_registrar.dart';
 import '../core/time/concession_zone_source.dart';
 import '../core/files/local_file_store.dart';
 import '../core/settings/settings_cubit.dart';
@@ -28,7 +29,12 @@ import '../features/map/domain/repositories/road_segments_repository.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
+import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../features/reports/domain/repositories/reports_repository.dart';
+import '../features/works/domain/repositories/works_repository.dart';
 import '../features/tickets/domain/repositories/tickets_repository.dart';
 import '../l10n/app_localizations.dart';
 import 'dependencies.dart';
@@ -50,6 +56,7 @@ class _SigacoAppState extends State<SigacoApp> {
   late final AuthBloc _auth = AuthBloc(
     widget.dependencies.authRepository,
     widget.dependencies.credentialStore,
+    beforeLogout: widget.dependencies.pushRegistrar.retire,
   )..add(const AuthStarted());
   late final NavigationBloc _navigation = NavigationBloc(
     widget.dependencies.navigationRepository,
@@ -78,6 +85,9 @@ class _SigacoAppState extends State<SigacoApp> {
     sampleTickets: widget.dependencies.sampleTickets,
     sampleAccidents: widget.dependencies.sampleAccidents,
     sampleMaintenance: widget.dependencies.sampleMaintenance,
+    sampleInventory: widget.dependencies.sampleInventory,
+    sampleWorks: widget.dependencies.sampleWorks,
+    sampleInspections: widget.dependencies.sampleInspections,
   );
 
   @override
@@ -148,6 +158,24 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<MaintenanceRepository>.value(
           value: widget.dependencies.maintenanceRepository,
+        ),
+        RepositoryProvider<InventoryRepository>.value(
+          value: widget.dependencies.inventoryRepository,
+        ),
+        RepositoryProvider<WorksRepository>.value(
+          value: widget.dependencies.worksRepository,
+        ),
+        RepositoryProvider<InspectionsRepository>.value(
+          value: widget.dependencies.inspectionsRepository,
+        ),
+        RepositoryProvider<PushRegistrar>.value(
+          value: widget.dependencies.pushRegistrar,
+        ),
+        RepositoryProvider<DashboardRepository>.value(
+          value: widget.dependencies.dashboardRepository,
+        ),
+        RepositoryProvider<ReportsRepository>.value(
+          value: widget.dependencies.reportsRepository,
         ),
         RepositoryProvider<TicketsRepository>.value(
           value: widget.dependencies.ticketsRepository,

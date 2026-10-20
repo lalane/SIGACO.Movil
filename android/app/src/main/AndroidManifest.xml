@@ -54,6 +54,11 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Navegar a un punto: entrega las coordenadas a la app de mapas. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="geo"/>
+        </intent>
         <!-- Abrir enlaces https (atribucion del mapa) con el navegador. -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>

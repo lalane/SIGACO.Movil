@@ -448,12 +448,14 @@ class ModuleListSheet extends StatelessWidget {
     this.buttonLabel,
     this.onButton,
     this.buttonKey,
+    this.buttonIcon = Icons.add,
   });
 
   final Widget body;
   final String? buttonLabel;
   final VoidCallback? onButton;
   final Key? buttonKey;
+  final IconData buttonIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -489,7 +491,7 @@ class ModuleListSheet extends StatelessWidget {
                     ),
                     iconAlignment: IconAlignment.end,
                     onPressed: onButton,
-                    icon: const Icon(Icons.add),
+                    icon: Icon(buttonIcon),
                     label: Text(buttonLabel!),
                   ),
                 ),

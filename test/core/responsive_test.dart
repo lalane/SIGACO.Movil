@@ -15,9 +15,9 @@ const _allModules = NavigationMenu(
   modules: [
     NavigationItem(code: 'PANEL', name: 'Panel'),
     NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
-    NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+    NavigationItem(code: 'INVENTARIO', name: 'Catálogo'),
     NavigationItem(code: 'REPORTES', name: 'Reportes'),
-    NavigationItem(code: 'TICKETS', name: 'Tickets'),
+    NavigationItem(code: 'TICKETS', name: 'Registros'),
     NavigationItem(code: 'ALERTAS_OPERATIVAS', name: 'Alertas'),
     NavigationItem(
       code: 'ANTT',

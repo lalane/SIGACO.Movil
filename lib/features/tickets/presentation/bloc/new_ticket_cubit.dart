@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/ids/client_id.dart';
 import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/tickets_repository.dart';
 import 'follow_up_cubit.dart';
@@ -83,9 +84,36 @@ class NewTicketState extends Equatable {
 
 /// El formulario de un ticket nuevo.
 class NewTicketCubit extends Cubit<NewTicketState> {
-  NewTicketCubit(this._repository) : super(const NewTicketState());
+  NewTicketCubit(
+    this._repository, {
+    DateTime Function()? clock,
+    this.location,
+    String Function()? clientIdGenerator,
+  }) : _clock = clock ?? DateTime.now,
+       super(
+         NewTicketState(
+           // El cadenamiento ya conocido se rellena solo (FRM-02).
+           kmLabel: location?.kmLabel ?? '',
+         ),
+       ) {
+    _clientId = (clientIdGenerator ?? newClientId)();
+    // La hora del registro es la de abrir el formulario, en UTC.
+    _capturedAt = _clock().toUtc();
+  }
 
   final TicketsRepository _repository;
+  final DateTime Function() _clock;
+  late final DateTime _capturedAt;
+  late final String _clientId;
+
+  /// Donde se levanta el ticket, si viene del mapa o de un activo.
+  final TicketLocation? location;
+
+  /// Identificador unico de este registro (`cliente_uuid`).
+  String get clientId => _clientId;
+
+  /// Cuando se abrio el formulario, en UTC.
+  DateTime get capturedAt => _capturedAt;
 
   Future<void> load() async {
     try {
@@ -129,6 +157,10 @@ class NewTicketCubit extends Cubit<NewTicketState> {
               ? null
               : state.description.trim(),
           photoPaths: [for (final p in state.photos) ?p],
+          capturedAt: _capturedAt,
+          deviceClockAt: _clock().toUtc(),
+          location: location,
+          clientId: _clientId,
         ),
       );
       if (isClosed) return;

@@ -21,6 +21,7 @@ import 'feature_flags.dart';
 import 'sync_revalidation.dart';
 import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
+import '../core/time/concession_zone.dart';
 import '../core/time/concession_zone_source.dart';
 import '../core/ui/capped_download.dart';
 import '../core/ui/logo_store.dart';
@@ -42,7 +43,22 @@ import '../features/documents/domain/repositories/documents_repository.dart';
 import '../features/accidents/data/repositories/sample_accidents_repository.dart';
 import '../features/accidents/data/repositories/unavailable_accidents_repository.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
+import '../core/push/api_push.dart';
+import '../core/push/push_registrar.dart';
+import 'composition/composed_dashboard_repository.dart';
+import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/inspections/data/repositories/sample_inspections_repository.dart';
+import '../features/inspections/data/repositories/unavailable_inspections_repository.dart';
+import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../features/inventory/data/repositories/sample_inventory_repository.dart';
+import '../features/inventory/data/repositories/unavailable_inventory_repository.dart';
+import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
+import 'composition/maintenance_reports_repository.dart';
+import '../features/works/data/repositories/sample_works_repository.dart';
+import '../features/works/data/repositories/unavailable_works_repository.dart';
+import '../features/works/domain/repositories/works_repository.dart';
+import '../features/reports/domain/repositories/reports_repository.dart';
 import '../features/maintenance/data/repositories/unavailable_maintenance_repository.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../features/map/data/cache/map_pins_cache.dart';
@@ -182,6 +198,19 @@ class _WithSampleModules implements NavigationRepository {
   }
 }
 
+/// Solo para las pruebas con datos de ejemplo: si el servidor no publica la
+/// zona horaria de la concesion, usa la de Sao Paulo.
+class _WithSampleZone implements ConcessionZoneSource {
+  const _WithSampleZone(this._inner);
+
+  final ConcessionZoneSource _inner;
+
+  @override
+  Future<ConcessionZone?> load(String concessionId) async =>
+      await _inner.load(concessionId) ??
+      ConcessionZone.tryParse('America/Sao_Paulo');
+}
+
 /// Raiz de composicion: aqui se crean las implementaciones concretas.
 /// Las pruebas pasan sus propios fakes por el constructor.
 class AppDependencies {
@@ -203,6 +232,15 @@ class AppDependencies {
     this.sampleAccidents = false,
     this.maintenanceRepository = const UnavailableMaintenanceRepository(),
     this.sampleMaintenance = false,
+    this.inventoryRepository = const UnavailableInventoryRepository(),
+    this.sampleInventory = false,
+    this.worksRepository = const UnavailableWorksRepository(),
+    this.sampleWorks = false,
+    this.inspectionsRepository = const UnavailableInspectionsRepository(),
+    this.sampleInspections = false,
+    ReportsRepository? reportsRepository,
+    DashboardRepository? dashboardRepository,
+    PushRegistrar? pushRegistrar,
     this.features = const FeatureFlags(),
     this.mapSettings = const MapSettings(),
     this.mapPacks = const UnavailableMapPackManager(),
@@ -219,6 +257,18 @@ class AppDependencies {
     this.brandingRefreshGap = const Duration(minutes: 1),
     SyncCubit? sync,
   }) : brandingRepository = brandingRepository ?? const _NoBranding(),
+       reportsRepository =
+           reportsRepository ??
+           MaintenanceReportsRepository(maintenanceRepository),
+       pushRegistrar = pushRegistrar ?? PushRegistrar(prefs: prefs),
+       dashboardRepository =
+           dashboardRepository ??
+           ComposedDashboardRepository(
+             tickets: ticketsRepository,
+             accidents: accidentsRepository,
+             maintenance: maintenanceRepository,
+             inventory: inventoryRepository,
+           ),
        fileStore = fileStore ?? DiskLocalFileStore(),
        documentsRepository =
            documentsRepository ?? const UnavailableDocumentsRepository(),
@@ -275,6 +325,31 @@ class AppDependencies {
   /// Mantenimiento (APP-MOB-07). Igual que los tickets.
   final MaintenanceRepository maintenanceRepository;
   final bool sampleMaintenance;
+
+  /// Inventario (APP-MOB-06). Igual que los tickets.
+  final InventoryRepository inventoryRepository;
+  final bool sampleInventory;
+
+  /// Obras (APP-MOB-09). Igual que los tickets.
+  final WorksRepository worksRepository;
+  final bool sampleWorks;
+
+  /// Inspecciones (APP-MOB-08). Igual que los tickets.
+  final InspectionsRepository inspectionsRepository;
+  final bool sampleInspections;
+
+  /// Indicadores y reportes (APP-MOB-02). Sin un servicio propio se arman con
+  /// los mantenimientos del indicador.
+  final ReportsRepository reportsRepository;
+
+  /// Dashboard (APP-MOB-04). Sin un servicio propio se arma con lo que
+  /// consultan los demas modulos.
+  final DashboardRepository dashboardRepository;
+
+  /// Registra el token push de este telefono en la concesion activa si su
+  /// canal push esta activo (RN-19). Sin Firebase ni servicio en el servidor no
+  /// hace nada.
+  final PushRegistrar pushRegistrar;
 
   /// Lo que existe en el codigo pero no se ofrece en el menu.
   final FeatureFlags features;
@@ -358,6 +433,18 @@ class AppDependencies {
         ),
       if (AppConfig.sampleMaintenance)
         const NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
+      if (AppConfig.sampleInventory)
+        const NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+      if (AppConfig.sampleWorks)
+        const NavigationItem(code: 'OBRAS', name: 'Obras'),
+      if (AppConfig.sampleInspections)
+        const NavigationItem(code: 'INSPECCIONES', name: 'Inspecciones'),
+      // El dashboard resume los modulos: con ejemplos, el panel tambien existe.
+      if (AppConfig.sampleTickets || AppConfig.sampleMaintenance)
+        const NavigationItem(code: 'PANEL', name: 'Panel'),
+      // Los reportes salen de los mantenimientos: con ejemplos, tambien.
+      if (AppConfig.sampleMaintenance)
+        const NavigationItem(code: 'REPORTES', name: 'Reportes'),
     ]);
     final DocumentsRepository documents;
     final SyncRemote remote;
@@ -462,6 +549,26 @@ class AppDependencies {
           ? SampleMaintenanceRepository()
           : const UnavailableMaintenanceRepository(),
       sampleMaintenance: AppConfig.sampleMaintenance,
+      inventoryRepository: AppConfig.sampleInventory
+          ? SampleInventoryRepository()
+          : const UnavailableInventoryRepository(),
+      sampleInventory: AppConfig.sampleInventory,
+      // El token push se registra en `/api/auth/me/devices` solo si el canal
+      // push de la concesion esta encendido. Falta la fuente del token
+      // (Firebase): sin ella no se registra nada.
+      pushRegistrar: PushRegistrar(
+        prefs: prefs,
+        channels: ApiPushChannelSource(api),
+        remote: ApiPushRemote(api),
+      ),
+      worksRepository: AppConfig.sampleWorks
+          ? SampleWorksRepository()
+          : const UnavailableWorksRepository(),
+      sampleWorks: AppConfig.sampleWorks,
+      inspectionsRepository: AppConfig.sampleInspections
+          ? SampleInspectionsRepository()
+          : const UnavailableInspectionsRepository(),
+      sampleInspections: AppConfig.sampleInspections,
       features: const FeatureFlags(documents: AppConfig.documentsModule),
       mapPacks: mapPacks,
       connectivity: ConnectivityPlusSource(),
@@ -476,7 +583,14 @@ class AppDependencies {
       ),
       fileSource: PlatformFileSource(),
       pdfRenderer: PlatformPdfRenderer(),
-      zoneSource: ApiConcessionZoneSource(api),
+      // Con datos de ejemplo no hay servidor que publique la zona: se usa la
+      // de Brasil para poder probar los formularios (RN-13 los bloquea sin zona).
+      zoneSource:
+          (AppConfig.sampleTickets ||
+              AppConfig.sampleAccidents ||
+              AppConfig.sampleInspections)
+          ? _WithSampleZone(ApiConcessionZoneSource(api))
+          : ApiConcessionZoneSource(api),
       fileStore: fileStore,
       brandingRepository: BrandingRepositoryImpl(
         api,

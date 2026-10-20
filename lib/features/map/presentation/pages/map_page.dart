@@ -17,7 +17,12 @@ import '../../../../core/ui/module_nav.dart';
 import '../../../../core/ui/zone_format.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/geo_point.dart';
+import '../../../../core/ui/device_navigation.dart';
 import '../../domain/entities/map_pin.dart';
+import '../../domain/entities/user_location.dart';
+import '../../domain/entities/map_record_target.dart';
+import '../map_record_actions.dart';
+import '../widgets/picked_point_card.dart';
 import '../../domain/entities/pin_cluster.dart';
 import '../../domain/entities/road_segment.dart';
 import '../../domain/repositories/location_source.dart';
@@ -44,9 +49,21 @@ class MapPage extends StatefulWidget {
     super.key,
     this.tileSource = const NoTileSource(),
     this.sampleData = false,
+    this.initialLayer,
+    this.initialPinId,
+    this.actions = MapRecordActions.none,
   });
 
   final MapTileSource tileSource;
+
+  /// Abrir el mapa sobre un elemento (desde la ficha de un activo, por
+  /// ejemplo): su pestana y su id. Si ya no esta, el mapa se ve normal.
+  final MapLayer? initialLayer;
+  final String? initialPinId;
+
+  /// Abrir la ficha de un elemento y levantar registros desde el mapa; lo
+  /// compone la app segun lo que el usuario puede hacer.
+  final MapRecordActions actions;
 
   /// Los pines son de ejemplo: se avisa para que nadie los tome por reales.
   final bool sampleData;
@@ -73,7 +90,25 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MapCubit>().load();
+    context.read<MapCubit>().load().then((_) => _showInitialPin());
+  }
+
+  /// Selecciona y centra el elemento pedido al abrir el mapa.
+  Future<void> _showInitialPin() async {
+    final id = widget.initialPinId;
+    final layer = widget.initialLayer;
+    if (id == null || layer == null || !mounted) return;
+    final cubit = context.read<MapCubit>();
+    await cubit.selectLayer(layer);
+    // El mapa se dibuja un cuadro despues de tener los pines.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || cubit.isClosed) return;
+    for (final pin in cubit.state.pinsByLayer[layer] ?? const <MapPin>[]) {
+      if (pin.id == id) {
+        _focusPin(pin);
+        return;
+      }
+    }
   }
 
   @override
@@ -241,6 +276,7 @@ class _MapPageState extends State<MapPage> {
           zoom: _zoom,
           segmentHit: _segmentHit,
           onPick: _focusPin,
+          actions: widget.actions,
         );
     }
   }
@@ -318,14 +354,87 @@ class _MapArea extends StatelessWidget {
     required this.zoom,
     required this.segmentHit,
     required this.onPick,
+    required this.actions,
   });
 
+  final MapRecordActions actions;
   final MapState state;
   final MapTileSource tileSource;
   final MapController controller;
   final ValueNotifier<double> zoom;
   final LayerHitNotifier<String> segmentHit;
   final ValueChanged<MapPin> onPick;
+
+  /// Una lectura mas vieja que esto ya no es "la de ahora": se marca como la
+  /// ultima posicion conocida (DTF M10, RB-10-22).
+  static const _staleAfter = Duration(minutes: 2);
+
+  /// Levanta un registro en la ubicacion del usuario.
+  void _recordHere(BuildContext context, UserLocation here) {
+    if (!here.isTrusted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).mapRecordMocked)),
+        );
+      return;
+    }
+    final fresh =
+        DateTime.now().toUtc().difference(here.capturedAt) <= _staleAfter;
+    actions.onCreate?.call(
+      MapRecordTarget(
+        latitude: here.position.latitude,
+        longitude: here.position.longitude,
+        origin: fresh ? MapTargetOrigin.gps : MapTargetOrigin.lastKnown,
+        accuracyMeters: here.accuracyMeters,
+        readAt: here.capturedAt,
+      ),
+    );
+  }
+
+  /// Levanta un registro sobre el elemento: conserva el activo y su ubicacion.
+  void _createFromPin(MapPin pin) => actions.onCreate?.call(
+    MapRecordTarget(
+      latitude: pin.position.latitude,
+      longitude: pin.position.longitude,
+      origin: MapTargetOrigin.asset,
+      assetId: pin.layer == MapLayer.inventory ? pin.id : null,
+      kmLabel: pin.kmLabel,
+    ),
+  );
+
+  void _createFromPoint(GeoPoint point) => actions.onCreate?.call(
+    MapRecordTarget(
+      latitude: point.latitude,
+      longitude: point.longitude,
+      origin: MapTargetOrigin.mapPoint,
+    ),
+  );
+
+  /// Entrega el punto a la app de navegacion del telefono.
+  Future<void> _navigate(
+    BuildContext context,
+    GeoPoint point, {
+    String? label,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context).mapNavigateFailed;
+    final ok = await DeviceNavigation.open(
+      point.latitude,
+      point.longitude,
+      label: label,
+    );
+    if (!ok) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            key: const Key('map-navigate-failed'),
+            content: Text(message),
+          ),
+        );
+    }
+  }
 
   /// Actualiza el zoom que usa la agrupacion, a medio nivel para no
   /// reagrupar en cada gesto.
@@ -486,6 +595,9 @@ class _MapArea extends StatelessWidget {
                   cubit.selectSegment(null);
                 }
               },
+              // Mantener presionado elige un punto (para registrar o navegar).
+              onLongPress: (_, point) =>
+                  cubit.pickPoint(GeoPoint(point.latitude, point.longitude)),
               onMapReady: () => _syncZoom(),
               onPositionChanged: (camera, hasGesture) {
                 // Un arrastre que empezo sobre una linea no es un toque en ella.
@@ -568,6 +680,23 @@ class _MapArea extends StatelessWidget {
                   ],
                 ),
               ),
+              if (state.pickedPoint != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _ll(state.pickedPoint!),
+                      width: 40,
+                      height: 40,
+                      alignment: Alignment.topCenter,
+                      child: const Icon(
+                        Icons.place,
+                        key: Key('map-picked-marker'),
+                        size: 40,
+                        color: Color(0xFFDC2626),
+                      ),
+                    ),
+                  ],
+                ),
               if (here != null)
                 MarkerLayer(
                   markers: [
@@ -651,6 +780,21 @@ class _MapArea extends StatelessWidget {
                         onSelect: cubit.selectLayer,
                       ),
                     const Spacer(),
+                    if (actions.onCreate != null &&
+                        here != null &&
+                        selected == null &&
+                        state.pickedPoint == null) ...[
+                      FloatingActionButton.small(
+                        key: const Key('map-record-here'),
+                        heroTag: 'map-record-here',
+                        tooltip: l10n.mapRecordHere,
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF1E293B),
+                        onPressed: () => _recordHere(context, here),
+                        child: const Icon(Icons.add_location_alt_outlined),
+                      ),
+                      SizedBox(width: r.s(8)),
+                    ],
                     FloatingActionButton(
                       key: const Key('map-locate'),
                       heroTag: 'map-locate',
@@ -686,7 +830,19 @@ class _MapArea extends StatelessWidget {
                   ),
                 ),
               ),
-              if (selected != null)
+              if (state.pickedPoint != null)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(r.s(12), 0, r.s(12), r.s(12)),
+                  child: PickedPointCard(
+                    point: state.pickedPoint!,
+                    onClose: cubit.clearPickedPoint,
+                    onNavigate: () => _navigate(context, state.pickedPoint!),
+                    onCreate: actions.onCreate == null
+                        ? null
+                        : () => _createFromPoint(state.pickedPoint!),
+                  ),
+                )
+              else if (selected != null)
                 Padding(
                   padding: EdgeInsets.fromLTRB(r.s(12), 0, r.s(12), r.s(12)),
                   child: PinDetailCard(
@@ -695,6 +851,17 @@ class _MapArea extends StatelessWidget {
                       selected.position,
                     ),
                     onClose: () => cubit.selectPin(null),
+                    onOpen: actions.openRoute?.call(selected) == null
+                        ? null
+                        : () => context.push(actions.openRoute!(selected)!),
+                    onCreate: actions.onCreate == null
+                        ? null
+                        : () => _createFromPin(selected),
+                    onNavigate: () => _navigate(
+                      context,
+                      selected.position,
+                      label: selected.title,
+                    ),
                   ),
                 )
               else if (selectedSegment != null)

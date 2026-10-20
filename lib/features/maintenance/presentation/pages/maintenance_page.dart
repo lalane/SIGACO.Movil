@@ -10,8 +10,8 @@ import '../../../../core/time/concession_zone_cubit.dart';
 import '../../../../core/ui/module_format.dart';
 import '../../../../core/ui/module_header.dart';
 import '../../../../core/ui/module_nav.dart';
+import '../../../../core/ui/module_pills.dart';
 import '../../../../core/ui/module_widgets.dart';
-import '../../../../core/ui/zone_format.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/maintenance.dart';
 import '../../domain/repositories/maintenance_repository.dart';
@@ -238,16 +238,6 @@ class _FilterRow extends StatelessWidget {
 
   final MaintenanceState state;
 
-  Future<DateTime?> _pick(BuildContext context, DateTime? current) {
-    final now = DateTime.now();
-    return showDatePicker(
-      context: context,
-      initialDate: current ?? now,
-      firstDate: DateTime(now.year - 3),
-      lastDate: DateTime(now.year + 2),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -259,44 +249,28 @@ class _FilterRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 10,
-            child: _Pill(
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<MaintenanceStatus?>(
-                  key: const Key('maintenance-status-filter'),
-                  value: state.statusFilter,
-                  isExpanded: true,
-                  isDense: true,
-                  icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-                  iconEnabledColor: const Color(0xFF64748B),
-                  dropdownColor: Colors.white,
-                  style: _pillText,
-                  hint: Text(l10n.maintFilterState, style: _pillHint),
-                  items: [
-                    DropdownMenuItem<MaintenanceStatus?>(
-                      value: null,
-                      child: Text(l10n.maintFilterAllStates),
-                    ),
-                    for (final s in MaintenanceStatus.values)
-                      DropdownMenuItem<MaintenanceStatus?>(
-                        value: s,
-                        child: Text(statusLabel(l10n, s)),
-                      ),
-                  ],
-                  onChanged: cubit.setStatus,
-                ),
-              ),
+            child: ModuleDropdownPill<MaintenanceStatus>(
+              key: const Key('maintenance-status-filter'),
+              value: state.statusFilter,
+              hint: l10n.maintFilterState,
+              allLabel: l10n.maintFilterAllStates,
+              options: [
+                for (final s in MaintenanceStatus.values)
+                  (s, statusLabel(l10n, s)),
+              ],
+              onChanged: cubit.setStatus,
             ),
           ),
           SizedBox(width: r.s(8)),
           Expanded(
             flex: 11,
-            child: _DatePill(
+            child: ModuleDatePill(
               key: const Key('maintenance-from'),
               tooltip: l10n.maintDateFrom,
               hint: l10n.maintDateHint,
               day: state.from,
               onTap: () async {
-                final day = await _pick(context, state.from);
+                final day = await ModuleDatePill.pick(context, state.from);
                 if (day != null) cubit.setFrom(day);
               },
               onClear: () => cubit.setFrom(null),
@@ -306,13 +280,13 @@ class _FilterRow extends StatelessWidget {
           SizedBox(width: r.s(8)),
           Expanded(
             flex: 11,
-            child: _DatePill(
+            child: ModuleDatePill(
               key: const Key('maintenance-to'),
               tooltip: l10n.maintDateTo,
               hint: l10n.maintDateHint,
               day: state.to,
               onTap: () async {
-                final day = await _pick(context, state.to);
+                final day = await ModuleDatePill.pick(context, state.to);
                 if (day != null) cubit.setTo(day);
               },
               onClear: () => cubit.setTo(null),
@@ -320,102 +294,6 @@ class _FilterRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-const _pillText = TextStyle(
-  fontFamily: 'Inter',
-  color: Color(0xFF475569),
-  fontSize: 14,
-);
-const _pillHint = TextStyle(
-  fontFamily: 'Inter',
-  color: Color(0xFF94A3B8),
-  fontSize: 14,
-);
-
-class _Pill extends StatelessWidget {
-  const _Pill({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = context.responsive;
-    return Container(
-      height: r.s(48),
-      padding: EdgeInsets.symmetric(horizontal: r.s(14)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(r.s(24)),
-      ),
-      alignment: Alignment.center,
-      child: child,
-    );
-  }
-}
-
-class _DatePill extends StatelessWidget {
-  const _DatePill({
-    super.key,
-    required this.tooltip,
-    required this.hint,
-    required this.day,
-    required this.onTap,
-    required this.onClear,
-    required this.clearKey,
-  });
-
-  final Key clearKey;
-  final String tooltip;
-  final String hint;
-  final DateTime? day;
-  final VoidCallback onTap;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final r = context.responsive;
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(r.s(24)),
-        onTap: onTap,
-        child: _Pill(
-          child: Row(
-            children: [
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    day == null ? hint : formatCalendarDay(context, day!),
-                    style: day == null ? _pillHint : _pillText,
-                  ),
-                ),
-              ),
-              SizedBox(width: r.s(4)),
-              if (day == null)
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: Color(0xFF64748B),
-                )
-              else
-                InkWell(
-                  key: clearKey,
-                  onTap: onClear,
-                  child: const Icon(
-                    Icons.close,
-                    size: 18,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-            ],
-          ),
-        ),
       ),
     );
   }

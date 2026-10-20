@@ -16,10 +16,23 @@ class PinDetailCard extends StatelessWidget {
     required this.pin,
     required this.onClose,
     this.distanceMeters,
+    this.onOpen,
+    this.onCreate,
+    this.onNavigate,
   });
 
   final MapPin pin;
   final VoidCallback onClose;
+
+  /// Abrir la ficha del elemento en su modulo; null si no la tiene o no puede
+  /// verla.
+  final VoidCallback? onOpen;
+
+  /// Levantar un registro en este elemento (conserva el activo y su ubicacion).
+  final VoidCallback? onCreate;
+
+  /// Navegar hasta el elemento con la app de navegacion del telefono.
+  final VoidCallback? onNavigate;
 
   /// Distancia a la ubicacion del usuario, si se conoce.
   final double? distanceMeters;
@@ -85,6 +98,12 @@ class PinDetailCard extends StatelessWidget {
                     label: Text(pin.category!),
                     visualDensity: VisualDensity.compact,
                   ),
+                if (pin.operatingState != null)
+                  Chip(
+                    key: const Key('map-detail-operating'),
+                    label: Text(operatingStateLabel(l10n, pin.operatingState!)),
+                    visualDensity: VisualDensity.compact,
+                  ),
                 if (pin.kmLabel != null)
                   Chip(
                     label: Text('${l10n.mapDetailReference}: ${pin.kmLabel}'),
@@ -122,11 +141,36 @@ class PinDetailCard extends StatelessWidget {
                   ),
               ],
             ),
-            SizedBox(height: r.s(8)),
-            Text(
-              l10n.mapActionsSoon,
-              style: TextStyle(color: p.hint, fontSize: r.s(12)),
-            ),
+            if (onOpen != null || onCreate != null || onNavigate != null) ...[
+              SizedBox(height: r.s(12)),
+              Wrap(
+                spacing: r.s(8),
+                runSpacing: r.s(8),
+                children: [
+                  if (onOpen != null)
+                    FilledButton.icon(
+                      key: const Key('map-detail-open'),
+                      onPressed: onOpen,
+                      icon: const Icon(Icons.open_in_new),
+                      label: Text(l10n.mapOpenRecord),
+                    ),
+                  if (onCreate != null)
+                    OutlinedButton.icon(
+                      key: const Key('map-detail-create'),
+                      onPressed: onCreate,
+                      icon: const Icon(Icons.add_location_alt_outlined),
+                      label: Text(l10n.mapCreateRecord),
+                    ),
+                  if (onNavigate != null)
+                    OutlinedButton.icon(
+                      key: const Key('map-detail-navigate'),
+                      onPressed: onNavigate,
+                      icon: const Icon(Icons.navigation_outlined),
+                      label: Text(l10n.mapNavigate),
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

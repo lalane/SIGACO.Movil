@@ -11,7 +11,7 @@ enum ModuleTab {
   map('/map', Icons.map_outlined),
   tickets('/tickets', Icons.receipt_long),
   home('/home', Icons.home_outlined),
-  inventory(null, Icons.checklist_rtl),
+  inventory('/inventory', Icons.checklist_rtl),
   maintenance('/maintenance', Icons.settings);
 
   const ModuleTab(this.route, this.icon);

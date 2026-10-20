@@ -102,6 +102,9 @@ class NewAccident extends Equatable {
     this.kmLabel,
     this.description,
     this.photoPaths = const [],
+    this.capturedAt,
+    this.deviceClockAt,
+    this.clientId,
   });
 
   final String title;
@@ -111,6 +114,17 @@ class NewAccident extends Equatable {
   final String? description;
   final List<String> photoPaths;
 
+  /// Cuando se abrio el formulario, en UTC (RN-12 y RN-14): no depende de la
+  /// zona del telefono. Es la hora del registro.
+  final DateTime? capturedAt;
+
+  /// La hora del reloj del telefono al enviar, en UTC (RN-15).
+  final DateTime? deviceClockAt;
+
+  /// Identificador unico que genera el telefono (`cliente_uuid`): evita
+  /// duplicados si el registro se sincroniza dos veces.
+  final String? clientId;
+
   @override
   List<Object?> get props => [
     title,
@@ -119,5 +133,8 @@ class NewAccident extends Equatable {
     kmLabel,
     description,
     photoPaths,
+    capturedAt,
+    deviceClockAt,
+    clientId,
   ];
 }

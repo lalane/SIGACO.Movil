@@ -61,6 +61,27 @@ abstract final class AppConfig {
     defaultValue: !bool.fromEnvironment('dart.vm.product'),
   );
 
+  /// Inventario de ejemplo, mientras el backend no publique sus endpoints.
+  /// Igual que [sampleTickets]. `--dart-define=SAMPLE_INVENTORY=true|false`.
+  static const sampleInventory = bool.fromEnvironment(
+    'SAMPLE_INVENTORY',
+    defaultValue: !bool.fromEnvironment('dart.vm.product'),
+  );
+
+  /// Obras de ejemplo, mientras el backend no publique sus endpoints. Igual que
+  /// [sampleTickets]. `--dart-define=SAMPLE_WORKS=true|false`.
+  static const sampleWorks = bool.fromEnvironment(
+    'SAMPLE_WORKS',
+    defaultValue: !bool.fromEnvironment('dart.vm.product'),
+  );
+
+  /// Inspecciones de ejemplo, mientras el backend no publique sus endpoints.
+  /// Igual que [sampleTickets]. `--dart-define=SAMPLE_INSPECTIONS=true|false`.
+  static const sampleInspections = bool.fromEnvironment(
+    'SAMPLE_INSPECTIONS',
+    defaultValue: !bool.fromEnvironment('dart.vm.product'),
+  );
+
   /// Con [sampleMap], los pines de ejemplo se reparten alrededor de donde esta
   /// el telefono (para probar "ubicarme" y los cercanos). Si no hay ubicacion,
   /// o con `--dart-define=SAMPLE_MAP_NEAR_ME=false`, caen sobre la BR-381.

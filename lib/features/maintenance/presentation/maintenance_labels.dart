@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/theme/status_colors.dart';
-import '../../../core/ui/module_format.dart';
+export '../../../core/ui/module_format.dart'
+    show quantity, money, moneyExact, percent;
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/maintenance.dart';
 
@@ -50,22 +50,3 @@ String statLabel(AppLocalizations l10n, MaintenanceStatus s) => switch (s) {
   MaintenanceStatus.inProgress => l10n.maintStatInProgress,
   MaintenanceStatus.closed => l10n.maintStatClosed,
 };
-
-/// Una cantidad con separador de miles y, si la tiene, su parte decimal
-/// (`350`, `1,200.5`), segun el idioma.
-String quantity(String locale, double value) =>
-    NumberFormat('#,##0.##', moduleNumberLocale(locale)).format(value);
-
-/// Un importe en pesos sin centavos (`$28,000`).
-String money(String locale, double value) => NumberFormat.currency(
-  locale: moduleNumberLocale(locale),
-  symbol: r'$',
-  decimalDigits: 0,
-).format(value);
-
-/// Un importe con centavos (`100,000.00`).
-String moneyExact(String locale, double value) =>
-    NumberFormat('#,##0.00', moduleNumberLocale(locale)).format(value);
-
-/// El avance como porcentaje entero (`64%`).
-String percent(double progress) => '${(progress * 100).round()}%';

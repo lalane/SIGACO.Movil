@@ -11,6 +11,8 @@ import 'package:sigaco_movil/core/offline/operation.dart';
 import 'package:sigaco_movil/core/pdf/pdf_renderer.dart';
 import 'package:sigaco_movil/core/permissions/permission_keys.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
+import 'package:sigaco_movil/core/time/concession_zone.dart';
+import 'package:sigaco_movil/core/time/concession_zone_source.dart';
 import 'package:sigaco_movil/core/ui/logo_store.dart';
 import 'package:sigaco_movil/features/auth/domain/entities/auth_entities.dart';
 import 'package:sigaco_movil/features/auth/domain/repositories/auth_repository.dart';
@@ -536,4 +538,16 @@ class FakePdfRenderer implements PdfRenderer {
 
   @override
   Future<void> close(PdfDocumentHandle document) async => closed++;
+}
+
+/// La zona horaria que el servidor publica para toda concesion (por omision,
+/// la de Sao Paulo). Sin una zona, la app no deja crear registros (RN-13).
+class FixedZoneSource implements ConcessionZoneSource {
+  FixedZoneSource([this.id = 'America/Sao_Paulo']);
+
+  final String id;
+
+  @override
+  Future<ConcessionZone?> load(String concessionId) async =>
+      ConcessionZone.tryParse(id);
 }

@@ -12,6 +12,11 @@ enum MapLayer { tickets, inventory, maintenance, works }
 /// (los colores de estatus son del sistema, COL-05).
 enum PinStatus { normal, attention, critical }
 
+/// Estado operativo de un equipo (DTF M10, pantalla 4.2). Es distinto de la
+/// atencion que pide ([PinStatus]): un equipo fuera de servicio puede estar
+/// "normal" para el negocio si esta programado.
+enum OperatingState { inOperation, inMaintenance, outOfService }
+
 /// Un elemento dibujado en el mapa: un ticket, un activo, un mantenimiento o
 /// una obra. Lo que el servidor entrega para el mapa, sin mas detalle: la ficha
 /// completa es del modulo de cada uno.
@@ -27,6 +32,7 @@ class MapPin extends Equatable {
     this.segmentCode,
     this.direction,
     this.status = PinStatus.normal,
+    this.operatingState,
   });
 
   final String id;
@@ -47,6 +53,9 @@ class MapPin extends Equatable {
   final String? segmentCode;
   final TravelDirection? direction;
   final PinStatus status;
+
+  /// Solo los equipos lo traen; null en tickets, obras o mantenimientos.
+  final OperatingState? operatingState;
   final GeoPoint position;
 
   @override
@@ -60,6 +69,7 @@ class MapPin extends Equatable {
     segmentCode,
     direction,
     status,
+    operatingState,
     position,
   ];
 }

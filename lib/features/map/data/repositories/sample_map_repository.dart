@@ -59,8 +59,19 @@ class SampleMapRepository implements MapRepository {
     segmentCode: SampleRoadSegmentsRepository.codeAt(km),
     direction: direction,
     status: status,
+    // Solo los equipos (inventario) tienen estado operativo.
+    operatingState: layer == MapLayer.inventory
+        ? (_operating[id] ?? OperatingState.inOperation)
+        : null,
     position: SampleRoadSegmentsRepository.pointAt(km, direction),
   );
+
+  /// Equipos que no estan en operacion; los demas si lo estan.
+  static const _operating = {
+    'A-004': OperatingState.inMaintenance,
+    'A-008': OperatingState.inMaintenance,
+    'A-005': OperatingState.outOfService,
+  };
 
   static final Map<MapLayer, List<MapPin>> _data = {
     MapLayer.inventory: [

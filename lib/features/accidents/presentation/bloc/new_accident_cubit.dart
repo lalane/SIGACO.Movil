@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/ids/client_id.dart';
 import '../../domain/entities/accident.dart';
 import '../../domain/repositories/accidents_repository.dart';
 
@@ -83,9 +84,27 @@ class NewAccidentState extends Equatable {
 
 /// El formulario de un accidente nuevo.
 class NewAccidentCubit extends Cubit<NewAccidentState> {
-  NewAccidentCubit(this._repository) : super(const NewAccidentState());
+  NewAccidentCubit(
+    this._repository, {
+    DateTime Function()? clock,
+    String Function()? clientIdGenerator,
+  }) : _clock = clock ?? DateTime.now,
+       super(const NewAccidentState()) {
+    _clientId = (clientIdGenerator ?? newClientId)();
+    // La hora del registro es la de abrir el formulario, en UTC.
+    _capturedAt = _clock().toUtc();
+  }
 
   final AccidentsRepository _repository;
+  final DateTime Function() _clock;
+  late final DateTime _capturedAt;
+  late final String _clientId;
+
+  /// Identificador unico de este registro (`cliente_uuid`).
+  String get clientId => _clientId;
+
+  /// Cuando se abrio el formulario, en UTC.
+  DateTime get capturedAt => _capturedAt;
 
   void setTitle(String v) => emit(state.copyWith(title: v));
 
@@ -122,6 +141,9 @@ class NewAccidentCubit extends Cubit<NewAccidentState> {
               ? null
               : state.description.trim(),
           photoPaths: [for (final p in state.photos) ?p],
+          capturedAt: _capturedAt,
+          deviceClockAt: _clock().toUtc(),
+          clientId: _clientId,
         ),
       );
       if (isClosed) return;

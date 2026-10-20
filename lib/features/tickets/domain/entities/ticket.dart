@@ -165,6 +165,78 @@ class NewFollowUp extends Equatable {
   List<Object?> get props => [at, status, description, photoPaths];
 }
 
+/// De donde salio la ubicacion de un registro (DTF M10, RB-10-22).
+enum TicketLocationOrigin {
+  /// Lectura reciente del GPS.
+  gps,
+
+  /// La ultima posicion conocida, no una lectura actual: se marca como tal.
+  lastKnown,
+
+  /// Un punto que la persona eligio en el mapa.
+  mapPoint,
+
+  /// La del activo seleccionado.
+  asset,
+}
+
+/// Lo que puede estar mal con una ubicacion antes de guardarla.
+enum TicketLocationIssue { lowAccuracy, lastKnown }
+
+/// La ubicacion de un registro: donde, que tan confiable es y de donde salio.
+class TicketLocation extends Equatable {
+  const TicketLocation({
+    required this.latitude,
+    required this.longitude,
+    required this.origin,
+    this.accuracyMeters,
+    this.readAt,
+    this.assetId,
+    this.kmLabel,
+  });
+
+  final double latitude;
+  final double longitude;
+  final TicketLocationOrigin origin;
+
+  /// Radio de incertidumbre en metros; null si no se conoce (un punto elegido
+  /// o un activo no tienen precision de lectura).
+  final double? accuracyMeters;
+
+  /// Cuando se leyo, en UTC.
+  final DateTime? readAt;
+
+  /// El activo del inventario al que se refiere, si se levanta desde su ficha.
+  final String? assetId;
+  final String? kmLabel;
+
+  /// Lo que hay que avisar antes de guardar: una posicion vieja o una precision
+  /// peor que [minAccuracyMeters]. Null si la ubicacion es confiable.
+  TicketLocationIssue? issue(double minAccuracyMeters) {
+    if (origin == TicketLocationOrigin.lastKnown) {
+      return TicketLocationIssue.lastKnown;
+    }
+    final accuracy = accuracyMeters;
+    if (origin == TicketLocationOrigin.gps &&
+        accuracy != null &&
+        accuracy > minAccuracyMeters) {
+      return TicketLocationIssue.lowAccuracy;
+    }
+    return null;
+  }
+
+  @override
+  List<Object?> get props => [
+    latitude,
+    longitude,
+    origin,
+    accuracyMeters,
+    readAt,
+    assetId,
+    kmLabel,
+  ];
+}
+
 /// Lo que la persona captura para levantar un ticket nuevo.
 class NewTicket extends Equatable {
   const NewTicket({
@@ -173,6 +245,10 @@ class NewTicket extends Equatable {
     this.kmLabel,
     this.description,
     this.photoPaths = const [],
+    this.capturedAt,
+    this.deviceClockAt,
+    this.location,
+    this.clientId,
   });
 
   final String title;
@@ -181,6 +257,21 @@ class NewTicket extends Equatable {
   final String? description;
   final List<String> photoPaths;
 
+  /// Cuando se abrio el formulario, en UTC (RN-12 y RN-14): no depende de la
+  /// zona del telefono. Es la hora del registro.
+  final DateTime? capturedAt;
+
+  /// La hora del reloj del telefono al enviar, en UTC (RN-15): el servidor la
+  /// compara con la suya para corregir un reloj desfasado.
+  final DateTime? deviceClockAt;
+
+  /// Donde se levanta, si se hizo desde el mapa o desde un activo.
+  final TicketLocation? location;
+
+  /// Identificador unico que genera el telefono (`cliente_uuid`): evita
+  /// duplicados si el registro se sincroniza dos veces.
+  final String? clientId;
+
   @override
   List<Object?> get props => [
     title,
@@ -188,5 +279,9 @@ class NewTicket extends Equatable {
     kmLabel,
     description,
     photoPaths,
+    capturedAt,
+    deviceClockAt,
+    location,
+    clientId,
   ];
 }

@@ -23,9 +23,13 @@ import '../features/auth/presentation/pages/recovery_page.dart';
 import '../features/documents/domain/entities/document_access.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
 import '../core/files/file_source.dart';
+import '../l10n/app_localizations.dart';
 import '../core/files/local_file_store.dart';
 import '../core/offline/sync_cubit.dart';
 import '../core/time/concession_zone_cubit.dart';
+import '../core/ui/configuration_gate.dart';
+import 'shell/record_routes.dart';
+import 'shell/zone_refresh.dart';
 import '../features/documents/presentation/bloc/document_detail_cubit.dart';
 import '../features/documents/presentation/bloc/document_preview_cubit.dart';
 import '../features/documents/presentation/bloc/document_upload_cubit.dart';
@@ -34,6 +38,7 @@ import '../features/documents/presentation/pages/document_upload_page.dart';
 import '../features/documents/presentation/bloc/documents_cubit.dart';
 import '../features/documents/presentation/pages/document_detail_page.dart';
 import '../features/documents/presentation/pages/documents_page.dart';
+import '../features/map/domain/entities/map_pin.dart';
 import '../features/map/domain/entities/map_settings.dart';
 import '../features/map/domain/repositories/location_source.dart';
 import '../features/map/domain/repositories/map_pack_manager.dart';
@@ -44,6 +49,8 @@ import '../features/map/presentation/pages/map_packs_page.dart';
 import '../features/map/presentation/bloc/map_cubit.dart';
 import '../features/map/presentation/pages/map_page.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
+import '../features/map/presentation/map_record_actions.dart';
+import '../features/navigation/domain/entities/mobile_module.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
 import '../features/accidents/presentation/bloc/accident_detail_cubit.dart';
@@ -52,7 +59,30 @@ import '../features/accidents/presentation/bloc/new_accident_cubit.dart';
 import '../features/accidents/presentation/pages/accident_detail_page.dart';
 import '../features/accidents/presentation/pages/accidents_page.dart';
 import '../features/accidents/presentation/pages/new_accident_page.dart';
+import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/dashboard/presentation/bloc/dashboard_cubit.dart';
+import '../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../features/inspections/presentation/bloc/inspection_detail_cubit.dart';
+import '../features/inspections/presentation/bloc/inspections_cubit.dart';
+import '../features/inspections/presentation/pages/inspection_detail_page.dart';
+import '../features/inspections/presentation/pages/inspections_page.dart';
+import '../features/inventory/domain/repositories/inventory_repository.dart';
+import '../features/inventory/presentation/bloc/inventory_cubit.dart';
+import '../features/inventory/presentation/bloc/inventory_detail_cubit.dart';
+import '../features/inventory/presentation/pages/inventory_detail_page.dart';
+import '../features/inventory/presentation/pages/inventory_page.dart';
 import '../features/maintenance/domain/entities/maintenance.dart';
+import '../features/reports/domain/entities/indicator_report.dart';
+import '../features/reports/domain/repositories/reports_repository.dart';
+import '../features/works/domain/repositories/works_repository.dart';
+import '../features/works/presentation/bloc/work_detail_cubit.dart';
+import '../features/works/presentation/bloc/works_cubit.dart';
+import '../features/works/presentation/pages/work_detail_page.dart';
+import '../features/works/presentation/pages/works_page.dart';
+import '../features/reports/presentation/bloc/report_cubit.dart';
+import '../features/reports/presentation/pages/report_page.dart';
+import '../features/reports/presentation/pages/reports_page.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../features/maintenance/presentation/bloc/maintenance_cubit.dart';
 import '../features/maintenance/presentation/bloc/maintenance_detail_cubit.dart';
@@ -107,12 +137,37 @@ DocumentAccess _documentAccess(BuildContext context) =>
       context.select((NavigationBloc b) => b.state.menu.permissions),
     );
 
+/// Lo que el mapa puede abrir y crear en otros modulos, segun el menu del
+/// usuario: abrir la ficha de un elemento en su modulo y levantar un ticket en
+/// un lugar (DTF M10, HU-MOB-10-03 y HU-MOB-10-04).
+MapRecordActions _mapActions(BuildContext context) {
+  final menu = context.read<NavigationBloc>().state.menu;
+  bool has(MobileModule m) => m.isAvailableIn(menu);
+  return MapRecordActions(
+    openRoute: (pin) => switch (pin.layer) {
+      MapLayer.inventory =>
+        has(MobileModule.inventory) ? '/inventory/${pin.id}' : null,
+      MapLayer.tickets =>
+        has(MobileModule.tickets) ? '/tickets/${pin.id}' : null,
+      MapLayer.works => has(MobileModule.works) ? '/works/${pin.id}' : null,
+      MapLayer.maintenance =>
+        has(MobileModule.maintenance) ? '/maintenance' : null,
+    },
+    onCreate: has(MobileModule.tickets)
+        ? (target) => context.push(ticketNewRoute(target))
+        : null,
+  );
+}
+
 GoRouter createRouter(
   AuthBloc auth, {
   bool sampleMap = false,
   bool sampleTickets = false,
   bool sampleAccidents = false,
   bool sampleMaintenance = false,
+  bool sampleInventory = false,
+  bool sampleWorks = false,
+  bool sampleInspections = false,
 }) {
   return GoRouter(
     initialLocation: '/splash',
@@ -133,6 +188,11 @@ GoRouter createRouter(
                 loc.startsWith('/tickets') ||
                 loc.startsWith('/accidents') ||
                 loc.startsWith('/maintenance') ||
+                loc.startsWith('/inventory') ||
+                loc.startsWith('/reports') ||
+                loc.startsWith('/dashboard') ||
+                loc.startsWith('/works') ||
+                loc.startsWith('/inspections') ||
                 loc.startsWith('/documents'))
             ? null
             : '/home';
@@ -217,7 +277,7 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/map',
-        builder: (context, _) => BlocProvider(
+        builder: (context, state) => BlocProvider(
           create: (_) => MapCubit(
             repository: context.read<MapRepository>(),
             locationSource: context.read<LocationSource>(),
@@ -228,6 +288,11 @@ GoRouter createRouter(
           child: MapPage(
             tileSource: context.read<MapTileSource>(),
             sampleData: sampleMap,
+            initialLayer: MapLayer.values
+                .where((l) => l.name == state.uri.queryParameters['layer'])
+                .firstOrNull,
+            initialPinId: state.uri.queryParameters['pin'],
+            actions: _mapActions(context),
           ),
         ),
         routes: [
@@ -250,10 +315,21 @@ GoRouter createRouter(
           // Antes que ':id', o "new" se tomaria por un ticket.
           GoRoute(
             path: 'new',
-            builder: (context, _) => BlocProvider(
-              create: (_) =>
-                  NewTicketCubit(context.read<TicketsRepository>())..load(),
-              child: const NewTicketPage(),
+            builder: (context, state) => BlocProvider(
+              create: (_) => NewTicketCubit(
+                context.read<TicketsRepository>(),
+                // Si viene del mapa o de un activo, ya trae donde se levanta.
+                location: parseTicketLocation(state.uri.queryParameters),
+              )..load(),
+              child: ConfigurationGate(
+                title: AppLocalizations.of(context).newTicketTitle,
+                child: NewTicketPage(
+                  minAccuracyMeters: context
+                      .read<MapSettings>()
+                      .minAccuracyMeters,
+                ),
+                onSync: () => refreshConcessionZone(context),
+              ),
             ),
           ),
           GoRoute(
@@ -294,7 +370,11 @@ GoRouter createRouter(
             builder: (context, _) => BlocProvider(
               create: (_) =>
                   NewAccidentCubit(context.read<AccidentsRepository>()),
-              child: const NewAccidentPage(),
+              child: ConfigurationGate(
+                title: AppLocalizations.of(context).newAccidentTitle,
+                child: const NewAccidentPage(),
+                onSync: () => refreshConcessionZone(context),
+              ),
             ),
           ),
           GoRoute(
@@ -348,6 +428,102 @@ GoRouter createRouter(
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/works',
+        builder: (context, _) => BlocProvider(
+          create: (_) => WorksCubit(context.read<WorksRepository>()),
+          child: WorksPage(sampleData: sampleWorks),
+        ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => BlocProvider(
+              create: (_) => WorkDetailCubit(
+                context.read<WorksRepository>(),
+                state.pathParameters['id']!,
+              )..load(),
+              child: const WorkDetailPage(),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/inspections',
+        builder: (context, _) => BlocProvider(
+          create: (_) =>
+              InspectionsCubit(context.read<InspectionsRepository>()),
+          child: InspectionsPage(sampleData: sampleInspections),
+        ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => BlocProvider(
+              create: (_) => InspectionDetailCubit(
+                context.read<InspectionsRepository>(),
+                state.pathParameters['id']!,
+              )..load(),
+              child: const InspectionDetailPage(),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, _) => BlocProvider(
+          create: (_) => DashboardCubit(context.read<DashboardRepository>()),
+          child: DashboardPage(
+            sampleData:
+                sampleTickets ||
+                sampleAccidents ||
+                sampleMaintenance ||
+                sampleInventory,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (_, _) => const ReportsPage(),
+        routes: [
+          GoRoute(
+            path: ':indicator',
+            // Un indicador que no existe vuelve a la lista de indicadores.
+            redirect: (_, state) =>
+                ReportIndicator.values.any(
+                  (i) => i.name == state.pathParameters['indicator'],
+                )
+                ? null
+                : '/reports',
+            builder: (context, state) => BlocProvider(
+              create: (_) => ReportCubit(
+                context.read<ReportsRepository>(),
+                ReportIndicator.values.byName(
+                  state.pathParameters['indicator']!,
+                ),
+              ),
+              child: ReportPage(sampleData: sampleMaintenance),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/inventory',
+        builder: (context, _) => BlocProvider(
+          create: (_) => InventoryCubit(context.read<InventoryRepository>()),
+          child: InventoryPage(sampleData: sampleInventory),
+        ),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => BlocProvider(
+              create: (_) => InventoryDetailCubit(
+                context.read<InventoryRepository>(),
+                state.pathParameters['id']!,
+              )..load(),
+              child: const InventoryDetailPage(),
+            ),
           ),
         ],
       ),

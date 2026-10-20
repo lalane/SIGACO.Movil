@@ -94,6 +94,33 @@ class _FiltersSheet extends StatelessWidget {
                       ),
                   ],
                 ),
+                if (state.hasOperatingStates) ...[
+                  SizedBox(height: r.s(16)),
+                  Text(
+                    l10n.mapFilterOperating,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  SizedBox(height: r.s(8)),
+                  Wrap(
+                    spacing: r.s(8),
+                    runSpacing: r.s(8),
+                    children: [
+                      ChoiceChip(
+                        key: const Key('map-filter-operating-all'),
+                        label: Text(l10n.mapFilterAll),
+                        selected: state.operatingFilter == null,
+                        onSelected: (_) => cubit.setOperatingFilter(null),
+                      ),
+                      for (final s in OperatingState.values)
+                        ChoiceChip(
+                          key: Key('map-filter-operating-${s.name}'),
+                          label: Text(operatingStateLabel(l10n, s)),
+                          selected: state.operatingFilter == s,
+                          onSelected: (_) => cubit.setOperatingFilter(s),
+                        ),
+                    ],
+                  ),
+                ],
                 SizedBox(height: r.s(20)),
                 Row(
                   children: [

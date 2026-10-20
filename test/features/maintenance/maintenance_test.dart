@@ -97,7 +97,7 @@ void main() {
       cubit.setStatus(null);
       expect(cubit.state.visible, hasLength(4));
       // Hoy es dia 15: M-213 empieza en +2 dias, M-212 en -6 y M-210 en -9.
-      final today = DateTime.now();
+      final today = now;
       cubit.setFrom(today.subtract(const Duration(days: 7)));
       expect(cubit.state.visible.map((o) => o.id).toSet(), {'M-212', 'M-213'});
       cubit.setTo(today);

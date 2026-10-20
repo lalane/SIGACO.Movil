@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/map_pack.dart';
+import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/map_settings.dart';
 import '../../domain/entities/nearby_pin.dart';
@@ -37,6 +38,8 @@ class MapState extends Equatable {
     this.error,
     this.categories = const {},
     this.statusFilter,
+    this.operatingFilter,
+    this.pickedPoint,
     this.selectedId,
     this.settings = const MapSettings(),
     this.location,
@@ -66,6 +69,12 @@ class MapState extends Equatable {
   /// Categorias marcadas en el filtro; vacio = todas.
   final Set<String> categories;
   final PinStatus? statusFilter;
+
+  /// Estado operativo elegido en el filtro de equipos; null = todos.
+  final OperatingState? operatingFilter;
+
+  /// El punto que la persona eligio manteniendo presionado el mapa.
+  final GeoPoint? pickedPoint;
   final String? selectedId;
   final MapSettings settings;
   final UserLocation? location;
@@ -94,14 +103,21 @@ class MapState extends Equatable {
   }
 
   int get activeFilterCount =>
-      categories.length + (statusFilter == null ? 0 : 1);
+      categories.length +
+      (statusFilter == null ? 0 : 1) +
+      (operatingFilter == null ? 0 : 1);
+
+  /// Si la pestana abierta tiene equipos con estado operativo (para mostrar su
+  /// filtro solo donde aplica).
+  bool get hasOperatingStates => layerPins.any((p) => p.operatingState != null);
 
   /// Lo que se dibuja: la pestana con sus filtros.
   List<MapPin> get visiblePins => [
     for (final p in layerPins)
       if ((categories.isEmpty ||
               (p.category != null && categories.contains(p.category))) &&
-          (statusFilter == null || p.status == statusFilter))
+          (statusFilter == null || p.status == statusFilter) &&
+          (operatingFilter == null || p.operatingState == operatingFilter))
         p,
   ];
 
@@ -149,6 +165,10 @@ class MapState extends Equatable {
     Set<String>? categories,
     PinStatus? statusFilter,
     bool clearStatusFilter = false,
+    OperatingState? operatingFilter,
+    bool clearOperatingFilter = false,
+    GeoPoint? pickedPoint,
+    bool clearPickedPoint = false,
     String? selectedId,
     bool clearSelection = false,
     MapSettings? settings,
@@ -175,6 +195,10 @@ class MapState extends Equatable {
     statusFilter: clearStatusFilter
         ? null
         : (statusFilter ?? this.statusFilter),
+    operatingFilter: clearOperatingFilter
+        ? null
+        : (operatingFilter ?? this.operatingFilter),
+    pickedPoint: clearPickedPoint ? null : (pickedPoint ?? this.pickedPoint),
     selectedId: clearSelection ? null : (selectedId ?? this.selectedId),
     settings: settings ?? this.settings,
     location: location ?? this.location,
@@ -196,6 +220,8 @@ class MapState extends Equatable {
     error,
     categories,
     statusFilter,
+    operatingFilter,
+    pickedPoint,
     selectedId,
     settings,
     location,
@@ -293,6 +319,7 @@ class MapCubit extends Cubit<MapState> {
         clearStatusFilter: true,
         clearSelection: true,
         clearSegmentSelection: true,
+        clearPickedPoint: true,
         clearError: true,
       ),
     );
@@ -338,10 +365,17 @@ class MapCubit extends Cubit<MapState> {
         : state.copyWith(statusFilter: status, clearSelection: true),
   );
 
+  void setOperatingFilter(OperatingState? value) => emit(
+    value == null
+        ? state.copyWith(clearOperatingFilter: true, clearSelection: true)
+        : state.copyWith(operatingFilter: value, clearSelection: true),
+  );
+
   void clearFilters() => emit(
     state.copyWith(
       categories: const {},
       clearStatusFilter: true,
+      clearOperatingFilter: true,
       clearSelection: true,
     ),
   );
@@ -350,8 +384,24 @@ class MapCubit extends Cubit<MapState> {
   void selectPin(String? id) => emit(
     id == null
         ? state.copyWith(clearSelection: true)
-        : state.copyWith(selectedId: id, clearSegmentSelection: true),
+        : state.copyWith(
+            selectedId: id,
+            clearSegmentSelection: true,
+            clearPickedPoint: true,
+          ),
   );
+
+  /// Elige un punto del mapa (manteniendo presionado): suelta lo seleccionado,
+  /// porque la ficha de abajo es de una sola cosa.
+  void pickPoint(GeoPoint point) => emit(
+    state.copyWith(
+      pickedPoint: point,
+      clearSelection: true,
+      clearSegmentSelection: true,
+    ),
+  );
+
+  void clearPickedPoint() => emit(state.copyWith(clearPickedPoint: true));
 
   /// Trae los tramos de la carretera. Es un extra del mapa: si no se pueden
   /// traer (sin permiso, no publicados, error) el mapa sigue con sus pines.

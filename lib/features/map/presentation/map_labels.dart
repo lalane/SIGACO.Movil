@@ -27,6 +27,13 @@ String statusLabel(AppLocalizations l10n, PinStatus status) => switch (status) {
   PinStatus.critical => l10n.mapStatusCritical,
 };
 
+String operatingStateLabel(AppLocalizations l10n, OperatingState s) =>
+    switch (s) {
+      OperatingState.inOperation => l10n.mapOpInOperation,
+      OperatingState.inMaintenance => l10n.mapOpInMaintenance,
+      OperatingState.outOfService => l10n.mapOpOutOfService,
+    };
+
 /// El color de un pin: los de estatus son del sistema (COL-05); lo normal usa
 /// el color de accion de la concesion.
 Color pinColor(SigacoPalette p, PinStatus status) => switch (status) {

@@ -12,6 +12,12 @@ abstract final class PermissionKeys {
   /// reciben DIRECTOR_NOVA, GERENTE_NOVA y SUPERVISION).
   static const documentsSign = 'DOCUMENTOS:FIRMAR';
 
-  /// Inventario: consultar activos (tambien sirve de base del mapa).
+  /// Inventario: consultar activos (tambien sirve de base del mapa mientras el
+  /// catalogo no publique el modulo SIG).
   static const inventoryView = 'INVENTARIO:VISUALIZAR_CONTENIDO';
+
+  /// SIG: ver el mapa (DTF M10: "SIG: Ver mapa", permiso nuevo propuesto en P11).
+  /// La clave sigue la forma FUNCION:ACCION; hay que confirmarla cuando el
+  /// backend la publique.
+  static const sigView = 'SIG:VISUALIZAR_CONTENIDO';
 }

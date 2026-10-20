@@ -116,17 +116,17 @@
   "moduleAccidentsSub": "Incidentes graves",
   "moduleMaintenance": "Mantenimientos",
   "moduleMaintenanceSub": "Órdenes de trabajo",
-  "moduleInventory": "Inventario",
+  "moduleInventory": "Catálogo",
   "moduleInventorySub": "Control de activos y faja",
   "moduleReports": "Reportes",
   "moduleReportsSub": "Consulta y exportación",
-  "moduleTickets": "Tickets",
+  "moduleTickets": "Registros",
   "moduleTicketsSub": "Seguimiento y registro",
   "moduleAlerts": "Alertas",
   "moduleAlertsSub": "Eventos operativos",
   "moduleComingSoon": "Este módulo está en desarrollo.",
   "navProfile": "Perfil",
-  "navTickets": "Tickets",
+  "navTickets": "Registros",
   "navHome": "Inicio",
   "navAlerts": "Alertas",
   "navReports": "Reportes",
@@ -237,8 +237,8 @@
   "syncDiscardBody": "Se perderá lo capturado en este teléfono. Esto no se puede deshacer.",
   "syncEntityDocument": "Documento",
   "syncEntitySignature": "Firma de documento",
-  "syncEntityTicket": "Ticket",
-  "syncEntityInspection": "Inspección",
+  "syncEntityTicket": "Registro",
+  "syncEntityInspection": "Monitoreo",
   "syncEntityEvent": "Evento",
   "syncEntityAsset": "Activo",
   "syncEntitySurvey": "Levantamiento",
@@ -457,8 +457,8 @@
   "docsUploadDoneSync": "Ver pendientes",
   "docsUploadDoneBack": "Volver al listado",
   "mapTitle": "Mapa",
-  "mapTabTickets": "Tickets",
-  "mapTabInventory": "Inventario",
+  "mapTabTickets": "Registros",
+  "mapTabInventory": "Catálogo",
   "mapTabMaintenance": "Mantenimiento",
   "mapTabWorks": "Obras",
   "mapFilters": "Filtros",
@@ -570,7 +570,7 @@
     }
   },
   "mapNearbyNeedLocation": "Toca «Ubicarme» para ver los activos cercanos.",
-  "mapNearbyLoading": "Cargando el inventario…",
+  "mapNearbyLoading": "Cargando el catálogo…",
   "mapDistanceMeters": "{value} m",
   "@mapDistanceMeters": {
     "placeholders": {
@@ -597,7 +597,7 @@
     }
   },
   "mapDetailClose": "Cerrar",
-  "mapActionsSoon": "Crear un ticket, una inspección o un mantenimiento desde aquí se habilitará cuando esos módulos estén disponibles.",
+  "mapActionsSoon": "Crear un registro, un monitoreo o un mantenimiento desde aquí se habilitará cuando esos módulos estén disponibles.",
   "mapPacksTitle": "Mapas sin conexión",
   "mapPacksAction": "Mapas sin conexión",
   "mapPacksIntro": "Descarga el mapa de tu concesión para verlo sin internet. Se recomienda usar Wi-Fi: los paquetes pesan decenas de megabytes. Se borran al cambiar de concesión o cerrar sesión.",
@@ -678,9 +678,9 @@
     }
   },
   "navTabMap": "Mapa",
-  "navTabTicket": "Ticket",
+  "navTabTicket": "Registro",
   "navTabMenu": "Menú",
-  "navTabInventory": "Inventario",
+  "navTabInventory": "Catálogo",
   "navTabMaintenance": "Mantenimiento",
   "mapLayerSubtitle": "Capa: {layer}",
   "@mapLayerSubtitle": {
@@ -699,12 +699,12 @@
     }
   },
   "mapRefine": "Refinar búsqueda",
-  "ticketsTitle": "Historial de tickets",
-  "ticketsSubtitle": "Consulta de tickets",
+  "ticketsTitle": "Historial de registros",
+  "ticketsSubtitle": "Consulta de registros",
   "ticketsSearchHint": "Buscar por título, ID, km…",
   "ticketsSearchTooltip": "Buscar",
   "ticketsFilterTooltip": "Filtrar",
-  "ticketsFilterTitle": "Filtrar tickets",
+  "ticketsFilterTitle": "Filtrar registros",
   "ticketsFilterStatus": "Estado",
   "ticketsFilterClear": "Quitar filtros",
   "ticketsFilterDone": "Listo",
@@ -712,19 +712,19 @@
   "ticketsFilterAll": "Todos",
   "ticketsFilterOpen": "Abiertos",
   "ticketsFilterAttended": "Atendidos",
-  "ticketsNew": "Nuevo ticket",
+  "ticketsNew": "Nuevo registro",
   "ticketStatusOpen": "Abierto",
   "ticketStatusAttended": "Atendido",
-  "ticketsEmpty": "Ningún ticket coincide con los filtros.",
-  "ticketsEmptyAll": "Aún no hay tickets.",
-  "ticketsUnavailableTitle": "Tickets aún no disponibles",
-  "ticketsUnavailableBody": "El servidor todavía no publica los tickets de esta concesión.",
-  "ticketsErrorTitle": "No se pudieron cargar los tickets",
+  "ticketsEmpty": "Ningún registro coincide con los filtros.",
+  "ticketsEmptyAll": "Aún no hay registros.",
+  "ticketsUnavailableTitle": "Registros aún no disponibles",
+  "ticketsUnavailableBody": "El servidor todavía no publica los registros de esta concesión.",
+  "ticketsErrorTitle": "No se pudieron cargar los registros",
   "ticketsErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
-  "ticketsNoPermissionTitle": "Sin acceso a tickets",
-  "ticketsNoPermissionBody": "Tu perfil no puede ver los tickets.",
+  "ticketsNoPermissionTitle": "Sin acceso a registros",
+  "ticketsNoPermissionBody": "Tu perfil no puede ver los registros.",
   "ticketsRetry": "Reintentar",
-  "ticketsSampleBanner": "Datos de ejemplo: no son tickets reales.",
+  "ticketsSampleBanner": "Datos de ejemplo: no son registros reales.",
   "ticketDueHours": "{n} h",
   "@ticketDueHours": {
     "placeholders": {
@@ -744,7 +744,7 @@
   "ticketDueCaption": "para vencimiento",
   "ticketOverdueCaption": "vencido",
   "ticketBack": "Volver",
-  "ticketIdLabel": "ID TICKET #{code}",
+  "ticketIdLabel": "ID REGISTRO #{code}",
   "@ticketIdLabel": {
     "placeholders": {
       "code": {
@@ -768,7 +768,7 @@
   "ticketInfoLongitude": "Longitud",
   "ticketInfoChainage": "Cadenamiento",
   "ticketInfoBody": "Cuerpo",
-  "ticketTypeTitle": "Tipo de ticket",
+  "ticketTypeTitle": "Tipo de registro",
   "ticketDescriptionTitle": "Descripción",
   "ticketFollowUpsTitle": "Seguimientos",
   "ticketFollowUpsEmpty": "Aún no hay seguimientos.",
@@ -776,11 +776,11 @@
   "ticketActionEdit": "Editar",
   "ticketActionFollowUp": "Agregar seguimiento",
   "ticketActionSoon": "Esta acción estará disponible pronto.",
-  "ticketNotFound": "No se encontró el ticket.",
-  "followUpTitle": "Seguimiento de ticket",
+  "ticketNotFound": "No se encontró el registro.",
+  "followUpTitle": "Seguimiento de registro",
   "followUpDate": "Fecha",
   "followUpTime": "Hora",
-  "followUpStatus": "Estado del ticket",
+  "followUpStatus": "Estado del registro",
   "followUpSelect": "Seleccionar",
   "followUpDescription": "Descripción",
   "followUpFillIn": "Complete información",
@@ -796,17 +796,17 @@
   "followUpPhotoRemove": "Quitar foto",
   "followUpSave": "Guardar seguimiento",
   "followUpSaved": "Seguimiento guardado.",
-  "followUpErrorStatus": "Elige el estado del ticket.",
+  "followUpErrorStatus": "Elige el estado del registro.",
   "followUpErrorDescription": "Escribe una descripción.",
   "ticketSaveFailed": "No se pudo guardar. Inténtalo de nuevo.",
-  "newTicketTitle": "Nuevo ticket",
+  "newTicketTitle": "Nuevo registro",
   "newTicketName": "Título",
-  "newTicketCategory": "Tipo de ticket",
+  "newTicketCategory": "Tipo de registro",
   "newTicketChainage": "Cadenamiento (km)",
-  "newTicketCreate": "Crear ticket",
-  "newTicketCreated": "Ticket creado.",
+  "newTicketCreate": "Crear registro",
+  "newTicketCreated": "Registro creado.",
   "newTicketErrorTitle": "Escribe un título.",
-  "newTicketErrorCategory": "Elige el tipo de ticket.",
+  "newTicketErrorCategory": "Elige el tipo de registro.",
   "accidentsTitle": "Accidentes",
   "accidentsSearchHint": "Buscar por título, ID, km…",
   "accidentsSearchTooltip": "Buscar",
@@ -945,5 +945,383 @@
   "maintProgrammedAmount": "Importe programado",
   "maintStartDate": "Fecha inicio",
   "maintEndDate": "Fecha fin",
-  "maintNotFound": "No se encontró el mantenimiento."
+  "maintNotFound": "No se encontró el mantenimiento.",
+  "invTitle": "Catálogo",
+  "invSubtitle": "Activos de la concesión",
+  "invSearchTooltip": "Buscar",
+  "invSearchHint": "Buscar activo, tramo o kilómetro",
+  "invFilterClear": "Quitar filtros",
+  "invSampleBanner": "Datos de ejemplo: no son activos reales.",
+  "invStatTotal": "Total",
+  "invStatTotalCaption": "100% total",
+  "invStatShare": "{percent}% del total",
+  "@invStatShare": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "invStatGood": "Buenos",
+  "invStatRegular": "Regulares",
+  "invStatPoor": "Malos",
+  "invConditionGood": "Bueno",
+  "invConditionRegular": "Regular",
+  "invConditionPoor": "Malo",
+  "invFilterCondition": "Estado",
+  "invFilterAllConditions": "Todos los estados",
+  "invFilterCategory": "Tipo",
+  "invFilterAllCategories": "Todos los tipos",
+  "invInspectedFrom": "Monitoreo desde",
+  "invDateHint": "Fecha",
+  "invEmptyAll": "Aún no hay activos registrados.",
+  "invEmpty": "Ningún activo coincide con los filtros.",
+  "invUnavailableTitle": "Catálogo no disponible",
+  "invUnavailableBody": "Esta concesión todavía no publica su catálogo en la app.",
+  "invNoPermissionTitle": "Sin acceso al catálogo",
+  "invNoPermissionBody": "Tu perfil no puede consultar el catálogo.",
+  "invNotFound": "El activo ya no existe.",
+  "invErrorTitle": "No se pudo cargar el catálogo",
+  "invErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "invRetry": "Reintentar",
+  "invDetailTitle": "Activo",
+  "invDetailsTitle": "Datos del activo",
+  "invCategoryLabel": "Tipo",
+  "invKm": "Kilómetro",
+  "invSegment": "Tramo",
+  "invDirection": "Sentido",
+  "invInstalled": "Instalación",
+  "invLastInspection": "Último monitoreo",
+  "invCoordinates": "Coordenadas",
+  "invNotes": "Observaciones",
+  "invViewOnMap": "Ver en mapa",
+  "invNoLocation": "Este activo no tiene ubicación.",
+  "invCardInspected": "Monitoreo: {date}",
+  "@invCardInspected": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "repTitle": "Indicadores y reportes",
+  "repSelectTitle": "Seleccione un indicador",
+  "repReportSubtitle": "Reporte del indicador",
+  "repSampleBanner": "Datos de ejemplo: el reporte sale de mantenimientos de ejemplo.",
+  "repFrom": "Desde",
+  "repTo": "Hasta",
+  "repDateHint": "Fecha",
+  "repGenerate": "Generar reporte",
+  "repRegenerate": "Actualizar reporte",
+  "repNotGenerated": "Elige el periodo y genera el reporte. Sin fechas, incluye todo el historial.",
+  "repGeneratedAt": "Generado: {date}",
+  "@repGeneratedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "repPeriodAll": "Todo el historial",
+  "repPeriodRange": "Del {from} al {to}",
+  "@repPeriodRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "repPeriodFrom": "Desde el {from}",
+  "@repPeriodFrom": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      }
+    }
+  },
+  "repPeriodUntil": "Hasta el {to}",
+  "@repPeriodUntil": {
+    "placeholders": {
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "repStale": "Cambiaste el periodo: actualiza el reporte.",
+  "repSummaryTitle": "Resumen",
+  "repTotal": "Total",
+  "repStatusOpen": "Abiertos",
+  "repStatusInProgress": "En proceso",
+  "repStatusClosed": "Cerrados",
+  "repExecution": "Ejecución del importe",
+  "repProgrammedAmount": "Programado",
+  "repExecutedAmount": "Ejecutado",
+  "repPendingAmount": "Por ejecutar",
+  "repOrdersTitle": "Mantenimientos del periodo",
+  "repEmpty": "No hay mantenimientos de este indicador en el periodo.",
+  "repUnavailableTitle": "Reportes no disponibles",
+  "repUnavailableBody": "Esta concesión todavía no publica los datos para los reportes.",
+  "repNoPermissionTitle": "Sin acceso al reporte",
+  "repNoPermissionBody": "Tu perfil no puede consultar este indicador.",
+  "repErrorTitle": "No se pudo generar el reporte",
+  "repErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "repRetry": "Reintentar",
+  "dashTitle": "Dashboard",
+  "dashSubtitle": "Resumen operativo",
+  "dashSampleBanner": "Datos de ejemplo: el resumen sale de los módulos de ejemplo.",
+  "dashUpdated": "Actualizado: {date}",
+  "@dashUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashViewMap": "Ver mapa",
+  "dashTickets": "Registros",
+  "dashTicketsOpen": "Abiertos",
+  "dashTicketsAttended": "Atendidos",
+  "dashTicketsOverdue": "Vencidos",
+  "dashAccidents": "Accidentes",
+  "dashAccidentsPeriod": "Últimos {days} días",
+  "@dashAccidentsPeriod": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dashAccidentsTotal": "Registrados",
+  "dashAccidentsSevere": "Graves",
+  "dashAccidentsOpen": "En seguimiento",
+  "dashMaintenance": "Mantenimiento",
+  "dashMaintOpen": "Abiertos",
+  "dashMaintInProgress": "En proceso",
+  "dashMaintClosed": "Cerrados",
+  "dashMaintExecution": "Ejecución del importe: {percent}",
+  "@dashMaintExecution": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "dashInventory": "Catálogo",
+  "dashInventoryTotal": "{count} activos",
+  "@dashInventoryTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashInvGood": "Buenos",
+  "dashInvRegular": "Regulares",
+  "dashInvPoor": "Malos",
+  "dashSectionUnavailable": "Aún no disponible en esta concesión.",
+  "dashSectionNoPermission": "Tu perfil no tiene acceso a este módulo.",
+  "dashSectionError": "No se pudo cargar esta información.",
+  "dashRetry": "Reintentar",
+  "dashErrorTitle": "No se pudo cargar el dashboard",
+  "dashErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "dashUnavailableTitle": "Dashboard no disponible",
+  "dashUnavailableBody": "Esta concesión todavía no publica datos para el resumen.",
+  "workTitle": "Obras",
+  "workSubtitle": "Avance de obras y conservación",
+  "workSearchTooltip": "Buscar",
+  "workSearchHint": "Buscar obra, contratista o tramo",
+  "workFilterClear": "Quitar filtros",
+  "workSampleBanner": "Datos de ejemplo: no son obras reales.",
+  "workStatTotal": "Total",
+  "workStatTotalCaption": "obras",
+  "workStatNotStarted": "Por iniciar",
+  "workStatInProgress": "En ejecución",
+  "workStatDelayed": "Con atraso",
+  "workStatFinished": "Terminadas",
+  "workStatusNotStarted": "Por iniciar",
+  "workStatusInProgress": "En ejecución",
+  "workStatusDelayed": "Con atraso",
+  "workStatusFinished": "Terminada",
+  "workFilterState": "Estado",
+  "workFilterAllStates": "Todos los estados",
+  "workEmptyAll": "Aún no hay obras registradas.",
+  "workEmpty": "Ninguna obra coincide con los filtros.",
+  "workUnavailableTitle": "Obras no disponibles",
+  "workUnavailableBody": "Esta concesión todavía no publica sus obras en la app.",
+  "workNoPermissionTitle": "Sin acceso a las obras",
+  "workNoPermissionBody": "Tu perfil no puede consultar las obras.",
+  "workNotFound": "La obra ya no existe.",
+  "workErrorTitle": "No se pudieron cargar las obras",
+  "workErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "workRetry": "Reintentar",
+  "workDetailTitle": "Obra",
+  "workPhysical": "Avance físico",
+  "workProgrammed": "Avance programado",
+  "workLag": "Atraso: {percent}",
+  "@workLag": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "workOnTrack": "Al día con el programa",
+  "workBudget": "Presupuesto",
+  "workExecutedAmount": "Ejercido",
+  "workPendingAmount": "Por ejercer",
+  "workDetailsTitle": "Datos de la obra",
+  "workContractor": "Contratista",
+  "workKmStart": "Km inicial",
+  "workKmEnd": "Km final",
+  "workSegment": "Tramo",
+  "workDirection": "Sentido",
+  "workStartDate": "Inicio",
+  "workEndDate": "Fin",
+  "workViewOnMap": "Ver en mapa",
+  "workNoLocation": "Esta obra no tiene ubicación.",
+  "inspTitle": "Monitoreo",
+  "inspSubtitle": "Asignadas y en campo",
+  "inspSearchTooltip": "Buscar",
+  "inspSearchHint": "Buscar monitoreo, activo o tramo",
+  "inspFilterClear": "Quitar filtros",
+  "inspSampleBanner": "Datos de ejemplo: no son monitoreos reales.",
+  "inspStatPending": "Pendientes",
+  "inspStatInProgress": "En proceso",
+  "inspStatAttended": "Atendidas",
+  "inspStatClosed": "Cerradas",
+  "inspStatCaption": "monitoreos",
+  "inspStatusPending": "Pendiente",
+  "inspStatusInProgress": "En proceso",
+  "inspStatusAttended": "Atendida",
+  "inspStatusClosed": "Cerrada",
+  "inspStatusCancelled": "Cancelada",
+  "inspFilterState": "Estado",
+  "inspFilterAllStates": "Todos los estados",
+  "inspEmptyAll": "Aún no tienes monitoreos asignados.",
+  "inspEmpty": "Ningún monitoreo coincide con los filtros.",
+  "inspUnavailableTitle": "Monitoreo no disponible",
+  "inspUnavailableBody": "Esta concesión todavía no publica su monitoreo en la app.",
+  "inspNoPermissionTitle": "Sin acceso al monitoreo",
+  "inspNoPermissionBody": "Tu perfil no puede consultar el monitoreo.",
+  "inspNotFound": "El monitoreo ya no existe.",
+  "inspErrorTitle": "No se pudo cargar el monitoreo",
+  "inspErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "inspRetry": "Reintentar",
+  "inspDetailTitle": "Monitoreo",
+  "inspChecklistTitle": "Checklist",
+  "inspChecklistProgress": "{done} de {total} puntos",
+  "@inspChecklistProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inspResultOk": "Cumple",
+  "inspResultFinding": "Hallazgo",
+  "inspCritical": "Crítico",
+  "inspFindings": "{count} hallazgos",
+  "@inspFindings": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inspCriticalFindings": "{count} críticos",
+  "@inspCriticalFindings": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inspScheduled": "Programada",
+  "inspCompletedOn": "Terminada",
+  "inspAssignee": "Responsable",
+  "inspType": "Tipo",
+  "inspAsset": "Activo",
+  "inspKm": "Kilómetro",
+  "inspSegment": "Tramo",
+  "inspDirection": "Sentido",
+  "inspComplete": "Finalizar monitoreo",
+  "inspCompleteHint": "Responde todos los puntos para poder finalizar.",
+  "inspCompleted": "Monitoreo finalizado.",
+  "inspCompletedCritical": "Monitoreo finalizado. Hay hallazgos críticos: deben generar un registro o una alerta.",
+  "inspNotEditable": "Este monitoreo ya no se puede modificar.",
+  "inspIncomplete": "Faltan puntos del checklist por responder.",
+  "inspSaveError": "No se pudo guardar. Inténtalo de nuevo.",
+  "inspViewAsset": "Ver activo",
+  "inspNoAsset": "Este monitoreo no tiene un activo del catálogo.",
+  "moduleInspections": "Monitoreo",
+  "moduleInspectionsSub": "Checklists en campo",
+  "moduleWorks": "Obras",
+  "moduleWorksSub": "Avance y programas",
+  "cfgGateTitle": "Sin configuración de la concesión",
+  "cfgGateBody": "Para registrar necesitas la configuración de la concesión y su zona horaria. Conéctate a internet y sincroniza.",
+  "cfgGateRetry": "Sincronizar ahora",
+  "cfgGateInspection": "Sin la configuración de la concesión no puedes responder el monitoreo. Conéctate y sincroniza.",
+  "mapFilterOperating": "Estado del equipo",
+  "mapOpInOperation": "En operación",
+  "mapOpInMaintenance": "En mantenimiento",
+  "mapOpOutOfService": "Fuera de servicio",
+  "ticketLocationTitle": "Ubicación",
+  "ticketLocationAccuracy": "Precisión ±{meters} m",
+  "@ticketLocationAccuracy": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketLocOriginGps": "Lectura del GPS",
+  "ticketLocOriginLastKnown": "Última posición conocida",
+  "ticketLocOriginMapPoint": "Punto elegido en el mapa",
+  "ticketLocOriginAsset": "Ubicación del activo",
+  "ticketLocationAgo": "de hace {minutes} min",
+  "@ticketLocationAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketLocationAsset": "Activo {id}",
+  "@ticketLocationAsset": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketLocationIssueTitle": "Revisa la ubicación",
+  "ticketLocationLowAccuracy": "La precisión es de ±{meters} m y el mínimo es de {min} m. ¿Guardar de todos modos?",
+  "@ticketLocationLowAccuracy": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketLocationLastKnownWarn": "Es la última posición conocida, no una lectura actual. ¿Guardar de todos modos?",
+  "ticketLocationSaveAnyway": "Guardar de todos modos",
+  "ticketLocationCancel": "Cancelar",
+  "mapRecordHere": "Registrar aquí",
+  "mapOpenRecord": "Abrir ficha",
+  "mapCreateRecord": "Crear registro",
+  "mapNavigate": "Navegar",
+  "mapPickedTitle": "Punto elegido",
+  "mapPickedClose": "Quitar punto",
+  "mapPickHint": "Mantén presionado el mapa para elegir un punto.",
+  "mapNavigateFailed": "No se pudo abrir la navegación del teléfono.",
+  "mapRecordMocked": "La ubicación es simulada: no se puede usar para registrar."
 }

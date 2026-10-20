@@ -340,7 +340,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get moduleMaintenanceSub => 'Órdenes de trabajo';
 
   @override
-  String get moduleInventory => 'Inventario';
+  String get moduleInventory => 'Catálogo';
 
   @override
   String get moduleInventorySub => 'Control de activos y faja';
@@ -352,7 +352,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get moduleReportsSub => 'Consulta y exportación';
 
   @override
-  String get moduleTickets => 'Tickets';
+  String get moduleTickets => 'Registros';
 
   @override
   String get moduleTicketsSub => 'Seguimiento y registro';
@@ -370,7 +370,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navProfile => 'Perfil';
 
   @override
-  String get navTickets => 'Tickets';
+  String get navTickets => 'Registros';
 
   @override
   String get navHome => 'Inicio';
@@ -597,10 +597,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncEntitySignature => 'Firma de documento';
 
   @override
-  String get syncEntityTicket => 'Ticket';
+  String get syncEntityTicket => 'Registro';
 
   @override
-  String get syncEntityInspection => 'Inspección';
+  String get syncEntityInspection => 'Monitoreo';
 
   @override
   String get syncEntityEvent => 'Evento';
@@ -1083,10 +1083,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mapTitle => 'Mapa';
 
   @override
-  String get mapTabTickets => 'Tickets';
+  String get mapTabTickets => 'Registros';
 
   @override
-  String get mapTabInventory => 'Inventario';
+  String get mapTabInventory => 'Catálogo';
 
   @override
   String get mapTabMaintenance => 'Mantenimiento';
@@ -1252,7 +1252,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Toca «Ubicarme» para ver los activos cercanos.';
 
   @override
-  String get mapNearbyLoading => 'Cargando el inventario…';
+  String get mapNearbyLoading => 'Cargando el catálogo…';
 
   @override
   String mapDistanceMeters(String value) {
@@ -1277,7 +1277,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get mapActionsSoon =>
-      'Crear un ticket, una inspección o un mantenimiento desde aquí se habilitará cuando esos módulos estén disponibles.';
+      'Crear un registro, un monitoreo o un mantenimiento desde aquí se habilitará cuando esos módulos estén disponibles.';
 
   @override
   String get mapPacksTitle => 'Mapas sin conexión';
@@ -1407,13 +1407,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get navTabMap => 'Mapa';
 
   @override
-  String get navTabTicket => 'Ticket';
+  String get navTabTicket => 'Registro';
 
   @override
   String get navTabMenu => 'Menú';
 
   @override
-  String get navTabInventory => 'Inventario';
+  String get navTabInventory => 'Catálogo';
 
   @override
   String get navTabMaintenance => 'Mantenimiento';
@@ -1439,10 +1439,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mapRefine => 'Refinar búsqueda';
 
   @override
-  String get ticketsTitle => 'Historial de tickets';
+  String get ticketsTitle => 'Historial de registros';
 
   @override
-  String get ticketsSubtitle => 'Consulta de tickets';
+  String get ticketsSubtitle => 'Consulta de registros';
 
   @override
   String get ticketsSearchHint => 'Buscar por título, ID, km…';
@@ -1454,7 +1454,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketsFilterTooltip => 'Filtrar';
 
   @override
-  String get ticketsFilterTitle => 'Filtrar tickets';
+  String get ticketsFilterTitle => 'Filtrar registros';
 
   @override
   String get ticketsFilterStatus => 'Estado';
@@ -1478,7 +1478,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketsFilterAttended => 'Atendidos';
 
   @override
-  String get ticketsNew => 'Nuevo ticket';
+  String get ticketsNew => 'Nuevo registro';
 
   @override
   String get ticketStatusOpen => 'Abierto';
@@ -1487,35 +1487,36 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketStatusAttended => 'Atendido';
 
   @override
-  String get ticketsEmpty => 'Ningún ticket coincide con los filtros.';
+  String get ticketsEmpty => 'Ningún registro coincide con los filtros.';
 
   @override
-  String get ticketsEmptyAll => 'Aún no hay tickets.';
+  String get ticketsEmptyAll => 'Aún no hay registros.';
 
   @override
-  String get ticketsUnavailableTitle => 'Tickets aún no disponibles';
+  String get ticketsUnavailableTitle => 'Registros aún no disponibles';
 
   @override
   String get ticketsUnavailableBody =>
-      'El servidor todavía no publica los tickets de esta concesión.';
+      'El servidor todavía no publica los registros de esta concesión.';
 
   @override
-  String get ticketsErrorTitle => 'No se pudieron cargar los tickets';
+  String get ticketsErrorTitle => 'No se pudieron cargar los registros';
 
   @override
   String get ticketsErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
 
   @override
-  String get ticketsNoPermissionTitle => 'Sin acceso a tickets';
+  String get ticketsNoPermissionTitle => 'Sin acceso a registros';
 
   @override
-  String get ticketsNoPermissionBody => 'Tu perfil no puede ver los tickets.';
+  String get ticketsNoPermissionBody => 'Tu perfil no puede ver los registros.';
 
   @override
   String get ticketsRetry => 'Reintentar';
 
   @override
-  String get ticketsSampleBanner => 'Datos de ejemplo: no son tickets reales.';
+  String get ticketsSampleBanner =>
+      'Datos de ejemplo: no son registros reales.';
 
   @override
   String ticketDueHours(int n) {
@@ -1538,7 +1539,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String ticketIdLabel(String code) {
-    return 'ID TICKET #$code';
+    return 'ID REGISTRO #$code';
   }
 
   @override
@@ -1571,7 +1572,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketInfoBody => 'Cuerpo';
 
   @override
-  String get ticketTypeTitle => 'Tipo de ticket';
+  String get ticketTypeTitle => 'Tipo de registro';
 
   @override
   String get ticketDescriptionTitle => 'Descripción';
@@ -1595,10 +1596,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketActionSoon => 'Esta acción estará disponible pronto.';
 
   @override
-  String get ticketNotFound => 'No se encontró el ticket.';
+  String get ticketNotFound => 'No se encontró el registro.';
 
   @override
-  String get followUpTitle => 'Seguimiento de ticket';
+  String get followUpTitle => 'Seguimiento de registro';
 
   @override
   String get followUpDate => 'Fecha';
@@ -1607,7 +1608,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get followUpTime => 'Hora';
 
   @override
-  String get followUpStatus => 'Estado del ticket';
+  String get followUpStatus => 'Estado del registro';
 
   @override
   String get followUpSelect => 'Seleccionar';
@@ -1636,7 +1637,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get followUpSaved => 'Seguimiento guardado.';
 
   @override
-  String get followUpErrorStatus => 'Elige el estado del ticket.';
+  String get followUpErrorStatus => 'Elige el estado del registro.';
 
   @override
   String get followUpErrorDescription => 'Escribe una descripción.';
@@ -1645,28 +1646,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ticketSaveFailed => 'No se pudo guardar. Inténtalo de nuevo.';
 
   @override
-  String get newTicketTitle => 'Nuevo ticket';
+  String get newTicketTitle => 'Nuevo registro';
 
   @override
   String get newTicketName => 'Título';
 
   @override
-  String get newTicketCategory => 'Tipo de ticket';
+  String get newTicketCategory => 'Tipo de registro';
 
   @override
   String get newTicketChainage => 'Cadenamiento (km)';
 
   @override
-  String get newTicketCreate => 'Crear ticket';
+  String get newTicketCreate => 'Crear registro';
 
   @override
-  String get newTicketCreated => 'Ticket creado.';
+  String get newTicketCreated => 'Registro creado.';
 
   @override
   String get newTicketErrorTitle => 'Escribe un título.';
 
   @override
-  String get newTicketErrorCategory => 'Elige el tipo de ticket.';
+  String get newTicketErrorCategory => 'Elige el tipo de registro.';
 
   @override
   String get accidentsTitle => 'Accidentes';
@@ -1976,4 +1977,788 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maintNotFound => 'No se encontró el mantenimiento.';
+
+  @override
+  String get invTitle => 'Catálogo';
+
+  @override
+  String get invSubtitle => 'Activos de la concesión';
+
+  @override
+  String get invSearchTooltip => 'Buscar';
+
+  @override
+  String get invSearchHint => 'Buscar activo, tramo o kilómetro';
+
+  @override
+  String get invFilterClear => 'Quitar filtros';
+
+  @override
+  String get invSampleBanner => 'Datos de ejemplo: no son activos reales.';
+
+  @override
+  String get invStatTotal => 'Total';
+
+  @override
+  String get invStatTotalCaption => '100% total';
+
+  @override
+  String invStatShare(String percent) {
+    return '$percent% del total';
+  }
+
+  @override
+  String get invStatGood => 'Buenos';
+
+  @override
+  String get invStatRegular => 'Regulares';
+
+  @override
+  String get invStatPoor => 'Malos';
+
+  @override
+  String get invConditionGood => 'Bueno';
+
+  @override
+  String get invConditionRegular => 'Regular';
+
+  @override
+  String get invConditionPoor => 'Malo';
+
+  @override
+  String get invFilterCondition => 'Estado';
+
+  @override
+  String get invFilterAllConditions => 'Todos los estados';
+
+  @override
+  String get invFilterCategory => 'Tipo';
+
+  @override
+  String get invFilterAllCategories => 'Todos los tipos';
+
+  @override
+  String get invInspectedFrom => 'Monitoreo desde';
+
+  @override
+  String get invDateHint => 'Fecha';
+
+  @override
+  String get invEmptyAll => 'Aún no hay activos registrados.';
+
+  @override
+  String get invEmpty => 'Ningún activo coincide con los filtros.';
+
+  @override
+  String get invUnavailableTitle => 'Catálogo no disponible';
+
+  @override
+  String get invUnavailableBody =>
+      'Esta concesión todavía no publica su catálogo en la app.';
+
+  @override
+  String get invNoPermissionTitle => 'Sin acceso al catálogo';
+
+  @override
+  String get invNoPermissionBody => 'Tu perfil no puede consultar el catálogo.';
+
+  @override
+  String get invNotFound => 'El activo ya no existe.';
+
+  @override
+  String get invErrorTitle => 'No se pudo cargar el catálogo';
+
+  @override
+  String get invErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get invRetry => 'Reintentar';
+
+  @override
+  String get invDetailTitle => 'Activo';
+
+  @override
+  String get invDetailsTitle => 'Datos del activo';
+
+  @override
+  String get invCategoryLabel => 'Tipo';
+
+  @override
+  String get invKm => 'Kilómetro';
+
+  @override
+  String get invSegment => 'Tramo';
+
+  @override
+  String get invDirection => 'Sentido';
+
+  @override
+  String get invInstalled => 'Instalación';
+
+  @override
+  String get invLastInspection => 'Último monitoreo';
+
+  @override
+  String get invCoordinates => 'Coordenadas';
+
+  @override
+  String get invNotes => 'Observaciones';
+
+  @override
+  String get invViewOnMap => 'Ver en mapa';
+
+  @override
+  String get invNoLocation => 'Este activo no tiene ubicación.';
+
+  @override
+  String invCardInspected(String date) {
+    return 'Monitoreo: $date';
+  }
+
+  @override
+  String get repTitle => 'Indicadores y reportes';
+
+  @override
+  String get repSelectTitle => 'Seleccione un indicador';
+
+  @override
+  String get repReportSubtitle => 'Reporte del indicador';
+
+  @override
+  String get repSampleBanner =>
+      'Datos de ejemplo: el reporte sale de mantenimientos de ejemplo.';
+
+  @override
+  String get repFrom => 'Desde';
+
+  @override
+  String get repTo => 'Hasta';
+
+  @override
+  String get repDateHint => 'Fecha';
+
+  @override
+  String get repGenerate => 'Generar reporte';
+
+  @override
+  String get repRegenerate => 'Actualizar reporte';
+
+  @override
+  String get repNotGenerated =>
+      'Elige el periodo y genera el reporte. Sin fechas, incluye todo el historial.';
+
+  @override
+  String repGeneratedAt(String date) {
+    return 'Generado: $date';
+  }
+
+  @override
+  String get repPeriodAll => 'Todo el historial';
+
+  @override
+  String repPeriodRange(String from, String to) {
+    return 'Del $from al $to';
+  }
+
+  @override
+  String repPeriodFrom(String from) {
+    return 'Desde el $from';
+  }
+
+  @override
+  String repPeriodUntil(String to) {
+    return 'Hasta el $to';
+  }
+
+  @override
+  String get repStale => 'Cambiaste el periodo: actualiza el reporte.';
+
+  @override
+  String get repSummaryTitle => 'Resumen';
+
+  @override
+  String get repTotal => 'Total';
+
+  @override
+  String get repStatusOpen => 'Abiertos';
+
+  @override
+  String get repStatusInProgress => 'En proceso';
+
+  @override
+  String get repStatusClosed => 'Cerrados';
+
+  @override
+  String get repExecution => 'Ejecución del importe';
+
+  @override
+  String get repProgrammedAmount => 'Programado';
+
+  @override
+  String get repExecutedAmount => 'Ejecutado';
+
+  @override
+  String get repPendingAmount => 'Por ejecutar';
+
+  @override
+  String get repOrdersTitle => 'Mantenimientos del periodo';
+
+  @override
+  String get repEmpty =>
+      'No hay mantenimientos de este indicador en el periodo.';
+
+  @override
+  String get repUnavailableTitle => 'Reportes no disponibles';
+
+  @override
+  String get repUnavailableBody =>
+      'Esta concesión todavía no publica los datos para los reportes.';
+
+  @override
+  String get repNoPermissionTitle => 'Sin acceso al reporte';
+
+  @override
+  String get repNoPermissionBody =>
+      'Tu perfil no puede consultar este indicador.';
+
+  @override
+  String get repErrorTitle => 'No se pudo generar el reporte';
+
+  @override
+  String get repErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get repRetry => 'Reintentar';
+
+  @override
+  String get dashTitle => 'Dashboard';
+
+  @override
+  String get dashSubtitle => 'Resumen operativo';
+
+  @override
+  String get dashSampleBanner =>
+      'Datos de ejemplo: el resumen sale de los módulos de ejemplo.';
+
+  @override
+  String dashUpdated(String date) {
+    return 'Actualizado: $date';
+  }
+
+  @override
+  String get dashViewMap => 'Ver mapa';
+
+  @override
+  String get dashTickets => 'Registros';
+
+  @override
+  String get dashTicketsOpen => 'Abiertos';
+
+  @override
+  String get dashTicketsAttended => 'Atendidos';
+
+  @override
+  String get dashTicketsOverdue => 'Vencidos';
+
+  @override
+  String get dashAccidents => 'Accidentes';
+
+  @override
+  String dashAccidentsPeriod(int days) {
+    return 'Últimos $days días';
+  }
+
+  @override
+  String get dashAccidentsTotal => 'Registrados';
+
+  @override
+  String get dashAccidentsSevere => 'Graves';
+
+  @override
+  String get dashAccidentsOpen => 'En seguimiento';
+
+  @override
+  String get dashMaintenance => 'Mantenimiento';
+
+  @override
+  String get dashMaintOpen => 'Abiertos';
+
+  @override
+  String get dashMaintInProgress => 'En proceso';
+
+  @override
+  String get dashMaintClosed => 'Cerrados';
+
+  @override
+  String dashMaintExecution(String percent) {
+    return 'Ejecución del importe: $percent';
+  }
+
+  @override
+  String get dashInventory => 'Catálogo';
+
+  @override
+  String dashInventoryTotal(int count) {
+    return '$count activos';
+  }
+
+  @override
+  String get dashInvGood => 'Buenos';
+
+  @override
+  String get dashInvRegular => 'Regulares';
+
+  @override
+  String get dashInvPoor => 'Malos';
+
+  @override
+  String get dashSectionUnavailable => 'Aún no disponible en esta concesión.';
+
+  @override
+  String get dashSectionNoPermission =>
+      'Tu perfil no tiene acceso a este módulo.';
+
+  @override
+  String get dashSectionError => 'No se pudo cargar esta información.';
+
+  @override
+  String get dashRetry => 'Reintentar';
+
+  @override
+  String get dashErrorTitle => 'No se pudo cargar el dashboard';
+
+  @override
+  String get dashErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get dashUnavailableTitle => 'Dashboard no disponible';
+
+  @override
+  String get dashUnavailableBody =>
+      'Esta concesión todavía no publica datos para el resumen.';
+
+  @override
+  String get workTitle => 'Obras';
+
+  @override
+  String get workSubtitle => 'Avance de obras y conservación';
+
+  @override
+  String get workSearchTooltip => 'Buscar';
+
+  @override
+  String get workSearchHint => 'Buscar obra, contratista o tramo';
+
+  @override
+  String get workFilterClear => 'Quitar filtros';
+
+  @override
+  String get workSampleBanner => 'Datos de ejemplo: no son obras reales.';
+
+  @override
+  String get workStatTotal => 'Total';
+
+  @override
+  String get workStatTotalCaption => 'obras';
+
+  @override
+  String get workStatNotStarted => 'Por iniciar';
+
+  @override
+  String get workStatInProgress => 'En ejecución';
+
+  @override
+  String get workStatDelayed => 'Con atraso';
+
+  @override
+  String get workStatFinished => 'Terminadas';
+
+  @override
+  String get workStatusNotStarted => 'Por iniciar';
+
+  @override
+  String get workStatusInProgress => 'En ejecución';
+
+  @override
+  String get workStatusDelayed => 'Con atraso';
+
+  @override
+  String get workStatusFinished => 'Terminada';
+
+  @override
+  String get workFilterState => 'Estado';
+
+  @override
+  String get workFilterAllStates => 'Todos los estados';
+
+  @override
+  String get workEmptyAll => 'Aún no hay obras registradas.';
+
+  @override
+  String get workEmpty => 'Ninguna obra coincide con los filtros.';
+
+  @override
+  String get workUnavailableTitle => 'Obras no disponibles';
+
+  @override
+  String get workUnavailableBody =>
+      'Esta concesión todavía no publica sus obras en la app.';
+
+  @override
+  String get workNoPermissionTitle => 'Sin acceso a las obras';
+
+  @override
+  String get workNoPermissionBody => 'Tu perfil no puede consultar las obras.';
+
+  @override
+  String get workNotFound => 'La obra ya no existe.';
+
+  @override
+  String get workErrorTitle => 'No se pudieron cargar las obras';
+
+  @override
+  String get workErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get workRetry => 'Reintentar';
+
+  @override
+  String get workDetailTitle => 'Obra';
+
+  @override
+  String get workPhysical => 'Avance físico';
+
+  @override
+  String get workProgrammed => 'Avance programado';
+
+  @override
+  String workLag(String percent) {
+    return 'Atraso: $percent';
+  }
+
+  @override
+  String get workOnTrack => 'Al día con el programa';
+
+  @override
+  String get workBudget => 'Presupuesto';
+
+  @override
+  String get workExecutedAmount => 'Ejercido';
+
+  @override
+  String get workPendingAmount => 'Por ejercer';
+
+  @override
+  String get workDetailsTitle => 'Datos de la obra';
+
+  @override
+  String get workContractor => 'Contratista';
+
+  @override
+  String get workKmStart => 'Km inicial';
+
+  @override
+  String get workKmEnd => 'Km final';
+
+  @override
+  String get workSegment => 'Tramo';
+
+  @override
+  String get workDirection => 'Sentido';
+
+  @override
+  String get workStartDate => 'Inicio';
+
+  @override
+  String get workEndDate => 'Fin';
+
+  @override
+  String get workViewOnMap => 'Ver en mapa';
+
+  @override
+  String get workNoLocation => 'Esta obra no tiene ubicación.';
+
+  @override
+  String get inspTitle => 'Monitoreo';
+
+  @override
+  String get inspSubtitle => 'Asignadas y en campo';
+
+  @override
+  String get inspSearchTooltip => 'Buscar';
+
+  @override
+  String get inspSearchHint => 'Buscar monitoreo, activo o tramo';
+
+  @override
+  String get inspFilterClear => 'Quitar filtros';
+
+  @override
+  String get inspSampleBanner => 'Datos de ejemplo: no son monitoreos reales.';
+
+  @override
+  String get inspStatPending => 'Pendientes';
+
+  @override
+  String get inspStatInProgress => 'En proceso';
+
+  @override
+  String get inspStatAttended => 'Atendidas';
+
+  @override
+  String get inspStatClosed => 'Cerradas';
+
+  @override
+  String get inspStatCaption => 'monitoreos';
+
+  @override
+  String get inspStatusPending => 'Pendiente';
+
+  @override
+  String get inspStatusInProgress => 'En proceso';
+
+  @override
+  String get inspStatusAttended => 'Atendida';
+
+  @override
+  String get inspStatusClosed => 'Cerrada';
+
+  @override
+  String get inspStatusCancelled => 'Cancelada';
+
+  @override
+  String get inspFilterState => 'Estado';
+
+  @override
+  String get inspFilterAllStates => 'Todos los estados';
+
+  @override
+  String get inspEmptyAll => 'Aún no tienes monitoreos asignados.';
+
+  @override
+  String get inspEmpty => 'Ningún monitoreo coincide con los filtros.';
+
+  @override
+  String get inspUnavailableTitle => 'Monitoreo no disponible';
+
+  @override
+  String get inspUnavailableBody =>
+      'Esta concesión todavía no publica su monitoreo en la app.';
+
+  @override
+  String get inspNoPermissionTitle => 'Sin acceso al monitoreo';
+
+  @override
+  String get inspNoPermissionBody =>
+      'Tu perfil no puede consultar el monitoreo.';
+
+  @override
+  String get inspNotFound => 'El monitoreo ya no existe.';
+
+  @override
+  String get inspErrorTitle => 'No se pudo cargar el monitoreo';
+
+  @override
+  String get inspErrorBody => 'Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get inspRetry => 'Reintentar';
+
+  @override
+  String get inspDetailTitle => 'Monitoreo';
+
+  @override
+  String get inspChecklistTitle => 'Checklist';
+
+  @override
+  String inspChecklistProgress(int done, int total) {
+    return '$done de $total puntos';
+  }
+
+  @override
+  String get inspResultOk => 'Cumple';
+
+  @override
+  String get inspResultFinding => 'Hallazgo';
+
+  @override
+  String get inspCritical => 'Crítico';
+
+  @override
+  String inspFindings(int count) {
+    return '$count hallazgos';
+  }
+
+  @override
+  String inspCriticalFindings(int count) {
+    return '$count críticos';
+  }
+
+  @override
+  String get inspScheduled => 'Programada';
+
+  @override
+  String get inspCompletedOn => 'Terminada';
+
+  @override
+  String get inspAssignee => 'Responsable';
+
+  @override
+  String get inspType => 'Tipo';
+
+  @override
+  String get inspAsset => 'Activo';
+
+  @override
+  String get inspKm => 'Kilómetro';
+
+  @override
+  String get inspSegment => 'Tramo';
+
+  @override
+  String get inspDirection => 'Sentido';
+
+  @override
+  String get inspComplete => 'Finalizar monitoreo';
+
+  @override
+  String get inspCompleteHint =>
+      'Responde todos los puntos para poder finalizar.';
+
+  @override
+  String get inspCompleted => 'Monitoreo finalizado.';
+
+  @override
+  String get inspCompletedCritical =>
+      'Monitoreo finalizado. Hay hallazgos críticos: deben generar un registro o una alerta.';
+
+  @override
+  String get inspNotEditable => 'Este monitoreo ya no se puede modificar.';
+
+  @override
+  String get inspIncomplete => 'Faltan puntos del checklist por responder.';
+
+  @override
+  String get inspSaveError => 'No se pudo guardar. Inténtalo de nuevo.';
+
+  @override
+  String get inspViewAsset => 'Ver activo';
+
+  @override
+  String get inspNoAsset => 'Este monitoreo no tiene un activo del catálogo.';
+
+  @override
+  String get moduleInspections => 'Monitoreo';
+
+  @override
+  String get moduleInspectionsSub => 'Checklists en campo';
+
+  @override
+  String get moduleWorks => 'Obras';
+
+  @override
+  String get moduleWorksSub => 'Avance y programas';
+
+  @override
+  String get cfgGateTitle => 'Sin configuración de la concesión';
+
+  @override
+  String get cfgGateBody =>
+      'Para registrar necesitas la configuración de la concesión y su zona horaria. Conéctate a internet y sincroniza.';
+
+  @override
+  String get cfgGateRetry => 'Sincronizar ahora';
+
+  @override
+  String get cfgGateInspection =>
+      'Sin la configuración de la concesión no puedes responder el monitoreo. Conéctate y sincroniza.';
+
+  @override
+  String get mapFilterOperating => 'Estado del equipo';
+
+  @override
+  String get mapOpInOperation => 'En operación';
+
+  @override
+  String get mapOpInMaintenance => 'En mantenimiento';
+
+  @override
+  String get mapOpOutOfService => 'Fuera de servicio';
+
+  @override
+  String get ticketLocationTitle => 'Ubicación';
+
+  @override
+  String ticketLocationAccuracy(String meters) {
+    return 'Precisión ±$meters m';
+  }
+
+  @override
+  String get ticketLocOriginGps => 'Lectura del GPS';
+
+  @override
+  String get ticketLocOriginLastKnown => 'Última posición conocida';
+
+  @override
+  String get ticketLocOriginMapPoint => 'Punto elegido en el mapa';
+
+  @override
+  String get ticketLocOriginAsset => 'Ubicación del activo';
+
+  @override
+  String ticketLocationAgo(int minutes) {
+    return 'de hace $minutes min';
+  }
+
+  @override
+  String ticketLocationAsset(String id) {
+    return 'Activo $id';
+  }
+
+  @override
+  String get ticketLocationIssueTitle => 'Revisa la ubicación';
+
+  @override
+  String ticketLocationLowAccuracy(String meters, String min) {
+    return 'La precisión es de ±$meters m y el mínimo es de $min m. ¿Guardar de todos modos?';
+  }
+
+  @override
+  String get ticketLocationLastKnownWarn =>
+      'Es la última posición conocida, no una lectura actual. ¿Guardar de todos modos?';
+
+  @override
+  String get ticketLocationSaveAnyway => 'Guardar de todos modos';
+
+  @override
+  String get ticketLocationCancel => 'Cancelar';
+
+  @override
+  String get mapRecordHere => 'Registrar aquí';
+
+  @override
+  String get mapOpenRecord => 'Abrir ficha';
+
+  @override
+  String get mapCreateRecord => 'Crear registro';
+
+  @override
+  String get mapNavigate => 'Navegar';
+
+  @override
+  String get mapPickedTitle => 'Punto elegido';
+
+  @override
+  String get mapPickedClose => 'Quitar punto';
+
+  @override
+  String get mapPickHint => 'Mantén presionado el mapa para elegir un punto.';
+
+  @override
+  String get mapNavigateFailed =>
+      'No se pudo abrir la navegación del teléfono.';
+
+  @override
+  String get mapRecordMocked =>
+      'La ubicación es simulada: no se puede usar para registrar.';
 }

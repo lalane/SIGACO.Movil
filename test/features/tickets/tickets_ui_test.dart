@@ -48,6 +48,7 @@ void main() {
       brandingRepository: FakeBrandingRepository(const {}),
       logoStore: FakeLogoStore(),
       ticketsRepository: tickets ?? repo,
+      zoneSource: FixedZoneSource(),
       sampleTickets: sample,
       fileSource: FakeFileSource(
         photo: const SelectedFile(
@@ -72,7 +73,7 @@ void main() {
     await tester.tap(
       find.descendant(
         of: find.byType(GridView),
-        matching: find.text('Tickets'),
+        matching: find.text('Registros'),
       ),
     );
     await tester.pumpAndSettle();
@@ -96,7 +97,7 @@ void main() {
       await launch(tester);
       await openTickets(tester);
       expect(find.byKey(const Key('tickets-sample-banner')), findsOneWidget);
-      expect(find.text('Historial de tickets'), findsOneWidget);
+      expect(find.text('Historial de registros'), findsOneWidget);
       expect(tester.widget<Text>(count('all')).data, '8');
       expect(tester.widget<Text>(count('open')).data, '4');
       expect(tester.widget<Text>(count('attended')).data, '4');
@@ -120,7 +121,7 @@ void main() {
       // Con "Barrera" y abiertos no queda ninguno.
       expect(find.byKey(const Key('tickets-state-empty')), findsOneWidget);
       expect(
-        find.text('Ningún ticket coincide con los filtros.'),
+        find.text('Ningún registro coincide con los filtros.'),
         findsOneWidget,
       );
       await tester.tap(find.byKey(const Key('tickets-filter-attended')));
@@ -199,7 +200,7 @@ void main() {
       await tester.tap(card('T-0035'));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('ticket-detail')), findsOneWidget);
-      expect(find.text('ID TICKET #0035'), findsOneWidget);
+      expect(find.text('ID REGISTRO #0035'), findsOneWidget);
       expect(
         find.text('Barrera de contención dañada km 513+615 – tramo sur'),
         findsOneWidget,
@@ -255,10 +256,10 @@ void main() {
     ) async {
       await launch(tester);
       await openFollowUp(tester);
-      expect(find.text('Seguimiento de ticket'), findsOneWidget);
+      expect(find.text('Seguimiento de registro'), findsOneWidget);
       await tester.tap(find.byKey(const Key('ticket-form-submit')));
       await tester.pumpAndSettle();
-      expect(find.text('Elige el estado del ticket.'), findsOneWidget);
+      expect(find.text('Elige el estado del registro.'), findsOneWidget);
       expect(find.text('Escribe una descripción.'), findsOneWidget);
       expect((await repo.get('T-0036')).followUps, isEmpty);
     });
@@ -305,11 +306,11 @@ void main() {
       await openTickets(tester);
       await tester.tap(find.byKey(const Key('tickets-new')));
       await tester.pumpAndSettle();
-      expect(find.text('Nuevo ticket'), findsWidgets);
+      expect(find.text('Nuevo registro'), findsWidgets);
       await tester.tap(find.byKey(const Key('ticket-form-submit')));
       await tester.pumpAndSettle();
       expect(find.text('Escribe un título.'), findsOneWidget);
-      expect(find.text('Elige el tipo de ticket.'), findsOneWidget);
+      expect(find.text('Elige el tipo de registro.'), findsOneWidget);
     });
 
     testWidgets('crea el ticket y el historial lo cuenta', (tester) async {
@@ -327,7 +328,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('ticket-form-submit')));
       await tester.pumpAndSettle();
-      expect(find.text('Ticket creado.'), findsOneWidget);
+      expect(find.text('Registro creado.'), findsOneWidget);
       expect(tester.widget<Text>(count('all')).data, '9');
       expect(tester.widget<Text>(count('open')).data, '5');
       expect((await repo.list()).first.title, 'Cuneta tapada km 160');
@@ -352,12 +353,16 @@ void main() {
       expect(find.byKey(const Key('module-nav')), findsNothing);
     });
 
-    testWidgets('Inventario avisa que esta en desarrollo', (tester) async {
+    testWidgets('Catálogo lleva al catálogo de activos', (tester) async {
       await launch(tester);
       await openTickets(tester);
       await tester.tap(find.byKey(const Key('nav-tab-inventory')));
-      await tester.pump();
-      expect(find.text('Este módulo está en desarrollo.'), findsOneWidget);
+      await tester.pumpAndSettle();
+      // Sin servidor que publique el catálogo, la pantalla lo dice.
+      expect(
+        find.byKey(const Key('inventory-state-notAvailable')),
+        findsOneWidget,
+      );
     });
   });
 

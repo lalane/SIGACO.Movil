@@ -41,3 +41,22 @@ String moduleDms(double value, {required bool latitude}) {
   final seconds = (minutesFull - minutes) * 60;
   return '$degrees°$minutes\'${seconds.toStringAsFixed(2)}"$hemisphere';
 }
+
+/// Una cantidad con separador de miles y, si la tiene, su parte decimal
+/// (`350`, `1,200.5`), segun el idioma.
+String quantity(String locale, double value) =>
+    NumberFormat('#,##0.##', moduleNumberLocale(locale)).format(value);
+
+/// Un importe en pesos sin centavos (`$28,000`).
+String money(String locale, double value) => NumberFormat.currency(
+  locale: moduleNumberLocale(locale),
+  symbol: r'$',
+  decimalDigits: 0,
+).format(value);
+
+/// Un importe con centavos (`100,000.00`).
+String moneyExact(String locale, double value) =>
+    NumberFormat('#,##0.00', moduleNumberLocale(locale)).format(value);
+
+/// El avance como porcentaje entero (`64%`).
+String percent(double progress) => '${(progress * 100).round()}%';

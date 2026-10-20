@@ -18,7 +18,7 @@ import '../../support/map_pack_fakes.dart';
 import '../../support/surface.dart';
 
 NavigationMenu get _menu => const NavigationMenu(
-  modules: [NavigationItem(code: 'INVENTARIO', name: 'Inventario')],
+  modules: [NavigationItem(code: 'INVENTARIO', name: 'Catálogo')],
   permissions: [PermissionKeys.inventoryView],
 );
 

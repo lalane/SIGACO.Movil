@@ -91,6 +91,41 @@ void main() {
       await bloc.close();
     });
 
+    test(
+      'antes de cerrar la sesion corre lo pendiente, con la sesion abierta',
+      () async {
+        final repo = FakeAuthRepository();
+        final order = <String>[];
+        final bloc = AuthBloc(
+          repo,
+          FakeCredentialStore(),
+          beforeLogout: () async => order.add(
+            'antes: ${repo.calls.contains('logout') ? 'cerrada' : 'abierta'}',
+          ),
+        )..add(_login);
+        await bloc.stream.firstWhere((s) => s.step == AuthStep.signedIn);
+        bloc.add(const AuthLogoutRequested());
+        await bloc.stream.firstWhere((s) => s.step == AuthStep.signedOut);
+        expect(order, ['antes: abierta']);
+        expect(repo.calls, contains('logout'));
+        await bloc.close();
+      },
+    );
+
+    test('si lo pendiente falla, la sesion se cierra igual', () async {
+      final repo = FakeAuthRepository();
+      final bloc = AuthBloc(
+        repo,
+        FakeCredentialStore(),
+        beforeLogout: () async => throw StateError('sin red'),
+      )..add(_login);
+      await bloc.stream.firstWhere((s) => s.step == AuthStep.signedIn);
+      bloc.add(const AuthLogoutRequested());
+      await bloc.stream.firstWhere((s) => s.step == AuthStep.signedOut);
+      expect(repo.calls, contains('logout'));
+      await bloc.close();
+    });
+
     test('sesion vencida por el servidor regresa al login con aviso', () async {
       final repo = FakeAuthRepository();
       final bloc = _bloc(repo)..add(_login);

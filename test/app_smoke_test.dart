@@ -74,7 +74,7 @@ void main() {
     expect(find.text('Concesion 0'), findsOneWidget);
     expect(find.text('MÓDULOS'), findsOneWidget);
     expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('Inventario'), findsOneWidget);
+    expect(find.text('Catálogo'), findsOneWidget);
     expect(find.text('Accidentes'), findsNothing);
     expect(find.text('Reportes'), findsNothing);
   });
@@ -206,9 +206,9 @@ void main() {
             modules: [
               NavigationItem(code: 'PANEL', name: 'Panel'),
               NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
-              NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+              NavigationItem(code: 'INVENTARIO', name: 'Catálogo'),
               NavigationItem(code: 'REPORTES', name: 'Reportes'),
-              NavigationItem(code: 'TICKETS', name: 'Tickets'),
+              NavigationItem(code: 'TICKETS', name: 'Registros'),
               NavigationItem(code: 'ALERTAS_OPERATIVAS', name: 'Alertas'),
               NavigationItem(
                 code: 'ANTT',

@@ -164,7 +164,7 @@ class SampleAccidentsRepository implements AccidentsRepository {
       type: draft.type,
       severity: draft.severity,
       status: AccidentStatus.registered,
-      createdAt: _clock().toUtc(),
+      createdAt: draft.capturedAt ?? _clock().toUtc(),
       description: draft.description,
       authorName: 'Usuario de ejemplo',
       authorProfile: 'Supervisor',

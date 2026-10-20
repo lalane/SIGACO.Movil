@@ -205,7 +205,7 @@ class SampleTicketsRepository implements TicketsRepository {
   Future<Ticket> create(NewTicket draft) async {
     await _wait();
     final n = _next++;
-    final now = _clock().toUtc();
+    final now = draft.capturedAt ?? _clock().toUtc();
     final created = Ticket(
       id: 'T-$n',
       code: n.toString().padLeft(4, '0'),
@@ -219,7 +219,9 @@ class SampleTicketsRepository implements TicketsRepository {
       authorProfile: 'Supervisor',
       company: 'TEKIA',
       concessionName: _concession,
-      kmLabel: draft.kmLabel,
+      kmLabel: draft.kmLabel ?? draft.location?.kmLabel,
+      latitude: draft.location?.latitude,
+      longitude: draft.location?.longitude,
       photoPaths: draft.photoPaths,
     );
     _tickets = [created, ..._tickets];

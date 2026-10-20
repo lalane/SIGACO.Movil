@@ -152,6 +152,7 @@ void main() {
         brandingRepository: FakeBrandingRepository(const {}),
         logoStore: FakeLogoStore(),
         accidentsRepository: accidents ?? repo,
+        zoneSource: FixedZoneSource(),
         sampleAccidents: sample,
         fileSource: FakeFileSource(
           photo: const SelectedFile(
