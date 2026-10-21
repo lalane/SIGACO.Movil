@@ -5161,6 +5161,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Los códigos anteriores dejarán de servir. Escribe el código de tu app autenticadora para confirmar.'**
   String get mfaRecoveryGenerateBody;
+
+  /// No description provided for @alertsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alertas'**
+  String get alertsTitle;
+
+  /// No description provided for @alertsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Avisos de tu concesión'**
+  String get alertsSubtitle;
+
+  /// No description provided for @alertsMarkAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar todas como leídas'**
+  String get alertsMarkAll;
+
+  /// No description provided for @alertsFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas'**
+  String get alertsFilterAll;
+
+  /// No description provided for @alertsFilterUnread.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin leer'**
+  String get alertsFilterUnread;
+
+  /// No description provided for @alertsEmptyAll.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes alertas.'**
+  String get alertsEmptyAll;
+
+  /// No description provided for @alertsEmptyUnread.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes alertas sin leer.'**
+  String get alertsEmptyUnread;
+
+  /// No description provided for @alertsUnavailableTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alertas aún no disponibles'**
+  String get alertsUnavailableTitle;
+
+  /// No description provided for @alertsUnavailableBody.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor todavía no publica tus alertas. Cuando estén listas aparecerán aquí.'**
+  String get alertsUnavailableBody;
+
+  /// No description provided for @alertsErrorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las alertas'**
+  String get alertsErrorTitle;
+
+  /// No description provided for @alertsErrorBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Revisa tu conexión e inténtalo de nuevo.'**
+  String get alertsErrorBody;
+
+  /// No description provided for @alertsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get alertsRetry;
+
+  /// No description provided for @alertsNoPermissionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin permiso para ver alertas'**
+  String get alertsNoPermissionTitle;
+
+  /// No description provided for @alertsNoPermissionBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no incluye las alertas de esta concesión.'**
+  String get alertsNoPermissionBody;
+
+  /// No description provided for @alertsSampleBanner.
+  ///
+  /// In es, this message translates to:
+  /// **'Alertas de ejemplo: aún no vienen del servidor.'**
+  String get alertsSampleBanner;
+
+  /// No description provided for @alertsSeverityInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Informativa'**
+  String get alertsSeverityInfo;
+
+  /// No description provided for @alertsSeverityWarning.
+  ///
+  /// In es, this message translates to:
+  /// **'Atención'**
+  String get alertsSeverityWarning;
+
+  /// No description provided for @alertsSeverityCritical.
+  ///
+  /// In es, this message translates to:
+  /// **'Urgente'**
+  String get alertsSeverityCritical;
+
+  /// No description provided for @alertsSeeDetail.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver detalle'**
+  String get alertsSeeDetail;
+
+  /// No description provided for @alertsUnreadSemantic.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} alertas sin leer'**
+  String alertsUnreadSemantic(int count);
 }
 
 class _AppLocalizationsDelegate

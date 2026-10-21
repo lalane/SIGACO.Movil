@@ -1345,5 +1345,32 @@
         "type": "int"
       }
     }
+  },
+  "alertsTitle": "Alertas",
+  "alertsSubtitle": "Avisos de tu concesión",
+  "alertsMarkAll": "Marcar todas como leídas",
+  "alertsFilterAll": "Todas",
+  "alertsFilterUnread": "Sin leer",
+  "alertsEmptyAll": "No tienes alertas.",
+  "alertsEmptyUnread": "No tienes alertas sin leer.",
+  "alertsUnavailableTitle": "Alertas aún no disponibles",
+  "alertsUnavailableBody": "El servidor todavía no publica tus alertas. Cuando estén listas aparecerán aquí.",
+  "alertsErrorTitle": "No se pudieron cargar las alertas",
+  "alertsErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
+  "alertsRetry": "Reintentar",
+  "alertsNoPermissionTitle": "Sin permiso para ver alertas",
+  "alertsNoPermissionBody": "Tu perfil no incluye las alertas de esta concesión.",
+  "alertsSampleBanner": "Alertas de ejemplo: aún no vienen del servidor.",
+  "alertsSeverityInfo": "Informativa",
+  "alertsSeverityWarning": "Atención",
+  "alertsSeverityCritical": "Urgente",
+  "alertsSeeDetail": "Ver detalle",
+  "alertsUnreadSemantic": "{count} alertas sin leer",
+  "@alertsUnreadSemantic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

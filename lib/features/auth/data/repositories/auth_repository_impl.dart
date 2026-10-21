@@ -22,6 +22,7 @@ class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _api;
   final _expired = StreamController<void>.broadcast();
   final _requirements = StreamController<SessionRequirement>.broadcast();
+  final _revalidations = StreamController<SessionRevalidation>.broadcast();
 
   @override
   Stream<void> get sessionExpired => _expired.stream;
@@ -36,6 +37,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Duration _clockOffset = Duration.zero;
 
   @override
+  Stream<SessionRevalidation> get revalidations => _revalidations.stream;
+
+  @override
   DateTime? get sessionExpiresAt => _expiresAt;
 
   @override
@@ -48,6 +52,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     _expiresAt = r.expiresAt;
     _clockOffset = r.serverTime.difference(DateTime.now().toUtc());
+    _revalidations.add(r);
     return r;
   });
 

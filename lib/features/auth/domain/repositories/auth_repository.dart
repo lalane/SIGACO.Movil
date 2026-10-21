@@ -20,6 +20,10 @@ abstract interface class AuthRepository {
   /// telefono, medido en la ultima revalidacion; cero si aun no se midio.
   Duration get serverClockOffset;
 
+  /// Cada vez que el servidor confirma la sesion (revalidacion), con lo que
+  /// respondio: la app compara el menu y los permisos con los que muestra.
+  Stream<SessionRevalidation> get revalidations;
+
   /// Revalida la sesion, la cuenta y los permisos vigentes antes de sincronizar.
   /// Si el servidor ya revoco la sesion, lanza [AuthException] con
   /// [AuthError.sessionExpired].

@@ -10,6 +10,7 @@ import '../../core/responsive/responsive.dart';
 import '../../core/theme/sigaco_palette.dart';
 import '../../core/theme/status_colors.dart';
 import '../../core/ui/access_state_view.dart';
+import '../../features/alerts/presentation/bloc/alerts_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -512,6 +513,10 @@ void _open(BuildContext context, MobileModule module) {
     context.push('/works');
     return;
   }
+  if (module == MobileModule.alerts) {
+    context.push('/alerts');
+    return;
+  }
   _comingSoon(context);
 }
 
@@ -575,6 +580,10 @@ class _ModuleCard extends StatelessWidget {
     final r = context.responsive;
     final scaler = MediaQuery.textScalerOf(context);
     final (title, subtitle) = _labelsFor(AppLocalizations.of(context), module);
+    // Solo la tarjeta de alertas lleva contador (alertas sin leer).
+    final unread = module == MobileModule.alerts
+        ? context.select((AlertsCubit c) => c.state.unread)
+        : 0;
     return Material(
       color: Colors.white,
       elevation: 3,
@@ -588,7 +597,16 @@ class _ModuleCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(_iconFor(module), color: p.accentIconOnLight, size: r.s(34)),
+              Badge(
+                key: Key('module-badge-${module.name}'),
+                isLabelVisible: module == MobileModule.alerts && unread > 0,
+                label: Text(unread > 99 ? '99+' : '$unread'),
+                child: Icon(
+                  _iconFor(module),
+                  color: p.accentIconOnLight,
+                  size: r.s(34),
+                ),
+              ),
               const Spacer(),
               // Una sola linea: si el titulo no cabe, se reduce en vez de partirse.
               FittedBox(
@@ -627,17 +645,27 @@ class _ModuleCard extends StatelessWidget {
 
 /// Destinos de la navegacion principal (los mismos en barra y en riel).
 class _NavEntry {
-  const _NavEntry(this.icon, this.label, this.onTap, {this.selected = false});
+  const _NavEntry(
+    this.icon,
+    this.label,
+    this.onTap, {
+    this.selected = false,
+    this.badge = 0,
+  });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
   final bool selected;
+
+  /// Cuantas hay por atender (alertas sin leer); 0 no muestra nada.
+  final int badge;
 }
 
 List<_NavEntry> _navEntries(BuildContext context) {
   final l10n = AppLocalizations.of(context);
   final menu = context.select((NavigationBloc b) => b.state.menu);
+  final unreadAlerts = context.select((AlertsCubit c) => c.state.unread);
   return [
     _NavEntry(Icons.person, l10n.navProfile, () => context.push('/account')),
     if (MobileModule.tickets.isAvailableIn(menu))
@@ -651,7 +679,8 @@ List<_NavEntry> _navEntries(BuildContext context) {
       _NavEntry(
         Icons.notifications_none,
         l10n.navAlerts,
-        () => _comingSoon(context),
+        () => context.push('/alerts'),
+        badge: unreadAlerts,
       ),
     if (MobileModule.reports.isAvailableIn(menu))
       _NavEntry(Icons.bar_chart, l10n.navReports, () => _comingSoon(context)),
@@ -682,7 +711,12 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(entry.icon, color: color, size: r.s(24)),
+            Badge(
+              key: Key('nav-badge-${entry.label}'),
+              isLabelVisible: entry.badge > 0,
+              label: Text(entry.badge > 99 ? '99+' : '${entry.badge}'),
+              child: Icon(entry.icon, color: color, size: r.s(24)),
+            ),
             SizedBox(height: r.s(2)),
             FittedBox(
               fit: BoxFit.scaleDown,

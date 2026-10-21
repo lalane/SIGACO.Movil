@@ -101,6 +101,7 @@ class SessionRevalidation extends Equatable {
     this.forcePasswordChange = false,
     this.permissions = const [],
     this.modules = const [],
+    this.hasMenu = false,
   });
 
   /// ACTIVO, BLOQUEADO o INACTIVO. Con las dos ultimas el servidor ya revoco la
@@ -118,6 +119,9 @@ class SessionRevalidation extends Equatable {
   final List<String> permissions;
   final List<String> modules;
 
+  /// El servidor mando el menu y los permisos (si no, no hay con que comparar).
+  final bool hasMenu;
+
   bool get isActive => accountStatus.toUpperCase() == 'ACTIVO';
 
   /// La sesion no puede seguir sin que la persona haga otro paso.
@@ -134,6 +138,7 @@ class SessionRevalidation extends Equatable {
     forcePasswordChange,
     permissions,
     modules,
+    hasMenu,
   ];
 }
 

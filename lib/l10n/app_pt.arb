@@ -1234,5 +1234,32 @@
         "type": "int"
       }
     }
+  },
+  "alertsTitle": "Alertas",
+  "alertsSubtitle": "Avisos da sua concessão",
+  "alertsMarkAll": "Marcar todas como lidas",
+  "alertsFilterAll": "Todas",
+  "alertsFilterUnread": "Não lidas",
+  "alertsEmptyAll": "Você não tem alertas.",
+  "alertsEmptyUnread": "Você não tem alertas não lidos.",
+  "alertsUnavailableTitle": "Alertas ainda não disponíveis",
+  "alertsUnavailableBody": "O servidor ainda não publica seus alertas. Quando estiverem prontos, aparecerão aqui.",
+  "alertsErrorTitle": "Não foi possível carregar os alertas",
+  "alertsErrorBody": "Verifique sua conexão e tente novamente.",
+  "alertsRetry": "Tentar novamente",
+  "alertsNoPermissionTitle": "Sem permissão para ver alertas",
+  "alertsNoPermissionBody": "Seu perfil não inclui os alertas desta concessão.",
+  "alertsSampleBanner": "Alertas de exemplo: ainda não vêm do servidor.",
+  "alertsSeverityInfo": "Informativa",
+  "alertsSeverityWarning": "Atenção",
+  "alertsSeverityCritical": "Urgente",
+  "alertsSeeDetail": "Ver detalhe",
+  "alertsUnreadSemantic": "{count} alertas não lidos",
+  "@alertsUnreadSemantic": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -51,7 +51,10 @@ import '../features/map/presentation/bloc/map_cubit.dart';
 import '../features/map/presentation/pages/map_page.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/map/presentation/map_record_actions.dart';
+import '../features/alerts/presentation/pages/alerts_page.dart';
 import '../features/navigation/domain/entities/mobile_module.dart';
+import 'shell/alert_opener.dart';
+import 'shell/alert_routes.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
 import '../features/accidents/presentation/bloc/accident_detail_cubit.dart';
@@ -170,6 +173,7 @@ GoRouter createRouter(
   bool sampleInventory = false,
   bool sampleWorks = false,
   bool sampleInspections = false,
+  bool sampleAlerts = false,
 }) {
   return GoRouter(
     initialLocation: '/splash',
@@ -194,6 +198,7 @@ GoRouter createRouter(
                 loc.startsWith('/reports') ||
                 loc.startsWith('/dashboard') ||
                 loc.startsWith('/works') ||
+                loc.startsWith('/alerts') ||
                 loc.startsWith('/inspections') ||
                 loc.startsWith('/documents'))
             ? null
@@ -434,6 +439,24 @@ GoRouter createRouter(
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/alerts',
+        builder: (context, _) {
+          final menu = context.read<NavigationBloc>().state.menu;
+          return AlertsPage(
+            sampleData: sampleAlerts,
+            routeFor: (alert) => alertRoute(alert, menu),
+          );
+        },
+        routes: [
+          // El destino de tocar una notificacion: abre el registro de la alerta.
+          GoRoute(
+            path: ':id',
+            builder: (context, state) =>
+                AlertOpener(alertId: state.pathParameters['id']!),
           ),
         ],
       ),

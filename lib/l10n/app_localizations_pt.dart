@@ -2816,4 +2816,69 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get mfaRecoveryGenerateBody =>
       'Os códigos anteriores deixarão de funcionar. Digite o código do seu aplicativo autenticador para confirmar.';
+
+  @override
+  String get alertsTitle => 'Alertas';
+
+  @override
+  String get alertsSubtitle => 'Avisos da sua concessão';
+
+  @override
+  String get alertsMarkAll => 'Marcar todas como lidas';
+
+  @override
+  String get alertsFilterAll => 'Todas';
+
+  @override
+  String get alertsFilterUnread => 'Não lidas';
+
+  @override
+  String get alertsEmptyAll => 'Você não tem alertas.';
+
+  @override
+  String get alertsEmptyUnread => 'Você não tem alertas não lidos.';
+
+  @override
+  String get alertsUnavailableTitle => 'Alertas ainda não disponíveis';
+
+  @override
+  String get alertsUnavailableBody =>
+      'O servidor ainda não publica seus alertas. Quando estiverem prontos, aparecerão aqui.';
+
+  @override
+  String get alertsErrorTitle => 'Não foi possível carregar os alertas';
+
+  @override
+  String get alertsErrorBody => 'Verifique sua conexão e tente novamente.';
+
+  @override
+  String get alertsRetry => 'Tentar novamente';
+
+  @override
+  String get alertsNoPermissionTitle => 'Sem permissão para ver alertas';
+
+  @override
+  String get alertsNoPermissionBody =>
+      'Seu perfil não inclui os alertas desta concessão.';
+
+  @override
+  String get alertsSampleBanner =>
+      'Alertas de exemplo: ainda não vêm do servidor.';
+
+  @override
+  String get alertsSeverityInfo => 'Informativa';
+
+  @override
+  String get alertsSeverityWarning => 'Atenção';
+
+  @override
+  String get alertsSeverityCritical => 'Urgente';
+
+  @override
+  String get alertsSeeDetail => 'Ver detalhe';
+
+  @override
+  String alertsUnreadSemantic(int count) {
+    return '$count alertas não lidos';
+  }
 }

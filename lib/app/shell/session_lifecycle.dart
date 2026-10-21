@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,9 @@ import '../../core/offline/sync_cubit.dart';
 import '../../core/settings/settings_cubit.dart';
 import '../../core/time/concession_zone_cubit.dart';
 import '../../core/time/concession_zone_source.dart';
+import '../../features/alerts/presentation/bloc/alerts_cubit.dart';
+import '../../features/auth/domain/entities/auth_entities.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
@@ -48,17 +52,48 @@ class _SessionLifecycleState extends State<SessionLifecycle>
   AuthStep _lastStep = AuthStep.signedOut;
   String? _lastConcession;
 
+  StreamSubscription<SessionRevalidation>? _revalidations;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _revalidations = context.read<AuthRepository>().revalidations.listen(
+      _onRevalidated,
+    );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _revalidations?.cancel();
     _probe?.cancel();
     super.dispose();
+  }
+
+  /// El servidor confirmo la sesion con el menu y los permisos vigentes. Si ya no
+  /// son los que muestra la app (un administrador quito o dio accesos mientras
+  /// no habia red), se reconstruye la navegacion (HU-M01-08-04, CA-03).
+  void _onRevalidated(SessionRevalidation r) {
+    if (!mounted || !r.hasMenu || _lastStep != AuthStep.signedIn) return;
+    final navigation = context.read<NavigationBloc>();
+    final menu = navigation.state.menu;
+    final shownModules = {for (final m in menu.modules) m.code};
+    final changed =
+        !setEquals(shownModules, r.modules.toSet()) ||
+        !setEquals(menu.permissions.toSet(), r.permissions.toSet());
+    if (changed) {
+      navigation.add(const NavigationRefreshed(gap: Duration.zero));
+    }
+  }
+
+  /// Al volver la conexion se confirma la sesion con el servidor, aunque no haya
+  /// nada pendiente: una cuenta bloqueada o dada de baja se entera aqui (el 401
+  /// devuelve al acceso). Sin red o con otro fallo, se reintenta la proxima vez.
+  Future<void> _revalidate() async {
+    try {
+      await context.read<AuthRepository>().revalidateSession();
+    } catch (_) {}
   }
 
   Timer? _probe;
@@ -88,6 +123,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       context.read<BrandingCubit>().refresh();
       // Lo capturado sin conexion se envia al volver a la app.
       context.read<SyncCubit>().onResume();
+      // Las alertas que llegaron mientras tanto.
+      context.read<AlertsCubit>().refresh();
     }
     if (state == AppLifecycleState.resumed) {
       // Mientras la app estuvo en segundo plano pudo pasar la inactividad o el
@@ -101,6 +138,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     final branding = context.read<BrandingCubit>();
     final lock = context.read<SessionLockCubit>();
     final sync = context.read<SyncCubit>();
+    final alerts = context.read<AlertsCubit>();
     final concessionChanged =
         _lastConcession != null &&
         s.activeConcessionId != null &&
@@ -110,6 +148,10 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       if (concessionChanged) widget.scope.clear();
       if (_lastStep != AuthStep.signedIn || concessionChanged) {
         navigation.add(const NavigationRequested());
+        // Las alertas son de esta persona en esta concesion.
+        alerts
+          ..clear()
+          ..load();
         // Los colores y el logo son de la concesion activa (MAR-08, MAR-09).
         final id = s.activeConcessionId;
         // La zona de la concesion anterior no vale para esta.
@@ -141,6 +183,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       lock.start(Duration(minutes: s.idleTimeoutMinutes));
     } else if (s.step == AuthStep.signedOut) {
       navigation.add(const NavigationCleared());
+      alerts.clear();
       branding.clear();
       context.read<ConcessionZoneCubit>().setFallback(null);
       context.read<PushRegistrar>().forget();
@@ -196,6 +239,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
             _onConnectionChanged(context, s);
             context.read<SyncCubit>().setOnline(s.online);
             if (s.online && _lastStep == AuthStep.signedIn) {
+              _revalidate();
+              context.read<AlertsCubit>().refresh();
               context.read<NavigationBloc>().add(
                 const NavigationRefreshed(gap: Duration.zero),
               );

@@ -75,6 +75,13 @@ abstract final class AppConfig {
     defaultValue: !bool.fromEnvironment('dart.vm.product'),
   );
 
+  /// Alertas de ejemplo, mientras el backend no publique las de la persona.
+  /// Igual que [sampleTickets]. `--dart-define=SAMPLE_ALERTS=true|false`.
+  static const sampleAlerts = bool.fromEnvironment(
+    'SAMPLE_ALERTS',
+    defaultValue: !bool.fromEnvironment('dart.vm.product'),
+  );
+
   /// Inspecciones de ejemplo, mientras el backend no publique sus endpoints.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_INSPECTIONS=true|false`.
   static const sampleInspections = bool.fromEnvironment(

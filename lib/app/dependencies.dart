@@ -57,6 +57,9 @@ import '../features/inventory/data/repositories/unavailable_inventory_repository
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
 import 'composition/maintenance_reports_repository.dart';
+import '../features/alerts/data/repositories/sample_alerts_repository.dart';
+import '../features/alerts/data/repositories/unavailable_alerts_repository.dart';
+import '../features/alerts/domain/repositories/alerts_repository.dart';
 import '../features/works/data/repositories/sample_works_repository.dart';
 import '../features/works/data/repositories/unavailable_works_repository.dart';
 import '../features/works/domain/repositories/works_repository.dart';
@@ -238,6 +241,8 @@ class AppDependencies {
     this.sampleInventory = false,
     this.worksRepository = const UnavailableWorksRepository(),
     this.sampleWorks = false,
+    this.alertsRepository = const UnavailableAlertsRepository(),
+    this.sampleAlerts = false,
     this.inspectionsRepository = const UnavailableInspectionsRepository(),
     this.sampleInspections = false,
     ReportsRepository? reportsRepository,
@@ -336,6 +341,8 @@ class AppDependencies {
   /// Obras (APP-MOB-09). Igual que los tickets.
   final WorksRepository worksRepository;
   final bool sampleWorks;
+  final AlertsRepository alertsRepository;
+  final bool sampleAlerts;
 
   /// Inspecciones (APP-MOB-08). Igual que los tickets.
   final InspectionsRepository inspectionsRepository;
@@ -441,6 +448,8 @@ class AppDependencies {
         const NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
       if (AppConfig.sampleWorks)
         const NavigationItem(code: 'OBRAS', name: 'Obras'),
+      if (AppConfig.sampleAlerts)
+        const NavigationItem(code: 'ALERTAS_OPERATIVAS', name: 'Alertas'),
       if (AppConfig.sampleInspections)
         const NavigationItem(code: 'INSPECCIONES', name: 'Inspecciones'),
       // El dashboard resume los modulos: con ejemplos, el panel tambien existe.
@@ -588,6 +597,10 @@ class AppDependencies {
           ? SampleWorksRepository()
           : const UnavailableWorksRepository(),
       sampleWorks: AppConfig.sampleWorks,
+      alertsRepository: AppConfig.sampleAlerts
+          ? SampleAlertsRepository()
+          : const UnavailableAlertsRepository(),
+      sampleAlerts: AppConfig.sampleAlerts,
       inspectionsRepository: AppConfig.sampleInspections
           ? SampleInspectionsRepository()
           : const UnavailableInspectionsRepository(),

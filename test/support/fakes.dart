@@ -38,6 +38,7 @@ SessionRevalidation fakeRevalidation({
   bool forcePasswordChange = false,
   DateTime? expiresAt,
   DateTime? serverTime,
+  List<String>? modules,
 }) => SessionRevalidation(
   accountStatus: status,
   expiresAt: expiresAt ?? DateTime.utc(2030),
@@ -46,6 +47,8 @@ SessionRevalidation fakeRevalidation({
   mfaPending: mfaPending,
   forcePasswordChange: forcePasswordChange,
   permissions: permissions,
+  modules: modules ?? const [],
+  hasMenu: modules != null,
 );
 
 LoginOutcome outcome({
@@ -196,6 +199,12 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Duration serverClockOffset = Duration.zero;
 
+  /// Emite cada vez que se revalida con exito.
+  final revalidated = StreamController<SessionRevalidation>.broadcast();
+
+  @override
+  Stream<SessionRevalidation> get revalidations => revalidated.stream;
+
   /// Lo que responde la revalidacion; si se define [revalidationFailure], falla.
   SessionRevalidation revalidation = fakeRevalidation();
   AuthError? revalidationFailure;
@@ -203,11 +212,16 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<SessionRevalidation> revalidateSession() async {
     calls.add('revalidate');
-    if (revalidationFailure != null) throw AuthException(revalidationFailure!);
+    if (revalidationFailure != null) {
+      // Como el cliente real: un 401 avisa que la sesion termino.
+      if (revalidationFailure == AuthError.sessionExpired) expired.add(null);
+      throw AuthException(revalidationFailure!);
+    }
     sessionExpiresAt = revalidation.expiresAt;
     serverClockOffset = revalidation.serverTime.difference(
       DateTime.now().toUtc(),
     );
+    revalidated.add(revalidation);
     return revalidation;
   }
 

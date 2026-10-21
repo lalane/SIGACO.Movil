@@ -54,6 +54,7 @@ SessionRevalidation sessionRevalidationFromJson(Map<String, dynamic> j) {
     activeConcessionId: j['activeConcessionId'] as String?,
     mfaPending: (j['mfaPending'] ?? false) as bool,
     forcePasswordChange: (j['forcePasswordChange'] ?? false) as bool,
+    hasMenu: navigation != null,
     permissions: texts(navigation?['permissions']),
     modules: [
       for (final m in (navigation?['modules'] ?? const []) as List)

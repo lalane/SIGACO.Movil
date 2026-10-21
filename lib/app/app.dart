@@ -28,6 +28,7 @@ import '../features/map/domain/repositories/map_pack_manager.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/domain/repositories/road_segments_repository.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
+import '../features/alerts/presentation/bloc/alerts_cubit.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -71,6 +72,9 @@ class _SigacoAppState extends State<SigacoApp> {
   late final SessionLockCubit _lock = SessionLockCubit(
     widget.dependencies.authRepository,
   );
+  late final AlertsCubit _alerts = AlertsCubit(
+    widget.dependencies.alertsRepository,
+  );
   late final BrandingCubit _branding = BrandingCubit(
     widget.dependencies.brandingRepository,
     minRefreshGap: widget.dependencies.brandingRefreshGap,
@@ -89,6 +93,7 @@ class _SigacoAppState extends State<SigacoApp> {
     sampleInventory: widget.dependencies.sampleInventory,
     sampleWorks: widget.dependencies.sampleWorks,
     sampleInspections: widget.dependencies.sampleInspections,
+    sampleAlerts: widget.dependencies.sampleAlerts,
   );
 
   @override
@@ -98,6 +103,7 @@ class _SigacoAppState extends State<SigacoApp> {
     _auth.close();
     _navigation.close();
     _lock.close();
+    _alerts.close();
     _branding.close();
     _connectivity.close();
     _zone.close();
@@ -194,6 +200,7 @@ class _SigacoAppState extends State<SigacoApp> {
           BlocProvider.value(value: _auth),
           BlocProvider.value(value: _navigation),
           BlocProvider.value(value: _lock),
+          BlocProvider.value(value: _alerts),
           BlocProvider.value(value: _branding),
           BlocProvider.value(value: _connectivity),
           BlocProvider.value(value: _zone),
