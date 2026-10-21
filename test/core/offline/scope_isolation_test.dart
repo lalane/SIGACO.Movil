@@ -12,7 +12,6 @@ import 'package:sigaco_movil/core/session/session_scope.dart';
 import 'package:sigaco_movil/features/documents/data/cache/documents_cache.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document.dart';
 import 'package:sigaco_movil/features/documents/domain/entities/document_query.dart';
-import 'package:sigaco_movil/features/navigation/domain/entities/navigation_entities.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../support/fakes.dart';
@@ -96,9 +95,7 @@ void main() {
     final mine = await capture(_anaC1, 'documento_firma');
     final other = await capture(_anaC2, 'documento_firma');
     final revalidation = SyncRevalidation(
-      navigation: FakeNavigationRepository(
-        menu: const NavigationMenu(permissions: []),
-      ),
+      revalidate: () async => fakeRevalidation(),
       queue: queue,
       requiredPermissions: const {
         'documento_firma': [PermissionKeys.documentsSign],

@@ -13,6 +13,18 @@ abstract interface class AuthRepository {
   /// inactividad (el servidor la mide por peticion).
   DateTime? get lastActivityAt;
 
+  /// Hasta cuando vale la sesion segun el servidor; nulo si aun no se conoce.
+  DateTime? get sessionExpiresAt;
+
+  /// Cuanto se adelanta (positivo) o atrasa el servidor respecto del reloj del
+  /// telefono, medido en la ultima revalidacion; cero si aun no se midio.
+  Duration get serverClockOffset;
+
+  /// Revalida la sesion, la cuenta y los permisos vigentes antes de sincronizar.
+  /// Si el servidor ya revoco la sesion, lanza [AuthException] con
+  /// [AuthError.sessionExpired].
+  Future<SessionRevalidation> revalidateSession();
+
   /// Perfil propio. Tambien sirve para mantener viva la sesion.
   Future<MyProfile> getProfile();
 
@@ -22,7 +34,13 @@ abstract interface class AuthRepository {
 
   Future<MfaEnrollment> startMfaEnrollment();
 
-  Future<void> activateMfa(String code);
+  /// Confirma el enrolamiento con el primer codigo. Devuelve los codigos de
+  /// recuperacion, que el servidor muestra solo esta vez.
+  Future<List<String>> activateMfa(String code);
+
+  /// Genera codigos de recuperacion nuevos (los anteriores dejan de servir);
+  /// pide un codigo vigente de la app autenticadora.
+  Future<List<String>> regenerateRecoveryCodes(String code);
 
   Future<void> changePassword({
     required String current,

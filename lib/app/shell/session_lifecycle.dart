@@ -15,17 +15,18 @@ import '../../core/time/concession_zone_source.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
-import '../../features/auth/presentation/session/session_timeout_cubit.dart';
+import '../../features/auth/presentation/session/session_lock_cubit.dart';
 import '../../features/branding/presentation/bloc/branding_cubit.dart';
 import '../../features/navigation/presentation/bloc/navigation_bloc.dart';
-import '../../l10n/app_localizations.dart';
 import 'connection_banner.dart';
+import 'session_lock_overlay.dart';
 
 /// Reacciona a la sesion en toda la app:
 ///  - al iniciar sesion o cambiar de concesion carga el menu de esa concesion;
 ///  - al cerrar sesion o cambiar de concesion descarta lo del ambiente anterior;
 ///  - al volver a la app con la sesion abierta vuelve a consultar los accesos;
-///  - avisa antes de que el servidor cierre la sesion por inactividad.
+///  - bloquea la app tras los minutos de inactividad (se abre con el telefono) y
+///    pide entrar de nuevo cuando vence la sesion movil (RN-M01-37).
 class SessionLifecycle extends StatefulWidget {
   const SessionLifecycle({
     super.key,
@@ -46,7 +47,6 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     with WidgetsBindingObserver {
   AuthStep _lastStep = AuthStep.signedOut;
   String? _lastConcession;
-  bool _dialogOpen = false;
 
   @override
   void initState() {
@@ -89,12 +89,17 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       // Lo capturado sin conexion se envia al volver a la app.
       context.read<SyncCubit>().onResume();
     }
+    if (state == AppLifecycleState.resumed) {
+      // Mientras la app estuvo en segundo plano pudo pasar la inactividad o el
+      // vencimiento de la sesion.
+      context.read<SessionLockCubit>().check();
+    }
   }
 
   void _onAuthChanged(BuildContext context, AuthState s) {
     final navigation = context.read<NavigationBloc>();
     final branding = context.read<BrandingCubit>();
-    final timeout = context.read<SessionTimeoutCubit>();
+    final lock = context.read<SessionLockCubit>();
     final sync = context.read<SyncCubit>();
     final concessionChanged =
         _lastConcession != null &&
@@ -133,14 +138,14 @@ class _SessionLifecycleState extends State<SessionLifecycle>
         widget.scope.bind(null);
         sync.setScope(null);
       }
-      timeout.start(Duration(minutes: s.idleTimeoutMinutes));
+      lock.start(Duration(minutes: s.idleTimeoutMinutes));
     } else if (s.step == AuthStep.signedOut) {
       navigation.add(const NavigationCleared());
       branding.clear();
       context.read<ConcessionZoneCubit>().setFallback(null);
       context.read<PushRegistrar>().forget();
       sync.setScope(null);
-      timeout.stop();
+      lock.stop();
       widget.scope.clear();
       widget.scope.bind(null);
     }
@@ -165,87 +170,6 @@ class _SessionLifecycleState extends State<SessionLifecycle>
     // La persona pudo cambiar de concesion o cerrar sesion mientras tanto.
     if (!mounted || _lastConcession != concessionId) return;
     if (zone != null) cubit.setFallback(zone);
-  }
-
-  bool get _onSignedInRoute {
-    try {
-      final path = widget.router.routerDelegate.currentConfiguration.uri.path;
-      return path == '/home' || path.startsWith('/account');
-    } catch (_) {
-      // El router aun no tiene ruta (arranque) o ya se libero.
-      return false;
-    }
-  }
-
-  /// Cierra el dialogo una sola vez: si ya se cerro, no toca la pantalla de abajo.
-  void _closeDialog(BuildContext ctx) {
-    final route = ModalRoute.of(ctx);
-    if (route != null && route.isActive) {
-      Navigator.of(ctx).removeRoute(route);
-    }
-  }
-
-  Future<void> _showExpiring() async {
-    if (_dialogOpen) return;
-    _dialogOpen = true;
-    // El router puede seguir cambiando de pantalla (justo despues de iniciar
-    // sesion): un dialogo abierto antes se perderia al reemplazarse la ruta.
-    for (var i = 0; i < 30 && !_onSignedInRoute; i++) {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      if (!mounted) {
-        _dialogOpen = false;
-        return;
-      }
-    }
-    // Margen para que termine la transicion de pantalla: al reemplazarse la
-    // ruta de login, un dialogo abierto encima se descartaria.
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    if (!mounted) {
-      _dialogOpen = false;
-      return;
-    }
-    final context = widget.router.routerDelegate.navigatorKey.currentContext;
-    if (context == null ||
-        !context.mounted ||
-        !context.read<SessionTimeoutCubit>().state.warning) {
-      _dialogOpen = false;
-      return;
-    }
-    final l10n = AppLocalizations.of(context);
-    final timeout = context.read<SessionTimeoutCubit>();
-    final auth = context.read<AuthBloc>();
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => BlocProvider.value(
-        value: timeout,
-        child: BlocConsumer<SessionTimeoutCubit, SessionTimeoutState>(
-          listenWhen: (a, b) => a.warning && !b.warning,
-          listener: (ctx, _) => _closeDialog(ctx),
-          builder: (ctx, state) => AlertDialog(
-            title: Text(l10n.sessionExpiringTitle),
-            content: Text(l10n.sessionExpiringBody(state.secondsLeft ?? 0)),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  _closeDialog(ctx);
-                  auth.add(const AuthLogoutRequested());
-                },
-                child: Text(l10n.signOut),
-              ),
-              FilledButton(
-                onPressed: () {
-                  _closeDialog(ctx);
-                  timeout.keepAlive();
-                },
-                child: Text(l10n.sessionContinue),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    _dialogOpen = false;
   }
 
   @override
@@ -285,17 +209,36 @@ class _SessionLifecycleState extends State<SessionLifecycle>
             }
           },
         ),
-        BlocListener<SessionTimeoutCubit, SessionTimeoutState>(
-          listener: (context, s) {
-            if (s.expired) {
-              context.read<AuthBloc>().add(const AuthSessionExpired());
-            } else if (s.warning) {
-              _showExpiring();
-            }
-          },
+        BlocListener<SessionLockCubit, SessionLockState>(
+          listenWhen: (a, b) => !a.expired && b.expired,
+          // Vencio la sesion movil: se vuelve a entrar con conexion.
+          listener: (context, s) =>
+              context.read<AuthBloc>().add(const AuthSessionExpired()),
         ),
       ],
-      child: ConnectionBannerHost(child: widget.child),
+      // Cada toque cuenta como actividad; el bloqueo cubre toda la app.
+      child: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => context.read<SessionLockCubit>().touch(),
+        child: Stack(
+          children: [
+            ConnectionBannerHost(child: widget.child),
+            BlocBuilder<SessionLockCubit, SessionLockState>(
+              buildWhen: (a, b) => a.locked != b.locked,
+              builder: (context, s) => s.locked
+                  ? Positioned.fill(
+                      child: SessionLockOverlay(
+                        idleMinutes: context
+                            .read<AuthBloc>()
+                            .state
+                            .idleTimeoutMinutes,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

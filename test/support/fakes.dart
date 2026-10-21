@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sigaco_movil/core/device/device_unlock.dart';
 import 'package:sigaco_movil/core/files/file_source.dart';
 import 'package:sigaco_movil/core/files/local_file_store.dart';
 import 'package:sigaco_movil/core/files/picked_file.dart';
@@ -29,12 +30,31 @@ const testUser = CurrentUser(
   email: 'jperez@example.com',
 );
 
+/// Lo que el servidor confirma al revalidar la sesion (todo vigente por omision).
+SessionRevalidation fakeRevalidation({
+  List<String> permissions = const [],
+  String status = 'ACTIVO',
+  bool mfaPending = false,
+  bool forcePasswordChange = false,
+  DateTime? expiresAt,
+  DateTime? serverTime,
+}) => SessionRevalidation(
+  accountStatus: status,
+  expiresAt: expiresAt ?? DateTime.utc(2030),
+  idleTimeoutMinutes: 10,
+  serverTime: serverTime ?? DateTime.utc(2026, 10, 21, 12),
+  mfaPending: mfaPending,
+  forcePasswordChange: forcePasswordChange,
+  permissions: permissions,
+);
+
 LoginOutcome outcome({
   bool mfa = false,
   bool enroll = false,
   bool force = false,
   String? active,
   int concessions = 1,
+  int idleMinutes = 10,
 }) => LoginOutcome(
   user: testUser,
   concessions: [
@@ -42,7 +62,7 @@ LoginOutcome outcome({
       ConcessionSummary(id: 'c$i', code: 'C$i', name: 'Concesion $i'),
   ],
   activeConcessionId: active,
-  idleTimeoutMinutes: 10,
+  idleTimeoutMinutes: idleMinutes,
   mfaRequired: mfa,
   mfaEnrollmentRequired: enroll,
   forcePasswordChange: force,
@@ -130,6 +150,24 @@ class FakeNavigationRepository implements NavigationRepository {
   }
 }
 
+/// El desbloqueo del telefono: disponible o no, y si la persona lo logra.
+class FakeDeviceUnlock implements DeviceUnlock {
+  FakeDeviceUnlock({this.available = true, this.result = true});
+
+  bool available;
+  bool result;
+  int attempts = 0;
+
+  @override
+  Future<bool> isAvailable() async => available;
+
+  @override
+  Future<bool> authenticate(String reason) async {
+    attempts++;
+    return result;
+  }
+}
+
 class FakeAuthRepository implements AuthRepository {
   FakeAuthRepository({LoginOutcome? result, this.failure})
     : result = result ?? outcome(active: 'c0');
@@ -153,6 +191,27 @@ class FakeAuthRepository implements AuthRepository {
   DateTime? get lastActivityAt => activity;
 
   @override
+  DateTime? sessionExpiresAt;
+
+  @override
+  Duration serverClockOffset = Duration.zero;
+
+  /// Lo que responde la revalidacion; si se define [revalidationFailure], falla.
+  SessionRevalidation revalidation = fakeRevalidation();
+  AuthError? revalidationFailure;
+
+  @override
+  Future<SessionRevalidation> revalidateSession() async {
+    calls.add('revalidate');
+    if (revalidationFailure != null) throw AuthException(revalidationFailure!);
+    sessionExpiresAt = revalidation.expiresAt;
+    serverClockOffset = revalidation.serverTime.difference(
+      DateTime.now().toUtc(),
+    );
+    return revalidation;
+  }
+
+  @override
   Future<MyProfile> getProfile() async {
     calls.add('profile');
     if (profileFailure != null) throw AuthException(profileFailure!);
@@ -167,8 +226,14 @@ class FakeAuthRepository implements AuthRepository {
     return result;
   }
 
+  /// El ultimo codigo de verificacion enviado (de la app o de recuperacion).
+  String? lastMfaCode;
+
   @override
-  Future<void> verifyMfa(String code) async => calls.add('verifyMfa');
+  Future<void> verifyMfa(String code) async {
+    calls.add('verifyMfa');
+    lastMfaCode = code;
+  }
 
   /// Si se define, generar la clave de enrolamiento falla.
   AuthError? enrollmentFailure;
@@ -182,10 +247,22 @@ class FakeAuthRepository implements AuthRepository {
   /// Si se define, confirmar el codigo de enrolamiento falla.
   AuthError? activationFailure;
 
+  /// Los codigos de recuperacion que el servidor entrega al activar o regenerar.
+  List<String> recoveryCodes = const ['AAAA-1111-BBBB', 'CCCC-2222-DDDD'];
+  AuthError? regenerationFailure;
+
   @override
-  Future<void> activateMfa(String code) async {
+  Future<List<String>> activateMfa(String code) async {
     calls.add('activateMfa');
     if (activationFailure != null) throw AuthException(activationFailure!);
+    return recoveryCodes;
+  }
+
+  @override
+  Future<List<String>> regenerateRecoveryCodes(String code) async {
+    calls.add('regenerate:$code');
+    if (regenerationFailure != null) throw AuthException(regenerationFailure!);
+    return recoveryCodes;
   }
 
   @override

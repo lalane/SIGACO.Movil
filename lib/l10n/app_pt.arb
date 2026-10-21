@@ -131,6 +131,8 @@
   "fieldEmailShort": "E-mail",
   "fieldProfile": "Perfil",
   "fieldArea": "Área",
+  "fieldJobTitle": "Cargo",
+  "fieldCompany": "Empresa",
   "fieldConcession": "Concessionária",
   "fieldRoads": "Rodovias",
   "fieldAppVersion": "Versão do app",
@@ -152,9 +154,6 @@
   "actionSwitchConcessionSub": "Escolha outra concessão para trabalhar",
   "switchConcessionWarning": "Ao trocar de concessão, uma nova sessão é aberta e o que foi carregado da anterior é descartado.",
   "passwordChanged": "Senha atualizada. Suas outras sessões foram encerradas.",
-  "sessionExpiringTitle": "Sua sessão está para expirar",
-  "sessionContinue": "Continuar",
-  "sessionExpiringBody": "Por inatividade será encerrada em {seconds} segundos.",
   "appTaglineShort": "Sistema de Gestão de Ativos",
   "syncTitle": "Sincronização",
   "syncStripPending": "{count, plural, =1{1 operação pendente de envio} other{{count} operações pendentes de envio}}",
@@ -1205,5 +1204,35 @@
   "mapPickedClose": "Remover ponto",
   "mapPickHint": "Mantenha pressionado o mapa para escolher um ponto.",
   "mapNavigateFailed": "Não foi possível abrir a navegação do telefone.",
-  "mapRecordMocked": "A localização é simulada: não pode ser usada para registrar."
+  "mapRecordMocked": "A localização é simulada: não pode ser usada para registrar.",
+  "sessionLockedTitle": "Sessão bloqueada",
+  "sessionLockedBody": "Passaram {minutes} minutos sem atividade. Confirme sua identidade para continuar.",
+  "sessionUnlock": "Desbloquear",
+  "sessionUnlockReason": "Confirme sua identidade para desbloquear o SIGACO",
+  "sessionUnlockUnavailable": "Este telefone não tem um bloqueio de tela para confirmar sua identidade. Encerre a sessão e entre novamente.",
+  "@sessionLockedBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "mfaRecoveryTitle": "Guarde seus códigos de recuperação",
+  "mfaRecoveryBody": "Se perder o telefone ou o aplicativo autenticador, cada um destes códigos permite entrar uma única vez. Guarde-os em local seguro: não serão exibidos novamente.",
+  "mfaRecoveryCopy": "Copiar todos",
+  "mfaRecoveryCopied": "Códigos copiados",
+  "mfaRecoverySaved": "Já guardei",
+  "mfaUseRecoveryCode": "Usar um código de recuperação",
+  "mfaUseAppCode": "Usar o código do aplicativo",
+  "mfaRecoveryCodeHint": "Código de recuperação",
+  "mfaRecoveryRemaining": "Restam {count} códigos de recuperação sem uso",
+  "mfaRecoveryGenerate": "Gerar novos códigos",
+  "mfaRecoveryGenerateBody": "Os códigos anteriores deixarão de funcionar. Digite o código do seu aplicativo autenticador para confirmar.",
+  "@mfaRecoveryRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

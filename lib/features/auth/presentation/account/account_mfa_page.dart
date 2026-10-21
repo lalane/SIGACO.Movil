@@ -8,9 +8,11 @@ import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/ui/widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../auth_error_text.dart';
+import '../widgets/recovery_codes_view.dart';
 import 'mfa_setup_cubit.dart';
 
-/// Volver a configurar la verificacion en dos pasos desde el perfil.
+/// Volver a configurar la verificacion en dos pasos desde el perfil y, con ella
+/// activa, generar codigos de recuperacion nuevos.
 class AccountMfaPage extends StatefulWidget {
   const AccountMfaPage({super.key});
 
@@ -32,15 +34,30 @@ class _AccountMfaPageState extends State<AccountMfaPage> {
     final l10n = AppLocalizations.of(context);
     final p = context.palette;
     final r = context.responsive;
-    return BlocConsumer<MfaSetupCubit, MfaSetupState>(
-      listenWhen: (a, b) => !a.done && b.done,
-      listener: (context, state) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.mfaReconfigureDone)));
-        context.pop();
-      },
+    return BlocBuilder<MfaSetupCubit, MfaSetupState>(
       builder: (context, state) {
+        // Los codigos de recuperacion se ven una sola vez: hay que guardarlos.
+        if (state.recoveryCodes.isNotEmpty) {
+          return StepScaffold(
+            title: l10n.mfaRecoveryTitle,
+            subtitle: l10n.mfaRecoveryBody,
+            children: [
+              RecoveryCodesView(
+                codes: state.recoveryCodes,
+                onSaved: () {
+                  final reconfigured = state.done;
+                  context.read<MfaSetupCubit>().acknowledgeCodes();
+                  if (reconfigured) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.mfaReconfigureDone)),
+                    );
+                    context.pop();
+                  }
+                },
+              ),
+            ],
+          );
+        }
         final enrollment = state.enrollment;
         return StepScaffold(
           title: l10n.mfaSettingTitle,
@@ -49,13 +66,55 @@ class _AccountMfaPageState extends State<AccountMfaPage> {
               : l10n.mfaEnrollBody,
           showBack: true,
           children: [
-            if (enrollment == null)
+            if (enrollment == null) ...[
               PrimaryButton(
                 label: l10n.mfaReconfigureAction,
-                busy: state.busy,
+                busy: state.busy && !state.regenerating,
                 onPressed: () => context.read<MfaSetupCubit>().generate(),
-              )
-            else ...[
+              ),
+              SizedBox(height: r.s(24)),
+              if (state.recoveryRemaining != null)
+                Text(
+                  l10n.mfaRecoveryRemaining(state.recoveryRemaining!),
+                  key: const Key('recovery-remaining'),
+                  style: TextStyle(color: p.hint, fontSize: r.s(13)),
+                ),
+              SizedBox(height: r.s(10)),
+              if (!state.regenerating)
+                OutlinedButton(
+                  key: const Key('recovery-regenerate'),
+                  onPressed: () =>
+                      context.read<MfaSetupCubit>().startRegeneration(),
+                  child: Text(l10n.mfaRecoveryGenerate),
+                )
+              else ...[
+                Text(
+                  l10n.mfaRecoveryGenerateBody,
+                  style: TextStyle(color: p.hint, fontSize: r.s(13)),
+                ),
+                SizedBox(height: r.s(10)),
+                AppTextField(
+                  controller: _code,
+                  hint: l10n.mfaCode,
+                  keyboardType: TextInputType.number,
+                ),
+                SizedBox(height: r.s(14)),
+                PrimaryButton(
+                  key: const Key('recovery-confirm'),
+                  label: l10n.mfaRecoveryGenerate,
+                  busy: state.busy,
+                  onPressed: () =>
+                      context.read<MfaSetupCubit>().regenerate(_code.text),
+                ),
+                TextButton(
+                  onPressed: () {
+                    _code.clear();
+                    context.read<MfaSetupCubit>().cancelRegeneration();
+                  },
+                  child: Text(l10n.cancel),
+                ),
+              ],
+            ] else ...[
               Text(
                 l10n.mfaEnrollSecret,
                 style: TextStyle(color: p.hint, fontSize: r.s(13)),

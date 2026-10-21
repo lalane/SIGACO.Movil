@@ -32,6 +32,25 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   DateTime? get lastActivityAt => _api.lastActivityAt;
 
+  DateTime? _expiresAt;
+  Duration _clockOffset = Duration.zero;
+
+  @override
+  DateTime? get sessionExpiresAt => _expiresAt;
+
+  @override
+  Duration get serverClockOffset => _clockOffset;
+
+  @override
+  Future<SessionRevalidation> revalidateSession() => _guard(() async {
+    final r = sessionRevalidationFromJson(
+      (await _api.post('/api/auth/session/revalidate'))!,
+    );
+    _expiresAt = r.expiresAt;
+    _clockOffset = r.serverTime.difference(DateTime.now().toUtc());
+    return r;
+  });
+
   @override
   Future<MyProfile> getProfile() =>
       _guard(() async => profileFromJson((await _api.get('/api/auth/me'))!));
@@ -72,6 +91,7 @@ class AuthRepositoryImpl implements AuthRepository {
     final (outcome, token) = loginFromJson(json!);
     _api.accessToken = token;
     _api.lastActivityAt = DateTime.now();
+    _expiresAt = outcome.expiresAt;
     return outcome;
   });
 
@@ -95,13 +115,32 @@ class AuthRepositoryImpl implements AuthRepository {
   );
 
   @override
-  Future<void> activateMfa(String code) async {
+  Future<List<String>> activateMfa(String code) async {
     try {
-      await _api.post('/api/auth/me/mfa/activate', data: {'code': code});
+      return recoveryCodesFromJson(
+        await _api.post('/api/auth/me/mfa/activate', data: {'code': code}),
+      );
     } on ApiFailure catch (f) {
       throw AuthException(
         f.isNetwork ? AuthError.network : AuthError.mfaInvalid,
       );
+    }
+  }
+
+  @override
+  Future<List<String>> regenerateRecoveryCodes(String code) async {
+    try {
+      return recoveryCodesFromJson(
+        await _api.post(
+          '/api/auth/me/mfa/recovery-codes',
+          data: {'code': code},
+        ),
+      );
+    } on ApiFailure catch (f) {
+      if (f.isNetwork) throw const AuthException(AuthError.network);
+      if (f.status == 401) throw const AuthException(AuthError.sessionExpired);
+      // 400: el codigo no es valido; 409: la cuenta no tiene la verificacion.
+      throw const AuthException(AuthError.mfaInvalid);
     }
   }
 
@@ -154,6 +193,7 @@ class AuthRepositoryImpl implements AuthRepository {
       // Se cierra localmente aunque el servidor no responda.
     } finally {
       _api.accessToken = null;
+      _expiresAt = null;
     }
   }
 }

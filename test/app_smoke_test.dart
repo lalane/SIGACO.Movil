@@ -111,19 +111,21 @@ void main() {
     expect(find.text('Cambiar contraseña'), findsOneWidget);
   });
 
-  testWidgets('avisa cuando la sesion esta por vencer por inactividad', (
+  testWidgets('tras la inactividad se bloquea y se abre con el telefono', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({});
-    final repo = FakeAuthRepository()
-      ..activity = DateTime.now().subtract(
-        const Duration(minutes: 9, seconds: 30),
-      );
+    // Cero minutos de tolerancia: se bloquea en cuanto entra a la sesion.
+    final repo = FakeAuthRepository(
+      result: outcome(active: 'c0', idleMinutes: 0),
+    );
+    final unlock = FakeDeviceUnlock(result: false);
     final deps = AppDependencies(
       prefs: await SharedPreferences.getInstance(),
       authRepository: repo,
       credentialStore: FakeCredentialStore(supportsBiometrics: false),
       navigationRepository: FakeNavigationRepository(),
+      deviceUnlock: unlock,
     );
     await tester.pumpWidget(SigacoApp(dependencies: deps));
     await tester.pump(const Duration(seconds: 2));
@@ -133,17 +135,20 @@ void main() {
     await tester.tap(find.byType(FilledButton).first);
     await tester.pumpAndSettle();
 
-    // El aviso espera a que el router termine de cambiar de pantalla.
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pumpAndSettle();
-    expect(find.text('Tu sesión está por vencer'), findsOneWidget);
-    expect(find.text('Continuar'), findsOneWidget);
+    // Pide confirmar en el telefono; sin lograrlo, sigue bloqueada.
+    expect(find.byKey(const Key('session-lock')), findsOneWidget);
+    expect(find.text('Sesión bloqueada'), findsOneWidget);
+    expect(unlock.attempts, 1);
+    // Bloquear no cierra la sesion ni consulta al servidor.
+    expect(repo.calls, isNot(contains('logout')));
 
-    // Continuar consulta al servidor y cierra el aviso.
-    await tester.tap(find.text('Continuar'));
-    await tester.pumpAndSettle();
-    expect(find.text('Tu sesión está por vencer'), findsNothing);
-    expect(repo.calls, contains('profile'));
+    unlock.result = true;
+    await tester.tap(find.byKey(const Key('session-unlock')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.byKey(const Key('session-lock')), findsNothing);
+    expect(unlock.attempts, 2);
   });
 
   testWidgets(

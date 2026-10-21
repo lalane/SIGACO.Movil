@@ -6,7 +6,7 @@ import 'package:sigaco_movil/core/offline/operation_queue.dart';
 import 'package:sigaco_movil/core/offline/sync_cubit.dart';
 import 'package:sigaco_movil/core/offline/sync_engine.dart';
 import 'package:sigaco_movil/core/permissions/permission_keys.dart';
-import 'package:sigaco_movil/features/navigation/domain/entities/navigation_entities.dart';
+import 'package:sigaco_movil/features/auth/domain/entities/auth_entities.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../support/fakes.dart';
@@ -23,8 +23,26 @@ class _Remote implements SyncRemote {
   }
 }
 
-NavigationMenu _menu(List<String> permissions) =>
-    NavigationMenu(permissions: permissions);
+/// El servidor al revalidar: lo que responde y cuantas veces se le pregunto.
+class _Server {
+  _Server(this.permissions);
+
+  List<String> permissions;
+  Object? failure;
+  String status = 'ACTIVO';
+  bool mfaPending = false;
+  int calls = 0;
+
+  Future<SessionRevalidation> call() async {
+    calls++;
+    if (failure != null) throw failure!;
+    return fakeRevalidation(
+      permissions: permissions,
+      status: status,
+      mfaPending: mfaPending,
+    );
+  }
+}
 
 /// Antes de enviar se revalida la sesion y los permisos (DEV-MOB-094 y 095,
 /// DTF M03 §3.2, CA-HU-MOB-03-02-04).
@@ -33,7 +51,7 @@ void main() {
 
   late OfflineDatabase db;
   late OperationQueue queue;
-  late FakeNavigationRepository navigation;
+  late _Server server;
   late SyncRevalidation revalidation;
 
   setUp(() async {
@@ -42,15 +60,13 @@ void main() {
       path: inMemoryDatabasePath,
     );
     queue = OperationQueue(db);
-    navigation = FakeNavigationRepository(
-      menu: _menu([
-        PermissionKeys.documentsView,
-        PermissionKeys.documentsUpload,
-        PermissionKeys.documentsSign,
-      ]),
-    );
+    server = _Server([
+      PermissionKeys.documentsView,
+      PermissionKeys.documentsUpload,
+      PermissionKeys.documentsSign,
+    ]);
     revalidation = SyncRevalidation(
-      navigation: navigation,
+      revalidate: server.call,
       queue: queue,
       requiredPermissions: const {
         'documento': [
@@ -80,16 +96,24 @@ void main() {
     expect(await revalidation(_ana), SyncGate.proceed);
 
     expect((await queue.find(op.id))!.status, OperationStatus.pending);
-    expect(navigation.loads, 1);
+    expect(server.calls, 1);
   });
 
   test('si el servidor no confirma la sesion, no se envia nada', () async {
     final op = await add('documento');
-    for (final failure in NavigationError.values) {
-      navigation.failure = failure;
-
-      expect(await revalidation(_ana), SyncGate.hold);
-    }
+    // Sin red, sesion revocada (401), cuenta no activa o un paso pendiente.
+    server.failure = const AuthException(AuthError.network);
+    expect(await revalidation(_ana), SyncGate.hold);
+    server.failure = const AuthException(AuthError.sessionExpired);
+    expect(await revalidation(_ana), SyncGate.hold);
+    server
+      ..failure = null
+      ..status = 'BLOQUEADO';
+    expect(await revalidation(_ana), SyncGate.hold);
+    server
+      ..status = 'ACTIVO'
+      ..mfaPending = true;
+    expect(await revalidation(_ana), SyncGate.hold);
     // Lo capturado se conserva tal cual para otro intento.
     expect((await queue.find(op.id))!.status, OperationStatus.pending);
   });
@@ -99,10 +123,10 @@ void main() {
     () async {
       final upload = await add('documento');
       final sign = await add('documento_firma');
-      navigation.menu = _menu([
+      server.permissions = [
         PermissionKeys.documentsView,
         PermissionKeys.documentsUpload,
-      ]);
+      ];
 
       expect(await revalidation(_ana), SyncGate.proceed);
 
@@ -115,7 +139,7 @@ void main() {
 
   test('sin Ver tampoco se envia nada del gestor documental', () async {
     final upload = await add('documento');
-    navigation.menu = _menu([PermissionKeys.documentsUpload]);
+    server.permissions = [PermissionKeys.documentsUpload];
 
     await revalidation(_ana);
 
@@ -126,7 +150,7 @@ void main() {
     'un tipo de registro que no exige permiso conocido sigue su curso',
     () async {
       final other = await add('ticket');
-      navigation.menu = _menu(const []);
+      server.permissions = const [];
 
       await revalidation(_ana);
 
@@ -142,7 +166,7 @@ void main() {
       kind: OperationKind.insert,
       payload: {'name': 'a'},
     );
-    navigation.menu = _menu(const []);
+    server.permissions = const [];
 
     await revalidation(_ana);
 
@@ -154,10 +178,10 @@ void main() {
     () async {
       final upload = await add('documento');
       final sign = await add('documento_firma');
-      navigation.menu = _menu([
+      server.permissions = [
         PermissionKeys.documentsView,
         PermissionKeys.documentsUpload,
-      ]);
+      ];
       final remote = _Remote();
       final engine = SyncEngine(queue, remote, preflight: revalidation.call);
 
@@ -171,7 +195,7 @@ void main() {
 
   test('con el motor: sin sesion confirmada se retiene la pasada', () async {
     await add('documento');
-    navigation.failure = NavigationError.permissionDenied;
+    server.failure = const AuthException(AuthError.sessionExpired);
     final remote = _Remote();
     final engine = SyncEngine(queue, remote, preflight: revalidation.call);
 

@@ -58,6 +58,11 @@ class AuthMfaEnrollmentRequested extends AuthEvent {
   const AuthMfaEnrollmentRequested();
 }
 
+/// La persona confirmo que guardo sus codigos de recuperacion.
+class AuthRecoveryCodesAcknowledged extends AuthEvent {
+  const AuthRecoveryCodesAcknowledged();
+}
+
 class AuthMfaActivationSubmitted extends AuthEvent {
   const AuthMfaActivationSubmitted(this.code);
 

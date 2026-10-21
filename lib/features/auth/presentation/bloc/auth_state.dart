@@ -7,6 +7,7 @@ enum AuthStep {
   signedOut,
   mfa,
   mfaEnroll,
+  mfaCodes,
   changePassword,
   concession,
   signedIn,
@@ -26,6 +27,7 @@ class AuthState extends Equatable {
     this.sessionExpired = false,
     this.offerBiometric = false,
     this.mfaEnrollment,
+    this.recoveryCodes = const [],
     this.recoverySent = false,
     this.passwordResetDone = false,
     this.mfaActive = false,
@@ -53,6 +55,10 @@ class AuthState extends Equatable {
   /// Hay que ofrecer activar biometria (primer acceso con contrasena).
   final bool offerBiometric;
   final MfaEnrollment? mfaEnrollment;
+
+  /// Codigos de recuperacion recien entregados: se muestran una sola vez y la
+  /// persona confirma que los guardo antes de seguir.
+  final List<String> recoveryCodes;
   final bool recoverySent;
 
   /// El usuario definio una nueva contrasena en el navegador y regreso a la app.
@@ -83,6 +89,7 @@ class AuthState extends Equatable {
     if (user == null) return AuthStep.signedOut;
     if (mfaRequired) return AuthStep.mfa;
     if (mfaEnrollmentRequired) return AuthStep.mfaEnroll;
+    if (recoveryCodes.isNotEmpty) return AuthStep.mfaCodes;
     if (passwordChangeRequired) return AuthStep.changePassword;
     if (activeConcessionId == null && concessions.length > 1) {
       return AuthStep.concession;
@@ -105,6 +112,7 @@ class AuthState extends Equatable {
     bool? sessionExpired,
     bool? offerBiometric,
     MfaEnrollment? mfaEnrollment,
+    List<String>? recoveryCodes,
     bool? recoverySent,
     bool? passwordResetDone,
     bool? mfaActive,
@@ -129,6 +137,7 @@ class AuthState extends Equatable {
     sessionExpired: sessionExpired ?? this.sessionExpired,
     offerBiometric: offerBiometric ?? this.offerBiometric,
     mfaEnrollment: mfaEnrollment ?? this.mfaEnrollment,
+    recoveryCodes: recoveryCodes ?? this.recoveryCodes,
     recoverySent: recoverySent ?? this.recoverySent,
     passwordResetDone: passwordResetDone ?? this.passwordResetDone,
     mfaActive: mfaActive ?? this.mfaActive,
@@ -154,6 +163,7 @@ class AuthState extends Equatable {
     sessionExpired,
     offerBiometric,
     mfaEnrollment,
+    recoveryCodes,
     recoverySent,
     passwordResetDone,
     mfaActive,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
+import '../core/device/device_unlock.dart';
 import '../core/files/file_source.dart';
 import '../core/pdf/pdf_renderer.dart';
 import '../core/push/push_registrar.dart';
@@ -18,7 +19,7 @@ import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
-import '../features/auth/presentation/session/session_timeout_cubit.dart';
+import '../features/auth/presentation/session/session_lock_cubit.dart';
 import '../features/branding/presentation/bloc/branding_cubit.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
 import '../features/map/domain/entities/map_settings.dart';
@@ -67,7 +68,7 @@ class _SigacoAppState extends State<SigacoApp> {
         ? widget.dependencies.accessRefreshGap
         : const Duration(seconds: 5),
   );
-  late final SessionTimeoutCubit _timeout = SessionTimeoutCubit(
+  late final SessionLockCubit _lock = SessionLockCubit(
     widget.dependencies.authRepository,
   );
   late final BrandingCubit _branding = BrandingCubit(
@@ -96,7 +97,7 @@ class _SigacoAppState extends State<SigacoApp> {
     _settings.close();
     _auth.close();
     _navigation.close();
-    _timeout.close();
+    _lock.close();
     _branding.close();
     _connectivity.close();
     _zone.close();
@@ -113,6 +114,9 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<CredentialStore>.value(
           value: widget.dependencies.credentialStore,
+        ),
+        RepositoryProvider<DeviceUnlock>.value(
+          value: widget.dependencies.deviceUnlock,
         ),
         RepositoryProvider<DeviceInfoSource>.value(
           value: widget.dependencies.deviceInfo,
@@ -189,7 +193,7 @@ class _SigacoAppState extends State<SigacoApp> {
           BlocProvider.value(value: _settings),
           BlocProvider.value(value: _auth),
           BlocProvider.value(value: _navigation),
-          BlocProvider.value(value: _timeout),
+          BlocProvider.value(value: _lock),
           BlocProvider.value(value: _branding),
           BlocProvider.value(value: _connectivity),
           BlocProvider.value(value: _zone),

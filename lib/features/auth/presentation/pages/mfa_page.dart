@@ -20,6 +20,9 @@ class MfaPage extends StatefulWidget {
 class _MfaPageState extends State<MfaPage> {
   final _code = TextEditingController();
 
+  /// Se entra con un codigo de recuperacion en vez del de la app (DEV-BACK-132).
+  bool _recovery = false;
+
   @override
   void dispose() {
     _code.dispose();
@@ -35,10 +38,13 @@ class _MfaPageState extends State<MfaPage> {
         subtitle: l10n.mfaSubtitle,
         children: [
           AppTextField(
+            key: ValueKey(_recovery),
             controller: _code,
-            hint: l10n.mfaCode,
-            keyboardType: TextInputType.number,
-            autofillHints: const [AutofillHints.oneTimeCode],
+            hint: _recovery ? l10n.mfaRecoveryCodeHint : l10n.mfaCode,
+            keyboardType: _recovery
+                ? TextInputType.visiblePassword
+                : TextInputType.number,
+            autofillHints: _recovery ? null : const [AutofillHints.oneTimeCode],
           ),
           if (state.error != null) ...[
             const SizedBox(height: 14),
@@ -50,6 +56,16 @@ class _MfaPageState extends State<MfaPage> {
             busy: state.busy,
             onPressed: () =>
                 context.read<AuthBloc>().add(AuthMfaSubmitted(_code.text)),
+          ),
+          TextButton(
+            key: const Key('mfa-toggle-recovery'),
+            onPressed: () => setState(() {
+              _recovery = !_recovery;
+              _code.clear();
+            }),
+            child: Text(
+              _recovery ? l10n.mfaUseAppCode : l10n.mfaUseRecoveryCode,
+            ),
           ),
           TextButton(
             onPressed: () =>

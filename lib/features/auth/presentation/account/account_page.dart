@@ -216,7 +216,10 @@ class _Body extends StatelessWidget {
     final biometricEnabled = context.select(
       (AuthBloc b) => b.state.biometricEnabled,
     );
-    final mfaActive = context.select((AuthBloc b) => b.state.mfaActive);
+    // El servidor informa si la verificacion esta activa (DEV-MOB-052); sin ese
+    // dato se usa lo deducido del acceso.
+    final mfaFromLogin = context.select((AuthBloc b) => b.state.mfaActive);
+    final mfaActive = profile.mfa?.active ?? mfaFromLogin;
     final settings = context.select((SettingsCubit c) => c.state);
     // Ultima respuesta del servidor. Cuando exista la sincronizacion sin
     // conexion, aqui se mostrara la ultima sincronizacion.
@@ -240,6 +243,10 @@ class _Body extends StatelessWidget {
         l10n.fieldArea,
         user.organizationArea ?? '—',
       ),
+      if (user.jobTitle != null)
+        (Icons.work_outline, l10n.fieldJobTitle, user.jobTitle!),
+      if (user.companyName != null)
+        (Icons.business_outlined, l10n.fieldCompany, user.companyName!),
       (
         Icons.apartment_outlined,
         l10n.fieldConcession,

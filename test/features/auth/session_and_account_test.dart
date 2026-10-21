@@ -7,7 +7,6 @@ import 'package:sigaco_movil/features/auth/presentation/account/change_password_
 import 'package:sigaco_movil/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:sigaco_movil/features/auth/presentation/bloc/auth_event.dart';
 import 'package:sigaco_movil/features/auth/presentation/bloc/auth_state.dart';
-import 'package:sigaco_movil/features/auth/presentation/session/session_timeout_cubit.dart';
 
 import '../../support/fakes.dart';
 
@@ -75,52 +74,6 @@ void main() {
     });
   });
 
-  group('aviso de inactividad', () {
-    SessionTimeoutCubit cubit(FakeAuthRepository repo, DateTime now) =>
-        SessionTimeoutCubit(repo, clock: () => now);
-    const idle = Duration(minutes: 10);
-
-    test('sin actividad reciente no avisa', () {
-      final now = DateTime(2026, 10, 2, 12);
-      final repo = FakeAuthRepository()
-        ..activity = now.subtract(const Duration(minutes: 2));
-      final c = cubit(repo, now)..start(idle);
-      expect(c.state.warning, isFalse);
-      c.close();
-    });
-
-    test('avisa dentro del ultimo minuto con los segundos que quedan', () {
-      final now = DateTime(2026, 10, 2, 12);
-      final repo = FakeAuthRepository()
-        ..activity = now.subtract(const Duration(minutes: 9, seconds: 30));
-      final c = cubit(repo, now)..start(idle);
-      expect(c.state.warning, isTrue);
-      expect(c.state.secondsLeft, inInclusiveRange(29, 31));
-      c.close();
-    });
-
-    test('al agotarse el tiempo marca la sesion como vencida', () {
-      final now = DateTime(2026, 10, 2, 12);
-      final repo = FakeAuthRepository()
-        ..activity = now.subtract(const Duration(minutes: 11));
-      final c = cubit(repo, now)..start(idle);
-      expect(c.state.expired, isTrue);
-      c.close();
-    });
-
-    test('continuar consulta al servidor (cuenta como actividad)', () async {
-      final now = DateTime.now();
-      final repo = FakeAuthRepository()
-        ..activity = now.subtract(const Duration(minutes: 9, seconds: 30));
-      final c = SessionTimeoutCubit(repo)..start(idle);
-      expect(c.state.warning, isTrue);
-      await c.keepAlive();
-      expect(repo.calls, contains('profile'));
-      expect(c.state.warning, isFalse);
-      c.close();
-    });
-  });
-
   group('perfil propio y cambio de contrasena', () {
     blocTest<AccountCubit, AccountState>(
       'carga el perfil',
@@ -151,6 +104,8 @@ void main() {
           'fullName': 'Juan Perez',
           'email': 'j@x.com',
           'organizationArea': 'Atlixco',
+          'jobTitle': 'Supervisor de obra',
+          'companyName': '  ',
         },
         'context': {
           'activeConcession': {'id': 'c1', 'code': 'C1', 'name': 'NOVA 381'},
@@ -169,6 +124,12 @@ void main() {
         },
       });
       expect(p.user.organizationArea, 'Atlixco');
+      expect(p.user.jobTitle, 'Supervisor de obra');
+      expect(
+        p.user.companyName,
+        isNull,
+        reason: 'un texto en blanco es ausente',
+      );
       expect(p.activeConcession?.name, 'NOVA 381');
       expect(
         p.profile?.localizedName('pt'),

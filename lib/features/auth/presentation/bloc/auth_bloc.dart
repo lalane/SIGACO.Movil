@@ -20,6 +20,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthMfaSubmitted>(_onMfaSubmitted);
     on<AuthMfaEnrollmentRequested>(_onEnrollmentRequested);
     on<AuthMfaActivationSubmitted>(_onActivation);
+    on<AuthRecoveryCodesAcknowledged>(_onRecoveryCodesAcknowledged);
     on<AuthPasswordChangeSubmitted>(_onPasswordChange);
     on<AuthConcessionSelected>(_onConcession);
     on<AuthRecoveryRequested>(_onRecovery);
@@ -212,9 +213,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthMfaActivationSubmitted e,
     Emitter<AuthState> emit,
   ) => _step(emit, () async {
-    await _repo.activateMfa(e.code.trim());
-    return state.copyWith(busy: false, mfaEnrollmentRequired: false);
+    final codes = await _repo.activateMfa(e.code.trim());
+    return state.copyWith(
+      busy: false,
+      mfaEnrollmentRequired: false,
+      mfaActive: true,
+      recoveryCodes: codes,
+    );
   });
+
+  /// La persona confirmo que guardo los codigos: no se vuelven a mostrar.
+  void _onRecoveryCodesAcknowledged(
+    AuthRecoveryCodesAcknowledged e,
+    Emitter<AuthState> emit,
+  ) => emit(state.copyWith(recoveryCodes: const []));
 
   Future<void> _onPasswordChange(
     AuthPasswordChangeSubmitted e,

@@ -19,6 +19,7 @@ import '../features/auth/presentation/pages/concession_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/mfa_enroll_page.dart';
 import '../features/auth/presentation/pages/mfa_page.dart';
+import '../features/auth/presentation/pages/mfa_recovery_codes_page.dart';
 import '../features/auth/presentation/pages/recovery_page.dart';
 import '../features/documents/domain/entities/document_access.dart';
 import '../features/documents/domain/repositories/documents_repository.dart';
@@ -107,6 +108,7 @@ String _routeFor(AuthStep step) => switch (step) {
   AuthStep.signedOut => '/login',
   AuthStep.mfa => '/mfa',
   AuthStep.mfaEnroll => '/mfa-enroll',
+  AuthStep.mfaCodes => '/mfa-codes',
   AuthStep.changePassword => '/change-password',
   AuthStep.concession => '/concession',
   AuthStep.signedIn => '/home',
@@ -212,6 +214,10 @@ GoRouter createRouter(
       GoRoute(path: '/recovery', builder: (_, _) => const RecoveryPage()),
       GoRoute(path: '/mfa', builder: (_, _) => const MfaPage()),
       GoRoute(path: '/mfa-enroll', builder: (_, _) => const MfaEnrollPage()),
+      GoRoute(
+        path: '/mfa-codes',
+        builder: (_, _) => const MfaRecoveryCodesPage(),
+      ),
       GoRoute(
         path: '/change-password',
         builder: (_, _) => const ChangePasswordPage(),
@@ -558,7 +564,8 @@ GoRouter createRouter(
           GoRoute(
             path: 'mfa',
             builder: (context, _) => BlocProvider(
-              create: (_) => MfaSetupCubit(context.read<AuthRepository>()),
+              create: (_) =>
+                  MfaSetupCubit(context.read<AuthRepository>())..loadStatus(),
               child: const AccountMfaPage(),
             ),
           ),

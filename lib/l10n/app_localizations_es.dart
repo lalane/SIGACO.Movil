@@ -432,6 +432,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fieldArea => 'Área';
 
   @override
+  String get fieldJobTitle => 'Cargo';
+
+  @override
+  String get fieldCompany => 'Empresa';
+
+  @override
   String get fieldConcession => 'Concesionaria';
 
   @override
@@ -476,17 +482,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get passwordChanged =>
       'Contraseña actualizada. Se cerraron tus otras sesiones.';
-
-  @override
-  String get sessionExpiringTitle => 'Tu sesión está por vencer';
-
-  @override
-  String get sessionContinue => 'Continuar';
-
-  @override
-  String sessionExpiringBody(int seconds) {
-    return 'Por inactividad se cerrará en $seconds segundos.';
-  }
 
   @override
   String get appTaglineShort => 'Sistema de Gestión de Activos';
@@ -2761,4 +2756,60 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get mapRecordMocked =>
       'La ubicación es simulada: no se puede usar para registrar.';
+
+  @override
+  String get sessionLockedTitle => 'Sesión bloqueada';
+
+  @override
+  String sessionLockedBody(int minutes) {
+    return 'Pasaron $minutes minutos sin actividad. Confirma tu identidad para continuar.';
+  }
+
+  @override
+  String get sessionUnlock => 'Desbloquear';
+
+  @override
+  String get sessionUnlockReason =>
+      'Confirma tu identidad para desbloquear SIGACO';
+
+  @override
+  String get sessionUnlockUnavailable =>
+      'Este teléfono no tiene un bloqueo de pantalla para confirmar tu identidad. Cierra la sesión y vuelve a entrar.';
+
+  @override
+  String get mfaRecoveryTitle => 'Guarda tus códigos de recuperación';
+
+  @override
+  String get mfaRecoveryBody =>
+      'Si pierdes tu teléfono o la app autenticadora, cada uno de estos códigos te deja entrar una sola vez. Guárdalos en un lugar seguro: no se volverán a mostrar.';
+
+  @override
+  String get mfaRecoveryCopy => 'Copiar todos';
+
+  @override
+  String get mfaRecoveryCopied => 'Códigos copiados';
+
+  @override
+  String get mfaRecoverySaved => 'Ya los guardé';
+
+  @override
+  String get mfaUseRecoveryCode => 'Usar un código de recuperación';
+
+  @override
+  String get mfaUseAppCode => 'Usar el código de la app';
+
+  @override
+  String get mfaRecoveryCodeHint => 'Código de recuperación';
+
+  @override
+  String mfaRecoveryRemaining(int count) {
+    return 'Te quedan $count códigos de recuperación sin usar';
+  }
+
+  @override
+  String get mfaRecoveryGenerate => 'Generar códigos nuevos';
+
+  @override
+  String get mfaRecoveryGenerateBody =>
+      'Los códigos anteriores dejarán de servir. Escribe el código de tu app autenticadora para confirmar.';
 }

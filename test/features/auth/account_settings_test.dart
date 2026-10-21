@@ -218,6 +218,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.calls, contains('activateMfa'));
+      // El servidor entrega codigos de recuperacion nuevos: se ven una sola vez
+      // y hay que confirmar que se guardaron.
+      expect(find.byKey(const Key('recovery-codes')), findsOneWidget);
+      expect(find.text('AAAA-1111-BBBB'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('recovery-saved')));
+      await tester.pumpAndSettle();
       expect(
         find.text('Verificación en dos pasos actualizada.'),
         findsOneWidget,
@@ -249,6 +255,8 @@ void main() {
 
       repo.activationFailure = null;
       await tester.tap(find.text('Verificar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('recovery-saved')));
       await tester.pumpAndSettle();
       expect(find.text('Configuración de usuario'), findsOneWidget);
     });

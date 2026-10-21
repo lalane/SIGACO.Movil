@@ -884,6 +884,18 @@ abstract class AppLocalizations {
   /// **'Área'**
   String get fieldArea;
 
+  /// No description provided for @fieldJobTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargo'**
+  String get fieldJobTitle;
+
+  /// No description provided for @fieldCompany.
+  ///
+  /// In es, this message translates to:
+  /// **'Empresa'**
+  String get fieldCompany;
+
   /// No description provided for @fieldConcession.
   ///
   /// In es, this message translates to:
@@ -967,24 +979,6 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Contraseña actualizada. Se cerraron tus otras sesiones.'**
   String get passwordChanged;
-
-  /// No description provided for @sessionExpiringTitle.
-  ///
-  /// In es, this message translates to:
-  /// **'Tu sesión está por vencer'**
-  String get sessionExpiringTitle;
-
-  /// No description provided for @sessionContinue.
-  ///
-  /// In es, this message translates to:
-  /// **'Continuar'**
-  String get sessionContinue;
-
-  /// No description provided for @sessionExpiringBody.
-  ///
-  /// In es, this message translates to:
-  /// **'Por inactividad se cerrará en {seconds} segundos.'**
-  String sessionExpiringBody(int seconds);
 
   /// No description provided for @appTaglineShort.
   ///
@@ -5071,6 +5065,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'La ubicación es simulada: no se puede usar para registrar.'**
   String get mapRecordMocked;
+
+  /// No description provided for @sessionLockedTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión bloqueada'**
+  String get sessionLockedTitle;
+
+  /// No description provided for @sessionLockedBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Pasaron {minutes} minutos sin actividad. Confirma tu identidad para continuar.'**
+  String sessionLockedBody(int minutes);
+
+  /// No description provided for @sessionUnlock.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquear'**
+  String get sessionUnlock;
+
+  /// No description provided for @sessionUnlockReason.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirma tu identidad para desbloquear SIGACO'**
+  String get sessionUnlockReason;
+
+  /// No description provided for @sessionUnlockUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Este teléfono no tiene un bloqueo de pantalla para confirmar tu identidad. Cierra la sesión y vuelve a entrar.'**
+  String get sessionUnlockUnavailable;
+
+  /// No description provided for @mfaRecoveryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Guarda tus códigos de recuperación'**
+  String get mfaRecoveryTitle;
+
+  /// No description provided for @mfaRecoveryBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Si pierdes tu teléfono o la app autenticadora, cada uno de estos códigos te deja entrar una sola vez. Guárdalos en un lugar seguro: no se volverán a mostrar.'**
+  String get mfaRecoveryBody;
+
+  /// No description provided for @mfaRecoveryCopy.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar todos'**
+  String get mfaRecoveryCopy;
+
+  /// No description provided for @mfaRecoveryCopied.
+  ///
+  /// In es, this message translates to:
+  /// **'Códigos copiados'**
+  String get mfaRecoveryCopied;
+
+  /// No description provided for @mfaRecoverySaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya los guardé'**
+  String get mfaRecoverySaved;
+
+  /// No description provided for @mfaUseRecoveryCode.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar un código de recuperación'**
+  String get mfaUseRecoveryCode;
+
+  /// No description provided for @mfaUseAppCode.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar el código de la app'**
+  String get mfaUseAppCode;
+
+  /// No description provided for @mfaRecoveryCodeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Código de recuperación'**
+  String get mfaRecoveryCodeHint;
+
+  /// No description provided for @mfaRecoveryRemaining.
+  ///
+  /// In es, this message translates to:
+  /// **'Te quedan {count} códigos de recuperación sin usar'**
+  String mfaRecoveryRemaining(int count);
+
+  /// No description provided for @mfaRecoveryGenerate.
+  ///
+  /// In es, this message translates to:
+  /// **'Generar códigos nuevos'**
+  String get mfaRecoveryGenerate;
+
+  /// No description provided for @mfaRecoveryGenerateBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Los códigos anteriores dejarán de servir. Escribe el código de tu app autenticadora para confirmar.'**
+  String get mfaRecoveryGenerateBody;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,7 @@ import '../core/api/api_client.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
 import '../core/device/device_info_source.dart';
+import '../core/device/device_unlock.dart';
 import '../core/files/file_source.dart';
 import '../core/files/local_file_store.dart';
 import '../core/offline/offline_database.dart';
@@ -26,6 +27,7 @@ import '../core/time/concession_zone_source.dart';
 import '../core/ui/capped_download.dart';
 import '../core/ui/logo_store.dart';
 import '../features/auth/data/repositories/auth_repository_impl.dart';
+import '../features/auth/domain/entities/auth_entities.dart';
 import '../features/auth/data/repositories/credential_vault.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/credential_store.dart';
@@ -249,6 +251,7 @@ class AppDependencies {
     this.connectivity = const AlwaysOnlineSource(),
     this.serverReachable = const Stream<bool>.empty(),
     this.deviceInfo = const NoDeviceInfo(),
+    this.deviceUnlock = const NoDeviceUnlock(),
     this.logoStore = const DownloadLogoStore(),
     this.fileSource = const NoFileSource(),
     this.pdfRenderer = const NoPdfRenderer(),
@@ -373,6 +376,7 @@ class AppDependencies {
 
   /// Datos del telefono que se muestran en la cuenta.
   final DeviceInfoSource deviceInfo;
+  final DeviceUnlock deviceUnlock;
 
   /// De donde salen los logos de la concesion (en la app, guardados en disco).
   final LogoStore logoStore;
@@ -477,11 +481,30 @@ class AppDependencies {
       // /api/documents.
       remote = DocumentsSyncRemote(api, server, fileStore);
     }
+    final authRepository = AuthRepositoryImpl(api);
     final engine = SyncEngine(
       queue,
       remote,
       preflight: SyncRevalidation(
-        navigation: navigation,
+        // La sesion y los permisos vigentes los confirma el servidor. Con los
+        // documentos de ejemplo el menu agrega permisos que el servidor no
+        // conoce: se suman para no rechazar lo capturado en esa prueba.
+        revalidate: () async {
+          final session = await authRepository.revalidateSession();
+          if (!AppConfig.sampleDocuments) return session;
+          final menu = await navigation.load();
+          return SessionRevalidation(
+            accountStatus: session.accountStatus,
+            expiresAt: session.expiresAt,
+            idleTimeoutMinutes: session.idleTimeoutMinutes,
+            serverTime: session.serverTime,
+            activeConcessionId: session.activeConcessionId,
+            mfaPending: session.mfaPending,
+            forcePasswordChange: session.forcePasswordChange,
+            permissions: {...session.permissions, ...menu.permissions}.toList(),
+            modules: session.modules,
+          );
+        },
         queue: queue,
         requiredPermissions: const {
           'documento': [
@@ -507,7 +530,7 @@ class AppDependencies {
       ),
       sessionScope: scope,
       prefs: prefs,
-      authRepository: AuthRepositoryImpl(api),
+      authRepository: authRepository,
       credentialStore: CredentialVault(
         const FlutterSecureStorage(),
         prefs,
@@ -574,6 +597,7 @@ class AppDependencies {
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
+      deviceUnlock: LocalAuthDeviceUnlock(LocalAuthentication()),
       // Los logos de la propia API piden sesion; los de otro servidor (marca de
       // prueba) se bajan tal cual.
       logoStore: DiskLogoStore(
