@@ -1,7 +1,17 @@
 import 'package:equatable/equatable.dart';
 
-/// Como esta el activo (estado fisico, de la ultima inspeccion).
-enum AssetCondition { good, regular, poor }
+/// Como esta el activo (estado fisico, de la ultima inspeccion). `unknown` es
+/// un activo que aun no se evalua: va al final al ordenar y no cuenta entre
+/// los estados del resumen.
+enum AssetCondition {
+  unknown,
+  good,
+  regular,
+  poor;
+
+  /// Los estados que se resumen y se pueden elegir como filtro.
+  static const assessed = [good, regular, poor];
+}
 
 /// Un activo de la carretera (senal, defensa, drenaje, obra de arte...): lo que
 /// la app consulta; el alta y la baja son de la plataforma web (M13).
@@ -19,10 +29,19 @@ class InventoryAsset extends Equatable {
     this.installedAt,
     this.lastInspectionAt,
     this.notes,
+    this.code,
+    this.mainPhotoId,
   });
 
+  /// Identificador del servidor (es el de las rutas y el del mapa).
   final String id;
+
+  /// Codigo que ve el negocio (`BARRERA-000001`); sin el se muestra [id].
+  final String? code;
   final String name;
+
+  /// La foto principal del activo ("vista en sitio"), si la tiene.
+  final String? mainPhotoId;
 
   /// Tipo de activo tal como lo entrega el servidor (`Defensa metálica`).
   final String category;
@@ -58,6 +77,7 @@ class InventoryAsset extends Equatable {
     if (q.isEmpty) return true;
     return [
       id,
+      code,
       name,
       category,
       segmentCode,
@@ -79,5 +99,7 @@ class InventoryAsset extends Equatable {
     installedAt,
     lastInspectionAt,
     notes,
+    code,
+    mainPhotoId,
   ];
 }

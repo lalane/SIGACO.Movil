@@ -220,6 +220,110 @@ class SampleInspectionsRepository implements InspectionsRepository {
     return _items[i] = next;
   }
 
+  /// Los tipos de ejemplo, con los mismos puntos de las inspecciones de
+  /// ejemplo.
+  static const _templates = <(String, List<(String, bool)>)>[
+    (
+      'Señalización',
+      [
+        ('Visibilidad de la señal', true),
+        ('Estado del soporte y la fijación', false),
+        ('Retrorreflectividad', false),
+      ],
+    ),
+    (
+      'Barreras',
+      [
+        ('Continuidad de la defensa', true),
+        ('Anclajes y tornillería', false),
+        ('Deformaciones por impacto', true),
+        ('Terminales de extremo', false),
+      ],
+    ),
+    (
+      'Iluminación',
+      [
+        ('Funcionamiento de la luminaria', false),
+        ('Estado del poste y la base', true),
+        ('Cableado expuesto', true),
+      ],
+    ),
+    (
+      'Drenaje',
+      [('Obstrucciones en el conducto', false), ('Erosión en la salida', false)],
+    ),
+  ];
+
+  @override
+  Future<List<InspectionTemplate>> templates() async {
+    await _wait();
+    return [
+      for (final (type, items) in _templates)
+        InspectionTemplate(
+          type: type,
+          items: [
+            for (var i = 0; i < items.length; i++)
+              ChecklistItem(
+                id: 't-${i + 1}',
+                text: items[i].$1,
+                critical: items[i].$2,
+              ),
+          ],
+        ),
+    ];
+  }
+
+  @override
+  Future<Inspection> create(NewInspection draft) async {
+    await _wait();
+    final template = (await templates()).where((t) => t.type == draft.type);
+    if (template.isEmpty) {
+      throw const InspectionsException(InspectionsError.notFound);
+    }
+    final next =
+        _items
+            .map((i) => int.tryParse(i.id.replaceFirst('I-', '')) ?? 0)
+            .fold<int>(500, (a, b) => b > a ? b : a) +
+        1;
+    final id = 'I-$next';
+    final inspection = Inspection(
+      id: id,
+      title: draft.title,
+      type: draft.type,
+      status: InspectionStatus.pending,
+      checklist: [
+        for (final item in template.first.items)
+          ChecklistItem(
+            id: '$id-${item.id.substring(2)}',
+            text: item.text,
+            critical: item.critical,
+          ),
+      ],
+      scheduledAt: draft.scheduledAt,
+      assignee: 'Ana Herrera',
+      kmLabel: draft.kmLabel,
+      segmentCode: draft.segmentCode,
+      direction: draft.direction,
+    );
+    _items = [inspection, ..._items];
+    return inspection;
+  }
+
+  @override
+  Future<Inspection> addFinding(String id, InspectionFinding finding) async {
+    await _wait();
+    final i = _indexOf(id);
+    final current = _items[i];
+    if (!current.editable) {
+      throw const InspectionsException(InspectionsError.notEditable);
+    }
+    var next = current.copyWith(evidence: [...current.evidence, finding]);
+    if (next.status == InspectionStatus.pending) {
+      next = next.copyWith(status: InspectionStatus.inProgress);
+    }
+    return _items[i] = next;
+  }
+
   @override
   Future<Inspection> complete(
     String id,

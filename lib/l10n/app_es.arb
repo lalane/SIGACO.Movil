@@ -830,9 +830,6 @@
   "accidentTypeCollision": "Choque",
   "accidentTypeRollover": "Volcamiento",
   "accidentTypeFire": "Incendio",
-  "accidentSeverityLow": "Baja",
-  "accidentSeverityMedium": "Media",
-  "accidentSeverityHigh": "Alta",
   "accidentStatusRegistered": "Registrado",
   "accidentStatusInProgress": "En proceso",
   "accidentStatusClosed": "Cerrado",
@@ -960,6 +957,8 @@
   "invConditionGood": "Bueno",
   "invConditionRegular": "Regular",
   "invConditionPoor": "Malo",
+  "invConditionUnknown": "Sin evaluar",
+  "invSitePhoto": "Vista en sitio",
   "invFilterCondition": "Estado",
   "invFilterAllConditions": "Todos los estados",
   "invFilterCategory": "Tipo",
@@ -1251,6 +1250,47 @@
   "inspSaveError": "No se pudo guardar. Inténtalo de nuevo.",
   "inspViewAsset": "Ver activo",
   "inspNoAsset": "Este monitoreo no tiene un activo del catálogo.",
+  "inspNew": "Nuevo monitoreo",
+  "inspNewCreate": "Crear monitoreo",
+  "inspNewType": "Tipo de monitoreo",
+  "inspNewName": "Nombre",
+  "inspNewNameHint": "Opcional: si lo dejas vacío se usa el tipo",
+  "inspNewErrorType": "Elige el tipo de monitoreo.",
+  "inspNewCreated": "Monitoreo creado.",
+  "inspNewNoTemplates": "No hay tipos de monitoreo disponibles.",
+  "inspEvidenceTitle": "Hallazgos y evidencias",
+  "inspEvidenceAdd": "Agregar hallazgo",
+  "inspEvidenceEmpty": "Aún no hay hallazgos capturados.",
+  "inspEvidenceNote": "Descripción del hallazgo",
+  "inspEvidenceItem": "Punto del checklist",
+  "inspEvidenceNoItem": "Sin punto del checklist",
+  "inspEvidenceSave": "Guardar hallazgo",
+  "inspEvidenceErrorEmpty": "Escribe una descripción o toma una foto.",
+  "inspEvidenceSaved": "Hallazgo guardado.",
+  "inspEvidencePhotos": "{count} fotos",
+  "@inspEvidencePhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inspEvidencePosition": "Posición {lat}, {lon} (±{accuracy} m)",
+  "@inspEvidencePosition": {
+    "placeholders": {
+      "lat": {
+        "type": "String"
+      },
+      "lon": {
+        "type": "String"
+      },
+      "accuracy": {
+        "type": "String"
+      }
+    }
+  },
+  "inspEvidenceNoPosition": "Sin posición (GPS no disponible)",
+  "inspDraftSaved": "Borrador guardado: tus respuestas se guardan solas.",
   "moduleInspections": "Monitoreo",
   "moduleInspectionsSub": "Checklists en campo",
   "moduleWorks": "Obras",
@@ -1369,6 +1409,97 @@
   "@alertsUnreadSemantic": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maintIndConservacion": "Conservación",
+  "maintIndSgsei": "Sistemas eléctricos e iluminación",
+  "maintIndSgost": "Túneles",
+  "accidentTypeRunOver": "Atropello",
+  "accidentTypeOther": "Otro",
+  "accidentSeverityUnharmed": "Ileso",
+  "accidentSeverityMinor": "Lesiones menores",
+  "accidentSeverityFatal": "Deceso",
+  "accidentZoneTitle": "Zona",
+  "accidentZoneRural": "Rural",
+  "accidentZoneSuburban": "Suburbana",
+  "accidentZoneUrban": "Urbana",
+  "accidentWeatherTitle": "Clima",
+  "accidentWeatherWind": "Viento",
+  "accidentWeatherRain": "Lluvia",
+  "accidentWeatherFog": "Niebla",
+  "accidentWeatherNormal": "Normal",
+  "accidentPavementConditionTitle": "Estado del pavimento",
+  "accidentSignageConditionTitle": "Estado del señalamiento",
+  "accidentConditionGood": "Buena",
+  "accidentConditionFair": "Regular",
+  "accidentConditionPoor": "Mala",
+  "accidentLayoutTitle": "Trazado",
+  "accidentLayoutStraight": "Recta",
+  "accidentLayoutVerticalCurve": "Curva vertical",
+  "accidentLayoutHorizontalCurve": "Curva horizontal",
+  "accidentPavementTypeTitle": "Tipo de pavimento",
+  "accidentPavementRigid": "Rígido",
+  "accidentPavementFlexible": "Flexible",
+  "accidentCauseTitle": "Causa",
+  "accidentCauseSpeeding": "Exceso de velocidad",
+  "accidentCauseLaneInvasion": "Invasión de carril",
+  "accidentCauseOther": "Otra",
+  "accidentPlaceTitle": "Lugar del accidente",
+  "accidentPlacePavement": "Pavimento",
+  "accidentPlaceSignage": "Señalamiento",
+  "accidentPlaceTollBooth": "Casetas",
+  "accidentPlaceOther": "Otros",
+  "accidentVehiclesTitle": "Vehículos involucrados",
+  "accidentVehiclesCount": "Cantidad de vehículos",
+  "accidentVehicleTitle": "Vehículo {n}",
+  "accidentVehicleTypeTitle": "Tipo de vehículo",
+  "accidentVehicleCar": "Vehículo",
+  "accidentVehicleMotorcycle": "Motocicleta",
+  "accidentVehicleLivestock": "Semoviente",
+  "accidentVehicleFixedObject": "Objeto fijo",
+  "accidentVictimsTitle": "Víctimas",
+  "accidentVictimsCount": "Cantidad de víctimas",
+  "accidentVictimTitle": "Víctima {n}",
+  "accidentSexTitle": "Sexo",
+  "accidentSexFemale": "Femenino",
+  "accidentSexMale": "Masculino",
+  "accidentSexUnspecified": "No especificado",
+  "accidentSeverityDerived": "La gravedad del accidente es la de la víctima más grave.",
+  "newAccidentErrorVehicle": "Elige el tipo de vehículo.",
+  "newAccidentErrorVictim": "Elige la gravedad de la víctima.",
+  "accidentConditionsTitle": "Condiciones del lugar",
+  "@accidentVehicleTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "@accidentVictimTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "accidentSeveritySerious": "Heridas graves",
+  "dashCompliance": "Cumplimiento",
+  "dashComplianceUnavailable": "El cumplimiento por indicador aún no está disponible.",
+  "dashComplianceMet": "Indicadores cumplidos: {met} de {total}",
+  "dashStatusInProcess": "En proceso",
+  "dashStatusGood": "Buen estado",
+  "dashStatusIntermediate": "Estado intermedio",
+  "dashStatusBad": "Mal estado",
+  "dashTicketsBySubsystem": "Indicadores con más tickets",
+  "dashTopCreators": "Usuarios que más tickets han generado",
+  "@dashComplianceMet": {
+    "placeholders": {
+      "met": {
+        "type": "int"
+      },
+      "total": {
         "type": "int"
       }
     }

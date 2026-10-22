@@ -1742,15 +1742,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accidentTypeFire => 'Incendio';
 
   @override
-  String get accidentSeverityLow => 'Baja';
-
-  @override
-  String get accidentSeverityMedium => 'Media';
-
-  @override
-  String get accidentSeverityHigh => 'Alta';
-
-  @override
   String get accidentStatusRegistered => 'Registrado';
 
   @override
@@ -2019,6 +2010,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get invConditionPoor => 'Malo';
+
+  @override
+  String get invConditionUnknown => 'Sin evaluar';
+
+  @override
+  String get invSitePhoto => 'Vista en sitio';
 
   @override
   String get invFilterCondition => 'Estado';
@@ -2643,6 +2640,75 @@ class AppLocalizationsEs extends AppLocalizations {
   String get inspNoAsset => 'Este monitoreo no tiene un activo del catálogo.';
 
   @override
+  String get inspNew => 'Nuevo monitoreo';
+
+  @override
+  String get inspNewCreate => 'Crear monitoreo';
+
+  @override
+  String get inspNewType => 'Tipo de monitoreo';
+
+  @override
+  String get inspNewName => 'Nombre';
+
+  @override
+  String get inspNewNameHint => 'Opcional: si lo dejas vacío se usa el tipo';
+
+  @override
+  String get inspNewErrorType => 'Elige el tipo de monitoreo.';
+
+  @override
+  String get inspNewCreated => 'Monitoreo creado.';
+
+  @override
+  String get inspNewNoTemplates => 'No hay tipos de monitoreo disponibles.';
+
+  @override
+  String get inspEvidenceTitle => 'Hallazgos y evidencias';
+
+  @override
+  String get inspEvidenceAdd => 'Agregar hallazgo';
+
+  @override
+  String get inspEvidenceEmpty => 'Aún no hay hallazgos capturados.';
+
+  @override
+  String get inspEvidenceNote => 'Descripción del hallazgo';
+
+  @override
+  String get inspEvidenceItem => 'Punto del checklist';
+
+  @override
+  String get inspEvidenceNoItem => 'Sin punto del checklist';
+
+  @override
+  String get inspEvidenceSave => 'Guardar hallazgo';
+
+  @override
+  String get inspEvidenceErrorEmpty =>
+      'Escribe una descripción o toma una foto.';
+
+  @override
+  String get inspEvidenceSaved => 'Hallazgo guardado.';
+
+  @override
+  String inspEvidencePhotos(int count) {
+    return '$count fotos';
+  }
+
+  @override
+  String inspEvidencePosition(String lat, String lon, String accuracy) {
+    return 'Posición $lat, $lon (±$accuracy m)';
+  }
+
+  @override
+  String get inspEvidenceNoPosition => 'Sin posición (GPS no disponible)';
+
+  @override
+  String get inspDraftSaved =>
+      'Borrador guardado: tus respuestas se guardan solas.';
+
+  @override
   String get moduleInspections => 'Monitoreo';
 
   @override
@@ -2877,4 +2943,213 @@ class AppLocalizationsEs extends AppLocalizations {
   String alertsUnreadSemantic(int count) {
     return '$count alertas sin leer';
   }
+
+  @override
+  String get maintIndConservacion => 'Conservación';
+
+  @override
+  String get maintIndSgsei => 'Sistemas eléctricos e iluminación';
+
+  @override
+  String get maintIndSgost => 'Túneles';
+
+  @override
+  String get accidentTypeRunOver => 'Atropello';
+
+  @override
+  String get accidentTypeOther => 'Otro';
+
+  @override
+  String get accidentSeverityUnharmed => 'Ileso';
+
+  @override
+  String get accidentSeverityMinor => 'Lesiones menores';
+
+  @override
+  String get accidentSeverityFatal => 'Deceso';
+
+  @override
+  String get accidentZoneTitle => 'Zona';
+
+  @override
+  String get accidentZoneRural => 'Rural';
+
+  @override
+  String get accidentZoneSuburban => 'Suburbana';
+
+  @override
+  String get accidentZoneUrban => 'Urbana';
+
+  @override
+  String get accidentWeatherTitle => 'Clima';
+
+  @override
+  String get accidentWeatherWind => 'Viento';
+
+  @override
+  String get accidentWeatherRain => 'Lluvia';
+
+  @override
+  String get accidentWeatherFog => 'Niebla';
+
+  @override
+  String get accidentWeatherNormal => 'Normal';
+
+  @override
+  String get accidentPavementConditionTitle => 'Estado del pavimento';
+
+  @override
+  String get accidentSignageConditionTitle => 'Estado del señalamiento';
+
+  @override
+  String get accidentConditionGood => 'Buena';
+
+  @override
+  String get accidentConditionFair => 'Regular';
+
+  @override
+  String get accidentConditionPoor => 'Mala';
+
+  @override
+  String get accidentLayoutTitle => 'Trazado';
+
+  @override
+  String get accidentLayoutStraight => 'Recta';
+
+  @override
+  String get accidentLayoutVerticalCurve => 'Curva vertical';
+
+  @override
+  String get accidentLayoutHorizontalCurve => 'Curva horizontal';
+
+  @override
+  String get accidentPavementTypeTitle => 'Tipo de pavimento';
+
+  @override
+  String get accidentPavementRigid => 'Rígido';
+
+  @override
+  String get accidentPavementFlexible => 'Flexible';
+
+  @override
+  String get accidentCauseTitle => 'Causa';
+
+  @override
+  String get accidentCauseSpeeding => 'Exceso de velocidad';
+
+  @override
+  String get accidentCauseLaneInvasion => 'Invasión de carril';
+
+  @override
+  String get accidentCauseOther => 'Otra';
+
+  @override
+  String get accidentPlaceTitle => 'Lugar del accidente';
+
+  @override
+  String get accidentPlacePavement => 'Pavimento';
+
+  @override
+  String get accidentPlaceSignage => 'Señalamiento';
+
+  @override
+  String get accidentPlaceTollBooth => 'Casetas';
+
+  @override
+  String get accidentPlaceOther => 'Otros';
+
+  @override
+  String get accidentVehiclesTitle => 'Vehículos involucrados';
+
+  @override
+  String get accidentVehiclesCount => 'Cantidad de vehículos';
+
+  @override
+  String accidentVehicleTitle(int n) {
+    return 'Vehículo $n';
+  }
+
+  @override
+  String get accidentVehicleTypeTitle => 'Tipo de vehículo';
+
+  @override
+  String get accidentVehicleCar => 'Vehículo';
+
+  @override
+  String get accidentVehicleMotorcycle => 'Motocicleta';
+
+  @override
+  String get accidentVehicleLivestock => 'Semoviente';
+
+  @override
+  String get accidentVehicleFixedObject => 'Objeto fijo';
+
+  @override
+  String get accidentVictimsTitle => 'Víctimas';
+
+  @override
+  String get accidentVictimsCount => 'Cantidad de víctimas';
+
+  @override
+  String accidentVictimTitle(int n) {
+    return 'Víctima $n';
+  }
+
+  @override
+  String get accidentSexTitle => 'Sexo';
+
+  @override
+  String get accidentSexFemale => 'Femenino';
+
+  @override
+  String get accidentSexMale => 'Masculino';
+
+  @override
+  String get accidentSexUnspecified => 'No especificado';
+
+  @override
+  String get accidentSeverityDerived =>
+      'La gravedad del accidente es la de la víctima más grave.';
+
+  @override
+  String get newAccidentErrorVehicle => 'Elige el tipo de vehículo.';
+
+  @override
+  String get newAccidentErrorVictim => 'Elige la gravedad de la víctima.';
+
+  @override
+  String get accidentConditionsTitle => 'Condiciones del lugar';
+
+  @override
+  String get accidentSeveritySerious => 'Heridas graves';
+
+  @override
+  String get dashCompliance => 'Cumplimiento';
+
+  @override
+  String get dashComplianceUnavailable =>
+      'El cumplimiento por indicador aún no está disponible.';
+
+  @override
+  String dashComplianceMet(int met, int total) {
+    return 'Indicadores cumplidos: $met de $total';
+  }
+
+  @override
+  String get dashStatusInProcess => 'En proceso';
+
+  @override
+  String get dashStatusGood => 'Buen estado';
+
+  @override
+  String get dashStatusIntermediate => 'Estado intermedio';
+
+  @override
+  String get dashStatusBad => 'Mal estado';
+
+  @override
+  String get dashTicketsBySubsystem => 'Indicadores con más tickets';
+
+  @override
+  String get dashTopCreators => 'Usuarios que más tickets han generado';
 }

@@ -11,7 +11,9 @@ enum AccidentFilter {
   all(null),
   collision(AccidentType.collision),
   rollover(AccidentType.rollover),
-  fire(AccidentType.fire);
+  runOver(AccidentType.runOver),
+  fire(AccidentType.fire),
+  other(AccidentType.other);
 
   const AccidentFilter(this.type);
 

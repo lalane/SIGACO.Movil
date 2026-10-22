@@ -20,14 +20,24 @@ enum MaintenanceIndicator {
   /// Equipos ITS.
   sgits,
 
-  /// Faixa de dominio.
-  sgf,
+  /// Conservacion (BBP §7.8: el selector de indicadores la lista entre SGITS y
+  /// SGE).
+  conservacion,
+
+  /// Edificaciones e instalaciones.
+  sge,
 
   /// Terraplenos y estructuras.
   sgtec,
 
-  /// Edificaciones e instalaciones.
-  sge,
+  /// Sistemas electricos e iluminacion.
+  sgsei,
+
+  /// Tuneles.
+  sgost,
+
+  /// Faixa de dominio.
+  sgf,
 }
 
 enum MaintenanceStatus { open, inProgress, closed }

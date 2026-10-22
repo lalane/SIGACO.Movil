@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +29,7 @@ class InventoryDetailPage extends StatelessWidget {
     return BlocBuilder<InventoryDetailCubit, InventoryDetailState>(
       builder: (context, state) {
         final asset = state.asset;
-        if (asset != null) return _Detail(asset: asset);
+        if (asset != null) return _Detail(asset: asset, photo: state.photo);
         final l10n = AppLocalizations.of(context);
         return Scaffold(
           backgroundColor: p.gradientTop,
@@ -57,9 +59,12 @@ class InventoryDetailPage extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.asset});
+  const _Detail({required this.asset, this.photo});
 
   final InventoryAsset asset;
+
+  /// La vista en sitio, si el activo tiene foto.
+  final Uint8List? photo;
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +134,7 @@ class _Detail extends StatelessWidget {
                           ),
                           SizedBox(height: r.s(10)),
                           Text(
-                            '${asset.id} · ${asset.category}',
+                            '${asset.code ?? asset.id} · ${asset.category}',
                             style: TextStyle(
                               color: moduleMuted,
                               fontSize: r.s(16),
@@ -158,6 +163,31 @@ class _Detail extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (photo != null) ...[
+                      SizedBox(height: r.s(24)),
+                      Text(
+                        l10n.invSitePhoto,
+                        style: TextStyle(
+                          color: const Color(0xFF9AA3C7),
+                          fontSize: r.s(16),
+                        ),
+                      ),
+                      SizedBox(height: r.s(10)),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(r.s(16)),
+                        child: AspectRatio(
+                          aspectRatio: 4 / 3,
+                          child: Image.memory(
+                            photo!,
+                            key: const Key('inventory-detail-photo'),
+                            fit: BoxFit.cover,
+                            // Un archivo que no es imagen no tira la ficha.
+                            errorBuilder: (_, _, _) =>
+                                const ColoredBox(color: moduleSurface),
+                          ),
+                        ),
+                      ),
+                    ],
                     SizedBox(height: r.s(28)),
                     Text(
                       l10n.invDetailsTitle,

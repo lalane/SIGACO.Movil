@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../entities/inventory_asset.dart';
 
 /// Por que no se pudo traer el inventario.
@@ -32,4 +34,8 @@ abstract interface class InventoryRepository {
   Future<List<InventoryAsset>> list();
 
   Future<InventoryAsset> get(String id);
+
+  /// La foto principal del activo ("vista en sitio"), o null si no tiene o no se
+  /// pudo bajar: no impide ver la ficha.
+  Future<Uint8List?> mainPhoto(InventoryAsset asset);
 }

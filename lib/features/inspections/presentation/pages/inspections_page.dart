@@ -48,6 +48,13 @@ class _InspectionsPageState extends State<InspectionsPage> {
     super.dispose();
   }
 
+  Future<void> _open(String location) async {
+    final cubit = context.read<InspectionsCubit>();
+    await context.push(location);
+    // Al volver, lo que se creo o se lleno ya cuenta.
+    if (mounted && !cubit.isClosed) await cubit.refresh();
+  }
+
   void _toggleSearch() {
     final cubit = context.read<InspectionsCubit>();
     setState(() => _searching = !_searching);
@@ -153,7 +160,14 @@ class _InspectionsPageState extends State<InspectionsPage> {
                 ),
               ],
               SizedBox(height: r.s(12)),
-              Expanded(child: ModuleListSheet(body: _body(context, state))),
+              Expanded(
+                child: ModuleListSheet(
+                  buttonKey: const Key('inspections-new'),
+                  buttonLabel: l10n.inspNew,
+                  onButton: () => _open('/inspections/new'),
+                  body: _body(context, state),
+                ),
+              ),
             ],
           ),
         ),
@@ -198,11 +212,7 @@ class _InspectionsPageState extends State<InspectionsPage> {
                 child: InspectionCard(
                   inspection: visible[i],
                   zone: zone,
-                  onTap: () async {
-                    await context.push('/inspections/${visible[i].id}');
-                    // Al volver, lo que se lleno en la ficha ya cuenta.
-                    if (context.mounted) cubit.refresh();
-                  },
+                  onTap: () => _open('/inspections/${visible[i].id}'),
                 ),
               ),
             ),

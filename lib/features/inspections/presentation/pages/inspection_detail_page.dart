@@ -15,6 +15,7 @@ import '../../domain/entities/inspection.dart';
 import '../../domain/repositories/inspections_repository.dart';
 import '../bloc/inspection_detail_cubit.dart';
 import '../inspections_labels.dart';
+import '../widgets/finding_widgets.dart';
 import '../widgets/inspection_widgets.dart';
 
 /// La ficha de una inspeccion: datos, checklist para llenar y el boton para
@@ -28,10 +29,23 @@ class InspectionDetailPage extends StatelessWidget {
     return BlocConsumer<InspectionDetailCubit, InspectionDetailState>(
       listenWhen: (a, b) =>
           (!a.justCompleted && b.justCompleted) ||
+          (!a.justSavedFinding && b.justSavedFinding) ||
           (a.actionError != b.actionError && b.actionError != null),
       listener: (context, state) {
         final l10n = AppLocalizations.of(context);
         final messenger = ScaffoldMessenger.of(context);
+        if (state.justSavedFinding) {
+          messenger
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                key: const Key('inspection-finding-saved'),
+                content: Text(l10n.inspEvidenceSaved),
+              ),
+            );
+          context.read<InspectionDetailCubit>().findingShown();
+          return;
+        }
         if (state.justCompleted) {
           final critical = (state.inspection?.criticalFindings ?? 0) > 0;
           messenger
@@ -256,6 +270,14 @@ class _Detail extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (inspection.status == InspectionStatus.inProgress) ...[
+                      SizedBox(height: r.s(6)),
+                      Text(
+                        l10n.inspDraftSaved,
+                        key: const Key('inspection-draft-saved'),
+                        style: TextStyle(color: moduleMuted, fontSize: r.s(13)),
+                      ),
+                    ],
                     if (inspection.findings > 0) ...[
                       SizedBox(height: r.s(6)),
                       Text(
@@ -293,6 +315,32 @@ class _Detail extends StatelessWidget {
                         editable: inspection.editable && !busy && configured,
                         onAnswer: (result) => cubit.answer(item.id, result),
                       ),
+                    SizedBox(height: r.s(24)),
+                    Text(
+                      l10n.inspEvidenceTitle,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.s(20),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: r.s(12)),
+                    if (inspection.evidence.isEmpty)
+                      Text(
+                        l10n.inspEvidenceEmpty,
+                        key: const Key('inspection-evidence-empty'),
+                        style: TextStyle(color: moduleMuted, fontSize: r.s(14)),
+                      ),
+                    for (final finding in inspection.evidence)
+                      FindingTile(
+                        key: Key('finding-${finding.id}'),
+                        finding: finding,
+                        zone: zone,
+                        itemText: [
+                          for (final i in inspection.checklist)
+                            if (i.id == finding.itemId) i.text,
+                        ].firstOrNull,
+                      ),
                   ],
                 ),
               ),
@@ -306,6 +354,24 @@ class _Detail extends StatelessWidget {
                   icon: Icons.inventory_2_outlined,
                   tooltip: l10n.inspViewAsset,
                   onTap: () => context.push('/inventory/${inspection.assetId}'),
+                ),
+              if (inspection.editable && configured)
+                ModuleActionButton(
+                  key: const Key('inspection-action-finding'),
+                  icon: Icons.add_a_photo_outlined,
+                  tooltip: l10n.inspEvidenceAdd,
+                  onTap: busy
+                      ? () {}
+                      : () => showFindingSheet(
+                          context,
+                          checklist: inspection.checklist,
+                          onSave: ({itemId, required note, required photoPaths}) =>
+                              cubit.addFinding(
+                                itemId: itemId,
+                                note: note,
+                                photoPaths: photoPaths,
+                              ),
+                        ),
                 ),
               if (inspection.editable && configured)
                 ModuleActionButton(

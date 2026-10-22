@@ -56,6 +56,54 @@ class AccidentDetailPage extends StatelessWidget {
   }
 }
 
+/// Las condiciones del lugar que se capturaron; las vacias no se muestran.
+List<ModuleInfo> _conditions(AppLocalizations l10n, Accident a) => [
+  if (a.zone != null)
+    ModuleInfo(Icons.terrain, l10n.accidentZoneTitle, zoneLabel(l10n, a.zone!)),
+  if (a.weather != null)
+    ModuleInfo(
+      Icons.cloud_outlined,
+      l10n.accidentWeatherTitle,
+      weatherLabel(l10n, a.weather!),
+    ),
+  if (a.pavementCondition != null)
+    ModuleInfo(
+      Icons.add_road,
+      l10n.accidentPavementConditionTitle,
+      conditionLabel(l10n, a.pavementCondition!),
+    ),
+  if (a.layout != null)
+    ModuleInfo(
+      Icons.route,
+      l10n.accidentLayoutTitle,
+      layoutLabel(l10n, a.layout!),
+    ),
+  if (a.pavementType != null)
+    ModuleInfo(
+      Icons.layers_outlined,
+      l10n.accidentPavementTypeTitle,
+      pavementTypeLabel(l10n, a.pavementType!),
+    ),
+  if (a.signageCondition != null)
+    ModuleInfo(
+      Icons.traffic,
+      l10n.accidentSignageConditionTitle,
+      conditionLabel(l10n, a.signageCondition!),
+    ),
+  if (a.cause != null)
+    ModuleInfo(
+      Icons.report_problem_outlined,
+      l10n.accidentCauseTitle,
+      causeLabel(l10n, a.cause!),
+    ),
+  if (a.place != null)
+    ModuleInfo(
+      Icons.place_outlined,
+      l10n.accidentPlaceTitle,
+      placeLabel(l10n, a.place!),
+    ),
+];
+
 class _Detail extends StatelessWidget {
   const _Detail({required this.accident});
 
@@ -228,6 +276,79 @@ class _Detail extends StatelessWidget {
                               color: severityColor(accident.severity),
                             ),
                           ),
+                          if (_conditions(l10n, accident).isNotEmpty) ...[
+                            SizedBox(height: r.s(24)),
+                            ModuleSectionTitle(l10n.accidentConditionsTitle),
+                            SizedBox(height: r.s(10)),
+                            KeyedSubtree(
+                              key: const Key('accident-conditions'),
+                              child: ModuleInfoGrid(
+                                items: _conditions(l10n, accident),
+                              ),
+                            ),
+                          ],
+                          if (accident.vehicles.isNotEmpty) ...[
+                            SizedBox(height: r.s(24)),
+                            ModuleSectionTitle(l10n.accidentVehiclesTitle),
+                            SizedBox(height: r.s(10)),
+                            Wrap(
+                              spacing: r.s(8),
+                              runSpacing: r.s(8),
+                              children: [
+                                for (
+                                  var i = 0;
+                                  i < accident.vehicles.length;
+                                  i++
+                                )
+                                  Chip(
+                                    key: Key('accident-detail-vehicle-$i'),
+                                    label: Text(
+                                      '${l10n.accidentVehicleTitle(i + 1)} · '
+                                      '${vehicleLabel(l10n, accident.vehicles[i].type)}',
+                                    ),
+                                    backgroundColor: moduleSurface,
+                                    labelStyle: const TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                    side: BorderSide.none,
+                                  ),
+                              ],
+                            ),
+                          ],
+                          if (accident.victims.isNotEmpty) ...[
+                            SizedBox(height: r.s(24)),
+                            ModuleSectionTitle(l10n.accidentVictimsTitle),
+                            SizedBox(height: r.s(10)),
+                            Wrap(
+                              spacing: r.s(8),
+                              runSpacing: r.s(8),
+                              children: [
+                                for (
+                                  var i = 0;
+                                  i < accident.victims.length;
+                                  i++
+                                )
+                                  ModuleStatusPill(
+                                    key: Key('accident-detail-victim-$i'),
+                                    label: [
+                                      l10n.accidentVictimTitle(i + 1),
+                                      if (accident.victims[i].sex != null)
+                                        sexLabel(
+                                          l10n,
+                                          accident.victims[i].sex!,
+                                        ),
+                                      severityLabel(
+                                        l10n,
+                                        accident.victims[i].severity,
+                                      ),
+                                    ].join(' · '),
+                                    color: severityColor(
+                                      accident.victims[i].severity,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                           if (accident.description != null) ...[
                             SizedBox(height: r.s(24)),
                             ModuleSectionTitle(l10n.ticketDescriptionTitle),

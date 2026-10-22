@@ -52,12 +52,17 @@ import '../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../features/inspections/data/repositories/sample_inspections_repository.dart';
 import '../features/inspections/data/repositories/unavailable_inspections_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../features/inventory/data/repositories/api_inventory_repository.dart';
 import '../features/inventory/data/repositories/sample_inventory_repository.dart';
 import '../features/inventory/data/repositories/unavailable_inventory_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
 import 'composition/maintenance_reports_repository.dart';
+import '../features/alerts/data/repositories/api_alerts_repository.dart';
 import '../features/alerts/data/repositories/sample_alerts_repository.dart';
+import '../features/dashboard/data/repositories/sample_compliance_source.dart';
+import '../features/dashboard/data/repositories/unavailable_compliance_source.dart';
+import '../features/dashboard/domain/repositories/compliance_source.dart';
 import '../features/alerts/data/repositories/unavailable_alerts_repository.dart';
 import '../features/alerts/domain/repositories/alerts_repository.dart';
 import '../features/works/data/repositories/sample_works_repository.dart';
@@ -72,6 +77,7 @@ import '../features/map/data/packs/file_map_pack_manager.dart';
 import '../features/map/data/packs/map_pack_remote.dart';
 import '../features/map/data/packs/unavailable_map_pack_manager.dart';
 import '../features/map/data/location/unavailable_location_source.dart';
+import '../features/map/data/repositories/api_map_repository.dart';
 import '../features/map/data/repositories/cached_map_repository.dart';
 import '../features/map/data/repositories/cached_road_segments_repository.dart';
 import '../features/map/data/repositories/near_me_sample_road_segments_repository.dart';
@@ -247,6 +253,7 @@ class AppDependencies {
     this.sampleInspections = false,
     ReportsRepository? reportsRepository,
     DashboardRepository? dashboardRepository,
+    ComplianceSource? complianceSource,
     PushRegistrar? pushRegistrar,
     this.features = const FeatureFlags(),
     this.mapSettings = const MapSettings(),
@@ -276,6 +283,8 @@ class AppDependencies {
              accidents: accidentsRepository,
              maintenance: maintenanceRepository,
              inventory: inventoryRepository,
+             compliance:
+                 complianceSource ?? const UnavailableComplianceSource(),
            ),
        fileStore = fileStore ?? DiskLocalFileStore(),
        documentsRepository =
@@ -459,6 +468,16 @@ class AppDependencies {
       if (AppConfig.sampleMaintenance)
         const NavigationItem(code: 'REPORTES', name: 'Reportes'),
     ]);
+    // Etiquetas de tipo y categoria en el idioma elegido (o el del telefono si
+    // no eligio ninguno).
+    String language() {
+      final saved = prefs.getString('app_locale');
+      if (saved == 'es' || saved == 'pt') return saved!;
+      return PlatformDispatcher.instance.locale.languageCode == 'pt'
+          ? 'pt'
+          : 'es';
+    }
+
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
@@ -467,18 +486,7 @@ class AppDependencies {
       documents = SampleDocumentsRepository();
       remote = const UnavailableSyncRemote();
     } else {
-      final server = DocumentsRepositoryImpl(
-        api,
-        // Etiquetas de tipo y categoria en el idioma elegido (o el del
-        // telefono si no eligio ninguno).
-        language: () {
-          final saved = prefs.getString('app_locale');
-          if (saved == 'es' || saved == 'pt') return saved!;
-          return PlatformDispatcher.instance.locale.languageCode == 'pt'
-              ? 'pt'
-              : 'es';
-        },
-      );
+      final server = DocumentsRepositoryImpl(api, language: language);
       // Lo ya consultado queda en el telefono para verlo sin conexion; es de la
       // persona y concesion activas y se descarta al cambiar o cerrar sesion.
       final cache = FileDocumentsCache();
@@ -548,7 +556,10 @@ class AppDependencies {
       navigationRepository: navigation,
       documentsRepository: documents,
       mapRepository: !AppConfig.sampleMap
-          ? CachedMapRepository(const UnavailableMapRepository(), mapPinsCache)
+          ? CachedMapRepository(
+              ApiMapRepository(api, language: language),
+              mapPinsCache,
+            )
           : AppConfig.sampleMapNearMe
           ? NearMeSampleMapRepository(road: nearMeRoad)
           : SampleMapRepository(),
@@ -583,7 +594,7 @@ class AppDependencies {
       sampleMaintenance: AppConfig.sampleMaintenance,
       inventoryRepository: AppConfig.sampleInventory
           ? SampleInventoryRepository()
-          : const UnavailableInventoryRepository(),
+          : ApiInventoryRepository(api),
       sampleInventory: AppConfig.sampleInventory,
       // El token push se registra en `/api/auth/me/devices` solo si el canal
       // push de la concesion esta encendido. Falta la fuente del token
@@ -597,9 +608,14 @@ class AppDependencies {
           ? SampleWorksRepository()
           : const UnavailableWorksRepository(),
       sampleWorks: AppConfig.sampleWorks,
+      // El cumplimiento por indicador lo calcula el servidor; con ejemplos se
+      // muestran cifras con la forma del BBP.
+      complianceSource: AppConfig.sampleTickets || AppConfig.sampleMaintenance
+          ? const SampleComplianceSource()
+          : const UnavailableComplianceSource(),
       alertsRepository: AppConfig.sampleAlerts
           ? SampleAlertsRepository()
-          : const UnavailableAlertsRepository(),
+          : ApiAlertsRepository(api),
       sampleAlerts: AppConfig.sampleAlerts,
       inspectionsRepository: AppConfig.sampleInspections
           ? SampleInspectionsRepository()

@@ -7,6 +7,8 @@ import '../../features/maintenance/domain/repositories/maintenance_repository.da
 import '../../features/tickets/domain/entities/ticket.dart';
 import '../../features/tickets/domain/repositories/tickets_repository.dart';
 import '../../features/dashboard/domain/entities/dashboard_summary.dart';
+import '../../features/dashboard/data/repositories/unavailable_compliance_source.dart';
+import '../../features/dashboard/domain/repositories/compliance_source.dart';
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
 
 /// Arma el resumen con lo que ya consultan los modulos. Mientras el backend no
@@ -18,8 +20,12 @@ class ComposedDashboardRepository implements DashboardRepository {
     required this.accidents,
     required this.maintenance,
     required this.inventory,
+    this.compliance = const UnavailableComplianceSource(),
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
+
+  /// Cumplimiento por indicador: lo calcula el servidor (BBP §7.8).
+  final ComplianceSource compliance;
 
   final TicketsRepository tickets;
   final AccidentsRepository accidents;
@@ -46,6 +52,8 @@ class ComposedDashboardRepository implements DashboardRepository {
         errors[section] = _fromMaintenance(e.error);
       } on InventoryException catch (e) {
         errors[section] = _fromInventory(e.error);
+      } on ComplianceException catch (e) {
+        errors[section] = e.error;
       } catch (_) {
         errors[section] = DashboardError.server;
       }
@@ -53,6 +61,7 @@ class ComposedDashboardRepository implements DashboardRepository {
     }
 
     final results = await Future.wait([
+      block(DashboardSection.compliance, compliance.load),
       block(DashboardSection.tickets, () => _tickets(now)),
       block(DashboardSection.accidents, () => _accidents(now)),
       block(DashboardSection.maintenance, _maintenance),
@@ -60,10 +69,11 @@ class ComposedDashboardRepository implements DashboardRepository {
     ]);
     return DashboardSummary(
       generatedAt: now,
-      tickets: results[0] as TicketsSummary?,
-      accidents: results[1] as AccidentsSummary?,
-      maintenance: results[2] as MaintenanceSummary?,
-      inventory: results[3] as InventorySummary?,
+      compliance: results[0] as ComplianceSummary?,
+      tickets: results[1] as TicketsSummary?,
+      accidents: results[2] as AccidentsSummary?,
+      maintenance: results[3] as MaintenanceSummary?,
+      inventory: results[4] as InventorySummary?,
       errors: errors,
     );
   }
@@ -75,7 +85,28 @@ class ComposedDashboardRepository implements DashboardRepository {
       open: open.length,
       attended: all.length - open.length,
       overdue: open.where((t) => t.dueAt?.isBefore(now) ?? false).length,
+      creators: _creators(all),
     );
+  }
+
+  /// Quienes mas tickets generaron: los cinco primeros, de mas a menos (y por
+  /// nombre si empatan).
+  static List<TicketCreator> _creators(List<Ticket> all) {
+    final counts = <String, int>{};
+    for (final t in all) {
+      final name = t.authorName?.trim();
+      if (name == null || name.isEmpty) continue;
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+    final list = [
+      for (final e in counts.entries)
+        TicketCreator(name: e.key, count: e.value),
+    ];
+    list.sort((a, b) {
+      final byCount = b.count.compareTo(a.count);
+      return byCount != 0 ? byCount : a.name.compareTo(b.name);
+    });
+    return list.take(5).toList();
   }
 
   Future<AccidentsSummary> _accidents(DateTime now) async {
@@ -86,7 +117,13 @@ class ComposedDashboardRepository implements DashboardRepository {
     ];
     return AccidentsSummary(
       recent: recent.length,
-      severe: recent.where((a) => a.severity == AccidentSeverity.high).length,
+      severe: recent
+          .where(
+            (a) =>
+                a.severity == AccidentSeverity.serious ||
+                a.severity == AccidentSeverity.fatal,
+          )
+          .length,
       inFollowUp: recent.where((a) => a.status != AccidentStatus.closed).length,
     );
   }

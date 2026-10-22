@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
 
@@ -14,4 +16,7 @@ class UnavailableInventoryRepository implements InventoryRepository {
 
   @override
   Future<InventoryAsset> get(String id) => Future.error(_error);
+
+  @override
+  Future<Uint8List?> mainPhoto(InventoryAsset asset) async => null;
 }

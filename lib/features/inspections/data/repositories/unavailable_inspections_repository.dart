@@ -20,6 +20,16 @@ class UnavailableInspectionsRepository implements InspectionsRepository {
       Future.error(_error);
 
   @override
+  Future<List<InspectionTemplate>> templates() => Future.error(_error);
+
+  @override
+  Future<Inspection> create(NewInspection draft) => Future.error(_error);
+
+  @override
+  Future<Inspection> addFinding(String id, InspectionFinding finding) =>
+      Future.error(_error);
+
+  @override
   Future<Inspection> complete(String id, Map<String, CheckResult> answers) =>
       Future.error(_error);
 }

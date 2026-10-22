@@ -91,7 +91,6 @@ void main() {
       clock.now = DateTime.utc(2026, 10, 19, 10, 15);
       cubit.setTitle('Choque');
       cubit.setType(AccidentType.collision);
-      cubit.setSeverity(AccidentSeverity.low);
       await cubit.save();
       final created = (await repo.list()).firstWhere(
         (a) => a.title == 'Choque',

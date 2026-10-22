@@ -49,7 +49,9 @@ void main() {
       expect(
         s.share(AccidentFilter.collision) +
             s.share(AccidentFilter.rollover) +
-            s.share(AccidentFilter.fire),
+            s.share(AccidentFilter.runOver) +
+            s.share(AccidentFilter.fire) +
+            s.share(AccidentFilter.other),
         closeTo(100, 0.01),
       );
     });
@@ -59,7 +61,7 @@ void main() {
       await cubit.load();
       cubit.setFilter(AccidentFilter.rollover);
       expect(cubit.state.visible, hasLength(3));
-      cubit.setSeverity(AccidentSeverity.high);
+      cubit.setSeverity(AccidentSeverity.serious);
       expect(cubit.state.visible.map((a) => a.id), ['A-0036']);
       cubit.clearFilters();
       expect(cubit.state.visible, hasLength(8));
@@ -92,22 +94,120 @@ void main() {
       expect(missing.state.error, AccidentsError.notFound);
     });
 
-    test('el registro pide titulo, tipo y gravedad', () async {
+    test('el registro pide titulo y tipo', () async {
       final cubit = NewAccidentCubit(repo);
       await cubit.save();
       expect(cubit.state.issues, [
         NewAccidentIssue.title,
         NewAccidentIssue.type,
-        NewAccidentIssue.severity,
       ]);
       expect(cubit.state.saved, isFalse);
+    });
+
+    test('cada vehiculo pide su tipo y cada victima su gravedad', () async {
+      final cubit = NewAccidentCubit(repo)
+        ..setTitle('Choque')
+        ..setType(AccidentType.collision)
+        ..setVehicleCount(2)
+        ..setVictimCount(2);
+      expect(cubit.state.vehicles, [null, null]);
+      expect(cubit.state.issues, [
+        NewAccidentIssue.vehicle,
+        NewAccidentIssue.victim,
+      ]);
+      await cubit.save();
+      expect(cubit.state.saved, isFalse);
+
+      cubit
+        ..setVehicleType(0, VehicleType.vehicle)
+        ..setVehicleType(1, VehicleType.motorcycle)
+        ..setVictimSeverity(0, AccidentSeverity.minor)
+        ..setVictimSeverity(1, AccidentSeverity.fatal);
+      expect(cubit.state.issues, isEmpty);
+    });
+
+    test(
+      'la cantidad decide los renglones y baja conservando los primeros',
+      () {
+        final cubit = NewAccidentCubit(repo)
+          ..setVehicleCount(3)
+          ..setVehicleType(0, VehicleType.livestock)
+          ..setVehicleType(2, VehicleType.fixedObject)
+          ..setVehicleCount(1);
+        expect(cubit.state.vehicles, [VehicleType.livestock]);
+        cubit.setVictimCount(accidentMaxParties + 5);
+        expect(cubit.state.victims, hasLength(accidentMaxParties));
+        cubit.setVictimCount(-3);
+        expect(cubit.state.victims, isEmpty);
+      },
+    );
+
+    test('un renglon fuera de rango se ignora', () {
+      final cubit = NewAccidentCubit(repo)
+        ..setVehicleCount(1)
+        ..setVehicleType(5, VehicleType.vehicle)
+        ..setVictimSex(0, VictimSex.male)
+        ..setVictimSeverity(-1, AccidentSeverity.fatal);
+      expect(cubit.state.vehicles, [null]);
+      expect(cubit.state.victims, isEmpty);
+    });
+
+    test('la gravedad del accidente es la de su victima mas grave', () {
+      final cubit = NewAccidentCubit(repo);
+      expect(cubit.state.severity, AccidentSeverity.unharmed);
+      cubit
+        ..setVictimCount(3)
+        ..setVictimSeverity(0, AccidentSeverity.minor)
+        ..setVictimSeverity(1, AccidentSeverity.fatal)
+        ..setVictimSeverity(2, AccidentSeverity.serious);
+      expect(cubit.state.severity, AccidentSeverity.fatal);
+    });
+
+    test('lo capturado llega completo al repositorio', () async {
+      final cubit = NewAccidentCubit(repo)
+        ..setTitle('Atropello km 150')
+        ..setType(AccidentType.runOver)
+        ..setZone(AccidentZone.urban)
+        ..setWeather(AccidentWeather.fog)
+        ..setPavementCondition(RoadCondition.poor)
+        ..setLayout(RoadLayout.verticalCurve)
+        ..setPavementType(PavementType.rigid)
+        ..setSignageCondition(RoadCondition.fair)
+        ..setCause(AccidentCause.speeding)
+        ..setPlace(AccidentPlace.tollBooth)
+        ..setVehicleCount(1)
+        ..setVehicleType(0, VehicleType.motorcycle)
+        ..setVictimCount(2)
+        ..setVictimSex(0, VictimSex.female)
+        ..setVictimSeverity(0, AccidentSeverity.serious)
+        ..setVictimSeverity(1, AccidentSeverity.unharmed);
+      await cubit.save();
+
+      final a = (await repo.list()).first;
+      expect(a.type, AccidentType.runOver);
+      expect(a.severity, AccidentSeverity.serious);
+      expect(a.zone, AccidentZone.urban);
+      expect(a.weather, AccidentWeather.fog);
+      expect(a.pavementCondition, RoadCondition.poor);
+      expect(a.layout, RoadLayout.verticalCurve);
+      expect(a.pavementType, PavementType.rigid);
+      expect(a.signageCondition, RoadCondition.fair);
+      expect(a.cause, AccidentCause.speeding);
+      expect(a.place, AccidentPlace.tollBooth);
+      expect(a.vehicles, [const AccidentVehicle(type: VehicleType.motorcycle)]);
+      expect(a.victims, [
+        const AccidentVictim(
+          severity: AccidentSeverity.serious,
+          sex: VictimSex.female,
+        ),
+        const AccidentVictim(severity: AccidentSeverity.unharmed),
+      ]);
     });
 
     test('registra el accidente con lo capturado', () async {
       final cubit = NewAccidentCubit(repo)
         ..setTitle('  Choque en la caseta ')
         ..setType(AccidentType.collision)
-        ..setSeverity(AccidentSeverity.low)
         ..setKm('KM 149+500')
         ..setPhoto(1, '/tmp/b.jpg')
         ..setPhoto(7, '/tmp/fuera.jpg');
@@ -244,7 +344,9 @@ void main() {
       await open(tester);
       await tester.tap(find.byKey(const Key('accidents-filter-button')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('accidents-sheet-severity-high')));
+      await tester.tap(
+        find.byKey(const Key('accidents-sheet-severity-serious')),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('accidents-sheet-done')));
       await tester.pumpAndSettle();
@@ -301,6 +403,68 @@ void main() {
       expect(find.byKey(const Key('accidents-list')), findsOneWidget);
     });
 
+    testWidgets(
+      'la ficha muestra las condiciones, los vehiculos y las victimas',
+      (tester) async {
+        await launch(tester);
+        await open(tester);
+        await tester.tap(find.byKey(const Key('accidents-search-button')));
+        await tester.pumpAndSettle();
+        await tester.enterText(
+          find.byKey(const Key('accidents-search')),
+          '0036',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(card('A-0036'));
+        await tester.pumpAndSettle();
+
+        final conditions = find.byKey(const Key('accident-conditions'));
+        await tester.ensureVisible(conditions);
+        await tester.pumpAndSettle();
+        expect(conditions, findsOneWidget);
+        for (final text in [
+          'Rural',
+          'Normal',
+          'Curva horizontal',
+          'Exceso de velocidad',
+          'Pavimento',
+        ]) {
+          expect(find.text(text), findsWidgets, reason: text);
+        }
+        expect(
+          find.byKey(const Key('accident-detail-vehicle-0')),
+          findsOneWidget,
+        );
+        expect(find.text('Vehículo 1 · Vehículo'), findsOneWidget);
+        expect(
+          find.byKey(const Key('accident-detail-victim-0')),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Víctima 1 · Masculino · Heridas graves'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('un accidente sin esos datos no muestra las secciones vacias', (
+      tester,
+    ) async {
+      await launch(tester);
+      await open(tester);
+      await tester.tap(find.byKey(const Key('accidents-search-button')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const Key('accidents-search')), '0038');
+      await tester.pumpAndSettle();
+      await tester.tap(card('A-0038'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('accident-detail')), findsOneWidget);
+      expect(find.byKey(const Key('accident-conditions')), findsNothing);
+      expect(find.byKey(const Key('accident-detail-vehicle-0')), findsNothing);
+      expect(find.byKey(const Key('accident-detail-victim-0')), findsNothing);
+    });
+
     testWidgets('registrar un accidente nuevo lo suma al historial', (
       tester,
     ) async {
@@ -312,7 +476,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Escribe un título.'), findsOneWidget);
       expect(find.text('Elige el tipo de accidente.'), findsOneWidget);
-      expect(find.text('Elige la gravedad.'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('new-accident-title')),
         'Choque en la caseta',
@@ -321,10 +484,41 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Incendio').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('new-accident-severity')));
+      // Un vehiculo y una victima: cada uno pide sus datos.
+      final plusVehicle = find.byKey(const Key('accident-vehicles-plus'));
+      await tester.ensureVisible(plusVehicle);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Baja').last);
+      await tester.tap(plusVehicle);
       await tester.pumpAndSettle();
+      final plusVictim = find.byKey(const Key('accident-victims-plus'));
+      await tester.ensureVisible(plusVictim);
+      await tester.pumpAndSettle();
+      await tester.tap(plusVictim);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('accident-form-submit')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('accident-form-submit')));
+      await tester.pumpAndSettle();
+      expect(find.text('Elige el tipo de vehículo.'), findsOneWidget);
+      expect(find.text('Elige la gravedad de la víctima.'), findsOneWidget);
+      final vehicle = find.byKey(const Key('new-accident-vehicle-0'));
+      await tester.ensureVisible(vehicle);
+      await tester.pumpAndSettle();
+      await tester.tap(vehicle);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Motocicleta').last);
+      await tester.pumpAndSettle();
+      final victim = find.byKey(const Key('new-accident-victim-severity-0'));
+      await tester.ensureVisible(victim);
+      await tester.pumpAndSettle();
+      await tester.tap(victim);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ileso').last);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('new-accident-derived-severity')),
+        findsOneWidget,
+      );
       await tester.tap(find.byKey(const Key('accident-photo-0')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('accident-form-submit')));

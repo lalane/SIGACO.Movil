@@ -203,6 +203,8 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
+          const _AlertsBell(),
+          SizedBox(width: r.s(4)),
           InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.push('/account'),
@@ -231,6 +233,36 @@ class _Header extends StatelessWidget {
         .where((s) => s.isNotEmpty);
     final letters = parts.take(2).map((s) => s[0].toUpperCase()).join();
     return letters.isEmpty ? '?' : letters;
+  }
+}
+
+/// La campana de la cabecera: lleva a las alertas y cuenta las que siguen sin
+/// leer. Siempre se ve: la bandeja de notificaciones es de la persona y no
+/// depende de un modulo del menu.
+class _AlertsBell extends StatelessWidget {
+  const _AlertsBell();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final p = context.palette;
+    final r = context.responsive;
+    final unread = context.select((AlertsCubit c) => c.state.unread);
+    return IconButton(
+      key: const Key('home-alerts-bell'),
+      tooltip: l10n.navAlerts,
+      onPressed: () => context.push('/alerts'),
+      icon: Badge(
+        key: const Key('bell-badge'),
+        isLabelVisible: unread > 0,
+        label: Text(unread > 99 ? '99+' : '$unread'),
+        child: Icon(
+          Icons.notifications_none,
+          color: p.textOnTop,
+          size: r.s(26),
+        ),
+      ),
+    );
   }
 }
 
@@ -306,7 +338,10 @@ class _Content extends StatelessWidget {
         final flags = context.read<FeatureFlags>();
         final modules = [
           for (final m in MobileModule.availableIn(state.menu))
-            if (m != MobileModule.documents || flags.documents) m,
+            // Las alertas no son una tarjeta: se ven en la campana de la cabecera.
+            if (m != MobileModule.alerts &&
+                (m != MobileModule.documents || flags.documents))
+              m,
         ];
         body = modules.isEmpty
             ? AccessStateView(
@@ -580,10 +615,6 @@ class _ModuleCard extends StatelessWidget {
     final r = context.responsive;
     final scaler = MediaQuery.textScalerOf(context);
     final (title, subtitle) = _labelsFor(AppLocalizations.of(context), module);
-    // Solo la tarjeta de alertas lleva contador (alertas sin leer).
-    final unread = module == MobileModule.alerts
-        ? context.select((AlertsCubit c) => c.state.unread)
-        : 0;
     return Material(
       color: Colors.white,
       elevation: 3,
@@ -597,15 +628,10 @@ class _ModuleCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Badge(
-                key: Key('module-badge-${module.name}'),
-                isLabelVisible: module == MobileModule.alerts && unread > 0,
-                label: Text(unread > 99 ? '99+' : '$unread'),
-                child: Icon(
-                  _iconFor(module),
-                  color: p.accentIconOnLight,
-                  size: r.s(34),
-                ),
+              Icon(
+                _iconFor(module),
+                color: p.accentIconOnLight,
+                size: r.s(34),
               ),
               const Spacer(),
               // Una sola linea: si el titulo no cabe, se reduce en vez de partirse.
@@ -675,15 +701,18 @@ List<_NavEntry> _navEntries(BuildContext context) {
         () => context.push('/tickets'),
       ),
     _NavEntry(Icons.home, l10n.navHome, () {}, selected: true),
-    if (MobileModule.alerts.isAvailableIn(menu))
-      _NavEntry(
-        Icons.notifications_none,
-        l10n.navAlerts,
-        () => context.push('/alerts'),
-        badge: unreadAlerts,
-      ),
+    _NavEntry(
+      Icons.notifications_none,
+      l10n.navAlerts,
+      () => context.push('/alerts'),
+      badge: unreadAlerts,
+    ),
     if (MobileModule.reports.isAvailableIn(menu))
-      _NavEntry(Icons.bar_chart, l10n.navReports, () => _comingSoon(context)),
+      _NavEntry(
+        Icons.bar_chart,
+        l10n.navReports,
+        () => context.push('/reports'),
+      ),
   ];
 }
 

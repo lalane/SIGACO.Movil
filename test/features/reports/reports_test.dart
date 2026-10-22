@@ -210,7 +210,7 @@ void main() {
     String text(WidgetTester tester, String key) =>
         tester.widget<Text>(find.byKey(Key(key))).data!;
 
-    testWidgets('el menu abre los ocho indicadores', (tester) async {
+    testWidgets('el menu abre los once indicadores del BBP', (tester) async {
       await launch(tester);
       await tester.tap(
         find.descendant(
@@ -220,6 +220,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Seleccione un indicador'), findsOneWidget);
+      expect(ReportIndicator.values, hasLength(11));
       for (final i in ReportIndicator.values) {
         expect(
           find.byKey(Key('report-indicator-${i.name}'), skipOffstage: false),
@@ -227,6 +228,21 @@ void main() {
           reason: i.name,
         );
       }
+    });
+
+    testWidgets('Reportes de la barra inferior abre los reportes', (
+      tester,
+    ) async {
+      await launch(tester);
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const Key('home-bottom-bar')),
+          matching: find.text('Reportes'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Seleccione un indicador'), findsOneWidget);
     });
 
     testWidgets('un indicador pide generar el reporte', (tester) async {

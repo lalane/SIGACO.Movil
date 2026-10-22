@@ -34,6 +34,10 @@ class InventoryState extends Equatable {
 
   int get total => assets.length;
 
+  /// Algun activo trae la fecha de su ultima inspeccion (o ya se eligio una).
+  bool get hasInspectionDates =>
+      inspectedFrom != null || assets.any((a) => a.lastInspectionAt != null);
+
   int count(AssetCondition c) => assets.where((a) => a.condition == c).length;
 
   /// La parte del total que es [c], de 0 a 100.

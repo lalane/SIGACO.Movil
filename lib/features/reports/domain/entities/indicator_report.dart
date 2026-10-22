@@ -4,7 +4,20 @@ import 'package:equatable/equatable.dart';
 
 /// Los indicadores de desempeno de la carretera (los mismos ocho de
 /// mantenimiento; aqui son los que se pueden reportar).
-enum ReportIndicator { sgp, sgs, sgoae, sgoac, sgits, sgf, sgtec, sge }
+/// Los 11 indicadores del BBP (§7.8), en el orden del selector.
+enum ReportIndicator {
+  sgp,
+  sgs,
+  sgoae,
+  sgoac,
+  sgits,
+  conservacion,
+  sge,
+  sgtec,
+  sgsei,
+  sgost,
+  sgf,
+}
 
 enum ReportLineStatus { open, inProgress, closed }
 

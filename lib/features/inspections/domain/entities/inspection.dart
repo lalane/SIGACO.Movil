@@ -28,6 +28,103 @@ class ChecklistItem extends Equatable {
   List<Object?> get props => [id, text, critical, result];
 }
 
+/// Donde estaba el telefono al capturar un hallazgo. La precision viaja con
+/// ella para poder auditarla.
+class FindingPosition extends Equatable {
+  const FindingPosition({
+    required this.latitude,
+    required this.longitude,
+    required this.accuracyMeters,
+  });
+
+  final double latitude;
+  final double longitude;
+  final double accuracyMeters;
+
+  @override
+  List<Object?> get props => [latitude, longitude, accuracyMeters];
+}
+
+/// Un hallazgo con sus evidencias (BBP §7.8, "Capturar hallazgos y
+/// evidencias"): una nota, hasta [maxPhotos] fotos y la posicion donde se
+/// tomaron. Puede ir ligado a un punto del checklist.
+class InspectionFinding extends Equatable {
+  const InspectionFinding({
+    required this.id,
+    required this.capturedAt,
+    this.itemId,
+    this.note = '',
+    this.photoPaths = const [],
+    this.position,
+  });
+
+  static const maxPhotos = 3;
+
+  /// Identificador unico (`cliente_uuid`), generado en el telefono.
+  final String id;
+
+  /// El punto del checklist al que se refiere, si es el caso.
+  final String? itemId;
+  final String note;
+
+  /// Rutas locales de las fotos.
+  final List<String> photoPaths;
+
+  /// Sin posicion si el GPS no estaba disponible o era simulado.
+  final FindingPosition? position;
+
+  /// Cuando se capturo, en UTC.
+  final DateTime capturedAt;
+
+  @override
+  List<Object?> get props => [id, itemId, note, photoPaths, position, capturedAt];
+}
+
+/// Un tipo de inspeccion con los puntos que se revisan. Los tipos y sus
+/// formularios los configura la plataforma web; la app solo los ofrece.
+class InspectionTemplate extends Equatable {
+  const InspectionTemplate({required this.type, required this.items});
+
+  final String type;
+
+  /// Los puntos del checklist (el texto y si son criticos).
+  final List<ChecklistItem> items;
+
+  @override
+  List<Object?> get props => [type, items];
+}
+
+/// Lo que se captura para crear una inspeccion nueva.
+class NewInspection extends Equatable {
+  const NewInspection({
+    required this.type,
+    required this.title,
+    this.kmLabel,
+    this.segmentCode,
+    this.direction,
+    this.scheduledAt,
+  });
+
+  final String type;
+  final String title;
+  final String? kmLabel;
+  final String? segmentCode;
+  final String? direction;
+
+  /// UTC.
+  final DateTime? scheduledAt;
+
+  @override
+  List<Object?> get props => [
+    type,
+    title,
+    kmLabel,
+    segmentCode,
+    direction,
+    scheduledAt,
+  ];
+}
+
 /// Una inspeccion asignada: que se revisa, donde, quien y su checklist. La app
 /// la consulta y la llena en campo; la configuracion de tipos y formularios es
 /// de la plataforma web.
@@ -46,6 +143,7 @@ class Inspection extends Equatable {
     this.kmLabel,
     this.segmentCode,
     this.direction,
+    this.evidence = const [],
   });
 
   final String id;
@@ -69,6 +167,9 @@ class Inspection extends Equatable {
 
   /// Sentido de la carretera, tal como lo entrega el servidor.
   final String? direction;
+
+  /// Los hallazgos capturados con sus fotos y su posicion.
+  final List<InspectionFinding> evidence;
 
   /// Solo se llena mientras esta pendiente o en proceso.
   bool get editable =>
@@ -95,6 +196,7 @@ class Inspection extends Equatable {
     InspectionStatus? status,
     DateTime? completedAt,
     List<ChecklistItem>? checklist,
+    List<InspectionFinding>? evidence,
   }) => Inspection(
     id: id,
     title: title,
@@ -109,6 +211,7 @@ class Inspection extends Equatable {
     kmLabel: kmLabel,
     segmentCode: segmentCode,
     direction: direction,
+    evidence: evidence ?? this.evidence,
   );
 
   /// La misma inspeccion con las respuestas dadas (`itemId` -> resultado); los
@@ -150,5 +253,6 @@ class Inspection extends Equatable {
     kmLabel,
     segmentCode,
     direction,
+    evidence,
   ];
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
 
@@ -208,4 +210,8 @@ class SampleInventoryRepository implements InventoryRepository {
     }
     throw const InventoryException(InventoryError.notFound);
   }
+
+  /// Los activos de ejemplo no tienen foto.
+  @override
+  Future<Uint8List?> mainPhoto(InventoryAsset asset) async => null;
 }

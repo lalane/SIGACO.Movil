@@ -205,7 +205,7 @@ class _Summary extends StatelessWidget {
           label: l10n.invStatTotal,
           caption: l10n.invStatTotalCaption,
         ),
-        for (final c in AssetCondition.values)
+        for (final c in AssetCondition.assessed)
           ModuleStat(
             key: Key('inventory-stat-${c.name}'),
             value: '${state.count(c)}',
@@ -259,10 +259,13 @@ class _FilterRow extends StatelessWidget {
               onChanged: cubit.setCategory,
             ),
           ),
-          SizedBox(width: r.s(8)),
-          Expanded(
-            flex: 11,
-            child: ModuleDatePill(
+          // El servidor aun no publica la fecha de inspeccion: sin ella no hay
+          // nada que filtrar.
+          if (state.hasInspectionDates) ...[
+            SizedBox(width: r.s(8)),
+            Expanded(
+              flex: 11,
+              child: ModuleDatePill(
               key: const Key('inventory-from'),
               tooltip: l10n.invInspectedFrom,
               hint: l10n.invDateHint,
@@ -275,9 +278,10 @@ class _FilterRow extends StatelessWidget {
                 if (day != null) cubit.setInspectedFrom(day);
               },
               onClear: () => cubit.setInspectedFrom(null),
-              clearKey: const Key('inventory-from-clear'),
+                clearKey: const Key('inventory-from-clear'),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

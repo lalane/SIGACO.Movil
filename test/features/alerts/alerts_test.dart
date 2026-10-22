@@ -368,31 +368,43 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// Las alertas se abren con la campana de la cabecera.
     Future<void> openAlerts(WidgetTester tester) async {
-      await tester.tap(
-        find.descendant(
-          of: find.byType(GridView),
-          matching: find.text('Alertas'),
-        ),
-      );
+      await tester.tap(find.byKey(const Key('home-alerts-bell')));
       await tester.pumpAndSettle();
     }
 
-    testWidgets('el inicio muestra cuantas hay sin leer', (tester) async {
+    testWidgets('la campana muestra cuantas hay sin leer', (tester) async {
       await launch(tester);
 
-      final card = tester.widget<Badge>(
-        find.byKey(const Key('module-badge-alerts')),
-      );
-      expect(card.isLabelVisible, isTrue);
+      final bell = tester.widget<Badge>(find.byKey(const Key('bell-badge')));
+      expect(bell.isLabelVisible, isTrue);
       expect(
         find.descendant(
-          of: find.byKey(const Key('module-badge-alerts')),
+          of: find.byKey(const Key('bell-badge')),
           matching: find.text('3'),
         ),
         findsOneWidget,
       );
       expect(find.byKey(const Key('nav-badge-Alertas')), findsOneWidget);
+      // Ya no es una tarjeta de la rejilla.
+      expect(
+        find.descendant(
+          of: find.byType(GridView),
+          matching: find.text('Alertas'),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('la campana se ve aunque el menu no traiga alertas', (
+      tester,
+    ) async {
+      await launch(tester, modules: const ['PANEL', 'TICKETS']);
+
+      expect(find.byKey(const Key('home-alerts-bell')), findsOneWidget);
+      await openAlerts(tester);
+      expect(find.byKey(const Key('alerts-list')), findsOneWidget);
     });
 
     testWidgets('la lista muestra todas, con las no leidas marcadas', (

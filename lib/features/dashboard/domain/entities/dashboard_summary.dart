@@ -1,16 +1,29 @@
 import 'package:equatable/equatable.dart';
 
 /// Los bloques del dashboard: uno por modulo del que se resume algo.
-enum DashboardSection { tickets, accidents, maintenance, inventory }
+enum DashboardSection { compliance, tickets, accidents, maintenance, inventory }
 
 /// Por que un bloque no se pudo llenar.
 enum DashboardError { network, permissionDenied, server, notAvailable }
+
+/// Quien genero tickets y cuantos (grafico "Usuarios que mas tickets han
+/// generado", BBP §7.8).
+class TicketCreator extends Equatable {
+  const TicketCreator({required this.name, required this.count});
+
+  final String name;
+  final int count;
+
+  @override
+  List<Object?> get props => [name, count];
+}
 
 class TicketsSummary extends Equatable {
   const TicketsSummary({
     required this.open,
     required this.attended,
     required this.overdue,
+    this.creators = const [],
   });
 
   final int open;
@@ -19,8 +32,76 @@ class TicketsSummary extends Equatable {
   /// Abiertos cuya fecha limite ya paso.
   final int overdue;
 
+  /// Quienes mas tickets generaron, de mas a menos.
+  final List<TicketCreator> creators;
+
   @override
-  List<Object?> get props => [open, attended, overdue];
+  List<Object?> get props => [open, attended, overdue, creators];
+}
+
+/// Estado de un indicador (BBP §7.8): en proceso, buen estado, estado
+/// intermedio o mal estado. Las reglas que lo deciden (formulas y umbrales por
+/// indicador) las define TEKIA; la app solo muestra lo que informa el servidor.
+enum IndicatorStatus { inProcess, good, intermediate, bad }
+
+/// El cumplimiento de un indicador: el codigo (`sgp`, `sgs`...), su porcentaje
+/// de 0 a 100, su estado y si ya se cumplio.
+class IndicatorCompliance extends Equatable {
+  const IndicatorCompliance({
+    required this.code,
+    required this.percent,
+    required this.status,
+    required this.met,
+  });
+
+  final String code;
+  final double percent;
+  final IndicatorStatus status;
+  final bool met;
+
+  @override
+  List<Object?> get props => [code, percent, status, met];
+}
+
+/// Cuantos tickets tiene un indicador o subsistema.
+class SubsystemTickets extends Equatable {
+  const SubsystemTickets({required this.code, required this.count});
+
+  final String code;
+  final int count;
+
+  @override
+  List<Object?> get props => [code, count];
+}
+
+/// Cumplimiento general y por indicador, con el grafico de tickets por
+/// subsistema (BBP §7.8, pantalla Dashboard).
+class ComplianceSummary extends Equatable {
+  const ComplianceSummary({
+    required this.overall,
+    required this.overallStatus,
+    required this.indicators,
+    this.ticketsBySubsystem = const [],
+  });
+
+  /// De 0 a 100.
+  final double overall;
+  final IndicatorStatus overallStatus;
+  final List<IndicatorCompliance> indicators;
+  final List<SubsystemTickets> ticketsBySubsystem;
+
+  int get total => indicators.length;
+  int get met => indicators.where((i) => i.met).length;
+
+  int count(IndicatorStatus s) => indicators.where((i) => i.status == s).length;
+
+  @override
+  List<Object?> get props => [
+    overall,
+    overallStatus,
+    indicators,
+    ticketsBySubsystem,
+  ];
 }
 
 class AccidentsSummary extends Equatable {
@@ -89,6 +170,7 @@ class InventorySummary extends Equatable {
 class DashboardSummary extends Equatable {
   const DashboardSummary({
     required this.generatedAt,
+    this.compliance,
     this.tickets,
     this.accidents,
     this.maintenance,
@@ -98,6 +180,7 @@ class DashboardSummary extends Equatable {
 
   /// Cuando se armo, en UTC.
   final DateTime generatedAt;
+  final ComplianceSummary? compliance;
   final TicketsSummary? tickets;
   final AccidentsSummary? accidents;
   final MaintenanceSummary? maintenance;
@@ -108,6 +191,7 @@ class DashboardSummary extends Equatable {
 
   /// Ningun bloque se pudo llenar.
   bool get isEmpty =>
+      compliance == null &&
       tickets == null &&
       accidents == null &&
       maintenance == null &&
@@ -116,6 +200,7 @@ class DashboardSummary extends Equatable {
   @override
   List<Object?> get props => [
     generatedAt,
+    compliance,
     tickets,
     accidents,
     maintenance,

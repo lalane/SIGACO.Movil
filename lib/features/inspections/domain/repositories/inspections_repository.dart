@@ -43,6 +43,15 @@ abstract interface class InspectionsRepository {
   /// inspeccion: queda en proceso. Devuelve la inspeccion ya con ellas.
   Future<Inspection> saveAnswers(String id, Map<String, CheckResult> answers);
 
+  /// Los tipos de inspeccion que se pueden crear, con sus puntos.
+  Future<List<InspectionTemplate>> templates();
+
+  /// Crea una inspeccion pendiente con los puntos de su tipo.
+  Future<Inspection> create(NewInspection draft);
+
+  /// Agrega un hallazgo con sus evidencias; la inspeccion debe poder editarse.
+  Future<Inspection> addFinding(String id, InspectionFinding finding);
+
   /// Termina la inspeccion: exige el checklist completo y la deja atendida.
   Future<Inspection> complete(String id, Map<String, CheckResult> answers);
 }

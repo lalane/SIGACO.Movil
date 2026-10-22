@@ -134,6 +134,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               child: Column(
                 children: [
+                  _compliance(context, summary),
                   _tickets(context, summary),
                   _accidents(context, summary),
                   _maintenance(context, summary),
@@ -146,6 +147,13 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
+
+  Widget _compliance(BuildContext context, DashboardSummary s) =>
+      _ComplianceCard(
+        compliance: s.compliance,
+        error: s.errors[DashboardSection.compliance],
+        creators: s.tickets?.creators ?? const [],
+      );
 
   Widget _tickets(BuildContext context, DashboardSummary s) {
     final l10n = AppLocalizations.of(context);
@@ -268,6 +276,287 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               _Figure('poor', i.poor, l10n.dashInvPoor, StatusColors.open),
             ],
+    );
+  }
+}
+
+Color _statusColor(IndicatorStatus s) => switch (s) {
+  IndicatorStatus.good => StatusColors.closed,
+  IndicatorStatus.intermediate => StatusColors.attended,
+  IndicatorStatus.bad => StatusColors.open,
+  IndicatorStatus.inProcess => const Color(0xFF94A3B8),
+};
+
+String _statusLabel(AppLocalizations l10n, IndicatorStatus s) => switch (s) {
+  IndicatorStatus.good => l10n.dashStatusGood,
+  IndicatorStatus.intermediate => l10n.dashStatusIntermediate,
+  IndicatorStatus.bad => l10n.dashStatusBad,
+  IndicatorStatus.inProcess => l10n.dashStatusInProcess,
+};
+
+/// El nombre de un indicador a partir de su codigo; uno que la app no conoce se
+/// muestra tal cual, en mayusculas.
+String _indicatorName(AppLocalizations l10n, String code) => switch (code) {
+  'sgp' => l10n.maintIndSgp,
+  'sgs' => l10n.maintIndSgs,
+  'sgoae' => l10n.maintIndSgoae,
+  'sgoac' => l10n.maintIndSgoac,
+  'sgits' => l10n.maintIndSgits,
+  'conservacion' => l10n.maintIndConservacion,
+  'sge' => l10n.maintIndSge,
+  'sgtec' => l10n.maintIndSgtec,
+  'sgsei' => l10n.maintIndSgsei,
+  'sgost' => l10n.maintIndSgost,
+  'sgf' => l10n.maintIndSgf,
+  _ => code.toUpperCase(),
+};
+
+/// Cumplimiento general y por indicador, y quienes mas tickets generaron (BBP
+/// §7.8). Las cifras de cumplimiento las calcula el servidor.
+class _ComplianceCard extends StatelessWidget {
+  const _ComplianceCard({
+    required this.compliance,
+    required this.error,
+    required this.creators,
+  });
+
+  final ComplianceSummary? compliance;
+  final DashboardError? error;
+  final List<TicketCreator> creators;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final p = context.palette;
+    final r = context.responsive;
+    final c = compliance;
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.s(16)),
+      child: Material(
+        color: moduleSurface,
+        elevation: 3,
+        shadowColor: Colors.black38,
+        borderRadius: BorderRadius.circular(r.s(28)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: const Key('dashboard-compliance'),
+          onTap: () => context.push('/reports'),
+          child: Padding(
+            padding: EdgeInsets.all(r.s(18)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: r.s(44),
+                      height: r.s(44),
+                      decoration: BoxDecoration(
+                        color: p.accent.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(r.s(12)),
+                      ),
+                      child: Icon(
+                        Icons.speed_outlined,
+                        color: p.accentOnDark,
+                        size: r.s(24),
+                      ),
+                    ),
+                    SizedBox(width: r.s(14)),
+                    Expanded(
+                      child: Text(
+                        l10n.dashCompliance,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: r.s(19),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: moduleMuted),
+                  ],
+                ),
+                SizedBox(height: r.s(16)),
+                if (c == null)
+                  Row(
+                    key: const Key('dashboard-compliance-error'),
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: moduleMuted,
+                        size: r.s(20),
+                      ),
+                      SizedBox(width: r.s(8)),
+                      Expanded(
+                        child: Text(
+                          switch (error) {
+                            DashboardError.permissionDenied =>
+                              l10n.dashSectionNoPermission,
+                            DashboardError.network ||
+                            DashboardError.server => l10n.dashSectionError,
+                            _ => l10n.dashComplianceUnavailable,
+                          },
+                          style: TextStyle(
+                            color: moduleMuted,
+                            fontSize: r.s(14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${c.overall.round()}%',
+                        key: const Key('dashboard-compliance-overall'),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: r.s(40),
+                          fontWeight: FontWeight.w800,
+                          height: 1,
+                        ),
+                      ),
+                      SizedBox(width: r.s(12)),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: r.s(4)),
+                        child: ModuleStatusPill(
+                          key: const Key('dashboard-compliance-status'),
+                          label: _statusLabel(l10n, c.overallStatus),
+                          color: _statusColor(c.overallStatus),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: r.s(8)),
+                  Text(
+                    l10n.dashComplianceMet(c.met, c.total),
+                    key: const Key('dashboard-compliance-met'),
+                    style: TextStyle(color: moduleMuted, fontSize: r.s(14)),
+                  ),
+                  SizedBox(height: r.s(14)),
+                  Wrap(
+                    spacing: r.s(8),
+                    runSpacing: r.s(8),
+                    children: [
+                      for (final s in IndicatorStatus.values)
+                        Chip(
+                          key: Key('dashboard-compliance-${s.name}'),
+                          avatar: CircleAvatar(
+                            backgroundColor: _statusColor(s),
+                            radius: r.s(6),
+                          ),
+                          label: Text(
+                            '${_statusLabel(l10n, s)}: ${c.count(s)}',
+                          ),
+                          backgroundColor: Colors.white.withValues(alpha: 0.08),
+                          labelStyle: const TextStyle(color: Colors.white),
+                          side: BorderSide.none,
+                        ),
+                    ],
+                  ),
+                  if (c.ticketsBySubsystem.isNotEmpty) ...[
+                    SizedBox(height: r.s(18)),
+                    Text(
+                      l10n.dashTicketsBySubsystem,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.s(15),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: r.s(8)),
+                    for (final s in c.ticketsBySubsystem)
+                      _BarRow(
+                        key: Key('dashboard-subsystem-${s.code}'),
+                        label: _indicatorName(l10n, s.code),
+                        value: s.count,
+                        max: c.ticketsBySubsystem.first.count,
+                      ),
+                  ],
+                ],
+                if (creators.isNotEmpty) ...[
+                  SizedBox(height: r.s(18)),
+                  Text(
+                    l10n.dashTopCreators,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: r.s(15),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: r.s(8)),
+                  for (var i = 0; i < creators.length; i++)
+                    _BarRow(
+                      key: Key('dashboard-creator-$i'),
+                      label: creators[i].name,
+                      value: creators[i].count,
+                      max: creators.first.count,
+                    ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Una barra horizontal con su etiqueta y su cifra.
+class _BarRow extends StatelessWidget {
+  const _BarRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.max,
+  });
+
+  final String label;
+  final int value;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final r = context.responsive;
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.s(6)),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: moduleMuted, fontSize: r.s(13)),
+            ),
+          ),
+          SizedBox(width: r.s(8)),
+          Expanded(
+            flex: 5,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(r.s(6)),
+              child: LinearProgressIndicator(
+                minHeight: r.s(10),
+                value: max <= 0 ? 0 : (value / max).clamp(0.0, 1.0),
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+                color: p.accent,
+              ),
+            ),
+          ),
+          SizedBox(width: r.s(8)),
+          Text(
+            '$value',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: r.s(13),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

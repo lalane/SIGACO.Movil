@@ -3170,24 +3170,6 @@ abstract class AppLocalizations {
   /// **'Incendio'**
   String get accidentTypeFire;
 
-  /// No description provided for @accidentSeverityLow.
-  ///
-  /// In es, this message translates to:
-  /// **'Baja'**
-  String get accidentSeverityLow;
-
-  /// No description provided for @accidentSeverityMedium.
-  ///
-  /// In es, this message translates to:
-  /// **'Media'**
-  String get accidentSeverityMedium;
-
-  /// No description provided for @accidentSeverityHigh.
-  ///
-  /// In es, this message translates to:
-  /// **'Alta'**
-  String get accidentSeverityHigh;
-
   /// No description provided for @accidentStatusRegistered.
   ///
   /// In es, this message translates to:
@@ -3697,6 +3679,18 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Malo'**
   String get invConditionPoor;
+
+  /// No description provided for @invConditionUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin evaluar'**
+  String get invConditionUnknown;
+
+  /// No description provided for @invSitePhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Vista en sitio'**
+  String get invSitePhoto;
 
   /// No description provided for @invFilterCondition.
   ///
@@ -4862,6 +4856,132 @@ abstract class AppLocalizations {
   /// **'Este monitoreo no tiene un activo del catálogo.'**
   String get inspNoAsset;
 
+  /// No description provided for @inspNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo monitoreo'**
+  String get inspNew;
+
+  /// No description provided for @inspNewCreate.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear monitoreo'**
+  String get inspNewCreate;
+
+  /// No description provided for @inspNewType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de monitoreo'**
+  String get inspNewType;
+
+  /// No description provided for @inspNewName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get inspNewName;
+
+  /// No description provided for @inspNewNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional: si lo dejas vacío se usa el tipo'**
+  String get inspNewNameHint;
+
+  /// No description provided for @inspNewErrorType.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo de monitoreo.'**
+  String get inspNewErrorType;
+
+  /// No description provided for @inspNewCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Monitoreo creado.'**
+  String get inspNewCreated;
+
+  /// No description provided for @inspNewNoTemplates.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay tipos de monitoreo disponibles.'**
+  String get inspNewNoTemplates;
+
+  /// No description provided for @inspEvidenceTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Hallazgos y evidencias'**
+  String get inspEvidenceTitle;
+
+  /// No description provided for @inspEvidenceAdd.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar hallazgo'**
+  String get inspEvidenceAdd;
+
+  /// No description provided for @inspEvidenceEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay hallazgos capturados.'**
+  String get inspEvidenceEmpty;
+
+  /// No description provided for @inspEvidenceNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción del hallazgo'**
+  String get inspEvidenceNote;
+
+  /// No description provided for @inspEvidenceItem.
+  ///
+  /// In es, this message translates to:
+  /// **'Punto del checklist'**
+  String get inspEvidenceItem;
+
+  /// No description provided for @inspEvidenceNoItem.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin punto del checklist'**
+  String get inspEvidenceNoItem;
+
+  /// No description provided for @inspEvidenceSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar hallazgo'**
+  String get inspEvidenceSave;
+
+  /// No description provided for @inspEvidenceErrorEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe una descripción o toma una foto.'**
+  String get inspEvidenceErrorEmpty;
+
+  /// No description provided for @inspEvidenceSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Hallazgo guardado.'**
+  String get inspEvidenceSaved;
+
+  /// No description provided for @inspEvidencePhotos.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} fotos'**
+  String inspEvidencePhotos(int count);
+
+  /// No description provided for @inspEvidencePosition.
+  ///
+  /// In es, this message translates to:
+  /// **'Posición {lat}, {lon} (±{accuracy} m)'**
+  String inspEvidencePosition(String lat, String lon, String accuracy);
+
+  /// No description provided for @inspEvidenceNoPosition.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin posición (GPS no disponible)'**
+  String get inspEvidenceNoPosition;
+
+  /// No description provided for @inspDraftSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrador guardado: tus respuestas se guardan solas.'**
+  String get inspDraftSaved;
+
   /// No description provided for @moduleInspections.
   ///
   /// In es, this message translates to:
@@ -5281,6 +5401,408 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count} alertas sin leer'**
   String alertsUnreadSemantic(int count);
+
+  /// No description provided for @maintIndConservacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Conservación'**
+  String get maintIndConservacion;
+
+  /// No description provided for @maintIndSgsei.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistemas eléctricos e iluminación'**
+  String get maintIndSgsei;
+
+  /// No description provided for @maintIndSgost.
+  ///
+  /// In es, this message translates to:
+  /// **'Túneles'**
+  String get maintIndSgost;
+
+  /// No description provided for @accidentTypeRunOver.
+  ///
+  /// In es, this message translates to:
+  /// **'Atropello'**
+  String get accidentTypeRunOver;
+
+  /// No description provided for @accidentTypeOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro'**
+  String get accidentTypeOther;
+
+  /// No description provided for @accidentSeverityUnharmed.
+  ///
+  /// In es, this message translates to:
+  /// **'Ileso'**
+  String get accidentSeverityUnharmed;
+
+  /// No description provided for @accidentSeverityMinor.
+  ///
+  /// In es, this message translates to:
+  /// **'Lesiones menores'**
+  String get accidentSeverityMinor;
+
+  /// No description provided for @accidentSeverityFatal.
+  ///
+  /// In es, this message translates to:
+  /// **'Deceso'**
+  String get accidentSeverityFatal;
+
+  /// No description provided for @accidentZoneTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Zona'**
+  String get accidentZoneTitle;
+
+  /// No description provided for @accidentZoneRural.
+  ///
+  /// In es, this message translates to:
+  /// **'Rural'**
+  String get accidentZoneRural;
+
+  /// No description provided for @accidentZoneSuburban.
+  ///
+  /// In es, this message translates to:
+  /// **'Suburbana'**
+  String get accidentZoneSuburban;
+
+  /// No description provided for @accidentZoneUrban.
+  ///
+  /// In es, this message translates to:
+  /// **'Urbana'**
+  String get accidentZoneUrban;
+
+  /// No description provided for @accidentWeatherTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Clima'**
+  String get accidentWeatherTitle;
+
+  /// No description provided for @accidentWeatherWind.
+  ///
+  /// In es, this message translates to:
+  /// **'Viento'**
+  String get accidentWeatherWind;
+
+  /// No description provided for @accidentWeatherRain.
+  ///
+  /// In es, this message translates to:
+  /// **'Lluvia'**
+  String get accidentWeatherRain;
+
+  /// No description provided for @accidentWeatherFog.
+  ///
+  /// In es, this message translates to:
+  /// **'Niebla'**
+  String get accidentWeatherFog;
+
+  /// No description provided for @accidentWeatherNormal.
+  ///
+  /// In es, this message translates to:
+  /// **'Normal'**
+  String get accidentWeatherNormal;
+
+  /// No description provided for @accidentPavementConditionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del pavimento'**
+  String get accidentPavementConditionTitle;
+
+  /// No description provided for @accidentSignageConditionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado del señalamiento'**
+  String get accidentSignageConditionTitle;
+
+  /// No description provided for @accidentConditionGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Buena'**
+  String get accidentConditionGood;
+
+  /// No description provided for @accidentConditionFair.
+  ///
+  /// In es, this message translates to:
+  /// **'Regular'**
+  String get accidentConditionFair;
+
+  /// No description provided for @accidentConditionPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'Mala'**
+  String get accidentConditionPoor;
+
+  /// No description provided for @accidentLayoutTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Trazado'**
+  String get accidentLayoutTitle;
+
+  /// No description provided for @accidentLayoutStraight.
+  ///
+  /// In es, this message translates to:
+  /// **'Recta'**
+  String get accidentLayoutStraight;
+
+  /// No description provided for @accidentLayoutVerticalCurve.
+  ///
+  /// In es, this message translates to:
+  /// **'Curva vertical'**
+  String get accidentLayoutVerticalCurve;
+
+  /// No description provided for @accidentLayoutHorizontalCurve.
+  ///
+  /// In es, this message translates to:
+  /// **'Curva horizontal'**
+  String get accidentLayoutHorizontalCurve;
+
+  /// No description provided for @accidentPavementTypeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de pavimento'**
+  String get accidentPavementTypeTitle;
+
+  /// No description provided for @accidentPavementRigid.
+  ///
+  /// In es, this message translates to:
+  /// **'Rígido'**
+  String get accidentPavementRigid;
+
+  /// No description provided for @accidentPavementFlexible.
+  ///
+  /// In es, this message translates to:
+  /// **'Flexible'**
+  String get accidentPavementFlexible;
+
+  /// No description provided for @accidentCauseTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Causa'**
+  String get accidentCauseTitle;
+
+  /// No description provided for @accidentCauseSpeeding.
+  ///
+  /// In es, this message translates to:
+  /// **'Exceso de velocidad'**
+  String get accidentCauseSpeeding;
+
+  /// No description provided for @accidentCauseLaneInvasion.
+  ///
+  /// In es, this message translates to:
+  /// **'Invasión de carril'**
+  String get accidentCauseLaneInvasion;
+
+  /// No description provided for @accidentCauseOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Otra'**
+  String get accidentCauseOther;
+
+  /// No description provided for @accidentPlaceTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Lugar del accidente'**
+  String get accidentPlaceTitle;
+
+  /// No description provided for @accidentPlacePavement.
+  ///
+  /// In es, this message translates to:
+  /// **'Pavimento'**
+  String get accidentPlacePavement;
+
+  /// No description provided for @accidentPlaceSignage.
+  ///
+  /// In es, this message translates to:
+  /// **'Señalamiento'**
+  String get accidentPlaceSignage;
+
+  /// No description provided for @accidentPlaceTollBooth.
+  ///
+  /// In es, this message translates to:
+  /// **'Casetas'**
+  String get accidentPlaceTollBooth;
+
+  /// No description provided for @accidentPlaceOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros'**
+  String get accidentPlaceOther;
+
+  /// No description provided for @accidentVehiclesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vehículos involucrados'**
+  String get accidentVehiclesTitle;
+
+  /// No description provided for @accidentVehiclesCount.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad de vehículos'**
+  String get accidentVehiclesCount;
+
+  /// No description provided for @accidentVehicleTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Vehículo {n}'**
+  String accidentVehicleTitle(int n);
+
+  /// No description provided for @accidentVehicleTypeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de vehículo'**
+  String get accidentVehicleTypeTitle;
+
+  /// No description provided for @accidentVehicleCar.
+  ///
+  /// In es, this message translates to:
+  /// **'Vehículo'**
+  String get accidentVehicleCar;
+
+  /// No description provided for @accidentVehicleMotorcycle.
+  ///
+  /// In es, this message translates to:
+  /// **'Motocicleta'**
+  String get accidentVehicleMotorcycle;
+
+  /// No description provided for @accidentVehicleLivestock.
+  ///
+  /// In es, this message translates to:
+  /// **'Semoviente'**
+  String get accidentVehicleLivestock;
+
+  /// No description provided for @accidentVehicleFixedObject.
+  ///
+  /// In es, this message translates to:
+  /// **'Objeto fijo'**
+  String get accidentVehicleFixedObject;
+
+  /// No description provided for @accidentVictimsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Víctimas'**
+  String get accidentVictimsTitle;
+
+  /// No description provided for @accidentVictimsCount.
+  ///
+  /// In es, this message translates to:
+  /// **'Cantidad de víctimas'**
+  String get accidentVictimsCount;
+
+  /// No description provided for @accidentVictimTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Víctima {n}'**
+  String accidentVictimTitle(int n);
+
+  /// No description provided for @accidentSexTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sexo'**
+  String get accidentSexTitle;
+
+  /// No description provided for @accidentSexFemale.
+  ///
+  /// In es, this message translates to:
+  /// **'Femenino'**
+  String get accidentSexFemale;
+
+  /// No description provided for @accidentSexMale.
+  ///
+  /// In es, this message translates to:
+  /// **'Masculino'**
+  String get accidentSexMale;
+
+  /// No description provided for @accidentSexUnspecified.
+  ///
+  /// In es, this message translates to:
+  /// **'No especificado'**
+  String get accidentSexUnspecified;
+
+  /// No description provided for @accidentSeverityDerived.
+  ///
+  /// In es, this message translates to:
+  /// **'La gravedad del accidente es la de la víctima más grave.'**
+  String get accidentSeverityDerived;
+
+  /// No description provided for @newAccidentErrorVehicle.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el tipo de vehículo.'**
+  String get newAccidentErrorVehicle;
+
+  /// No description provided for @newAccidentErrorVictim.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la gravedad de la víctima.'**
+  String get newAccidentErrorVictim;
+
+  /// No description provided for @accidentConditionsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Condiciones del lugar'**
+  String get accidentConditionsTitle;
+
+  /// No description provided for @accidentSeveritySerious.
+  ///
+  /// In es, this message translates to:
+  /// **'Heridas graves'**
+  String get accidentSeveritySerious;
+
+  /// No description provided for @dashCompliance.
+  ///
+  /// In es, this message translates to:
+  /// **'Cumplimiento'**
+  String get dashCompliance;
+
+  /// No description provided for @dashComplianceUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'El cumplimiento por indicador aún no está disponible.'**
+  String get dashComplianceUnavailable;
+
+  /// No description provided for @dashComplianceMet.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicadores cumplidos: {met} de {total}'**
+  String dashComplianceMet(int met, int total);
+
+  /// No description provided for @dashStatusInProcess.
+  ///
+  /// In es, this message translates to:
+  /// **'En proceso'**
+  String get dashStatusInProcess;
+
+  /// No description provided for @dashStatusGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Buen estado'**
+  String get dashStatusGood;
+
+  /// No description provided for @dashStatusIntermediate.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado intermedio'**
+  String get dashStatusIntermediate;
+
+  /// No description provided for @dashStatusBad.
+  ///
+  /// In es, this message translates to:
+  /// **'Mal estado'**
+  String get dashStatusBad;
+
+  /// No description provided for @dashTicketsBySubsystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicadores con más tickets'**
+  String get dashTicketsBySubsystem;
+
+  /// No description provided for @dashTopCreators.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuarios que más tickets han generado'**
+  String get dashTopCreators;
 }
 
 class _AppLocalizationsDelegate

@@ -7,6 +7,8 @@ import 'package:sigaco_movil/app/dependencies.dart';
 import 'package:sigaco_movil/features/accidents/data/repositories/sample_accidents_repository.dart';
 import 'package:sigaco_movil/features/accidents/data/repositories/unavailable_accidents_repository.dart';
 import 'package:sigaco_movil/app/composition/composed_dashboard_repository.dart';
+import 'package:sigaco_movil/features/dashboard/data/repositories/sample_compliance_source.dart';
+import 'package:sigaco_movil/features/dashboard/data/repositories/unavailable_compliance_source.dart';
 import 'package:sigaco_movil/features/dashboard/domain/entities/dashboard_summary.dart';
 import 'package:sigaco_movil/features/dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:sigaco_movil/features/dashboard/presentation/bloc/dashboard_cubit.dart';
@@ -27,7 +29,11 @@ void main() {
     bool tickets = true,
     bool accidents = true,
     bool maintenance = true,
+    bool compliance = true,
   }) => ComposedDashboardRepository(
+    compliance: compliance
+        ? const SampleComplianceSource()
+        : const UnavailableComplianceSource(),
     tickets: tickets
         ? SampleTicketsRepository(clock: () => now)
         : const UnavailableTicketsRepository(),
@@ -100,6 +106,66 @@ void main() {
       expect(summary.inventory, isNotNull);
       expect(summary.errors.keys, hasLength(3));
     });
+
+    test(
+      'sin cumplimiento publicado, ese bloque dice que no esta disponible',
+      () async {
+        final summary = await composed(compliance: false).load();
+
+        expect(summary.compliance, isNull);
+        expect(summary.errors, {
+          DashboardSection.compliance: DashboardError.notAvailable,
+        });
+        // Lo demas se sigue viendo.
+        expect(summary.tickets, isNotNull);
+        expect(summary.isEmpty, isFalse);
+      },
+    );
+
+    test(
+      'los usuarios que mas tickets generaron salen de los tickets',
+      () async {
+        final summary = await composed().load();
+        final all = await SampleTicketsRepository(clock: () => now).list();
+        final byAuthor = <String, int>{};
+        for (final ticket in all) {
+          final name = ticket.authorName;
+          if (name != null) byAuthor[name] = (byAuthor[name] ?? 0) + 1;
+        }
+
+        final creators = summary.tickets!.creators;
+        expect(creators, isNotEmpty);
+        expect(creators.length, lessThanOrEqualTo(5));
+        for (final c in creators) {
+          expect(c.count, byAuthor[c.name]);
+        }
+        // De mas a menos.
+        for (var i = 1; i < creators.length; i++) {
+          expect(
+            creators[i - 1].count,
+            greaterThanOrEqualTo(creators[i].count),
+          );
+        }
+      },
+    );
+
+    test('el cumplimiento de ejemplo tiene la forma del BBP', () async {
+      final c = (await composed().load()).compliance!;
+
+      expect(c.overall, 72);
+      expect(c.overallStatus, IndicatorStatus.good);
+      expect(c.total, 11);
+      expect(c.met, 2);
+      expect(
+        IndicatorStatus.values.fold<int>(0, (n, s) => n + c.count(s)),
+        c.total,
+        reason: 'cada indicador esta en un estado',
+      );
+      expect(
+        c.ticketsBySubsystem.first.count,
+        greaterThanOrEqualTo(c.ticketsBySubsystem.last.count),
+      );
+    });
   });
 
   group('cubit', () {
@@ -138,6 +204,7 @@ void main() {
       WidgetTester tester, {
       bool maintenance = true,
       bool tickets = true,
+      bool compliance = true,
     }) async {
       await tester.runAsync(loadAppFonts);
       useSurface(tester, TestSurface.largePhone);
@@ -161,6 +228,9 @@ void main() {
         sampleMaintenance: maintenance,
         inventoryRepository: SampleInventoryRepository(),
         sampleInventory: true,
+        complianceSource: compliance
+            ? const SampleComplianceSource()
+            : const UnavailableComplianceSource(),
         accessRefreshGap: Duration.zero,
         brandingRefreshGap: Duration.zero,
       );
@@ -201,6 +271,94 @@ void main() {
       expect(
         find.byKey(const Key('dashboard-inventory'), skipOffstage: false),
         findsOneWidget,
+      );
+      expect(figure(tester, 'dashboard-tickets-open'), isNot('0'));
+    });
+
+    testWidgets('el cumplimiento va primero, con lo que pide el BBP', (
+      tester,
+    ) async {
+      await launch(tester);
+
+      expect(find.byKey(const Key('dashboard-compliance')), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('dashboard-compliance-overall')))
+            .data,
+        '72%',
+      );
+      expect(find.text('Buen estado'), findsWidgets);
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('dashboard-compliance-met')))
+            .data,
+        'Indicadores cumplidos: 2 de 11',
+      );
+      // El conteo por estado (en proceso, bueno, intermedio y malo).
+      expect(
+        find.byKey(const Key('dashboard-compliance-inProcess')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('dashboard-compliance-good')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('dashboard-compliance-intermediate')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('dashboard-compliance-bad')), findsOneWidget);
+      // El cumplimiento esta arriba de los bloques de los modulos.
+      expect(
+        tester.getTopLeft(find.byKey(const Key('dashboard-compliance'))).dy,
+        lessThan(
+          tester.getTopLeft(find.byKey(const Key('dashboard-tickets'))).dy,
+        ),
+      );
+    });
+
+    testWidgets(
+      'muestra los indicadores con mas tickets y quienes mas generaron',
+      (tester) async {
+        await launch(tester);
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('dashboard-subsystem-sgs')),
+          200,
+          scrollable: find.descendant(
+            of: find.byKey(const Key('dashboard-list')),
+            matching: find.byType(Scrollable),
+          ),
+        );
+
+        expect(find.text('Indicadores con más tickets'), findsOneWidget);
+        expect(
+          find.byKey(const Key('dashboard-subsystem-sgs')),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Usuarios que más tickets han generado'),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('dashboard-creator-0')), findsOneWidget);
+      },
+    );
+
+    testWidgets('sin cumplimiento publicado lo dice y deja ver lo demas', (
+      tester,
+    ) async {
+      await launch(tester, compliance: false);
+
+      expect(
+        find.byKey(const Key('dashboard-compliance-error')),
+        findsOneWidget,
+      );
+      expect(
+        find.text('El cumplimiento por indicador aún no está disponible.'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('dashboard-compliance-overall')),
+        findsNothing,
       );
       expect(figure(tester, 'dashboard-tickets-open'), isNot('0'));
     });

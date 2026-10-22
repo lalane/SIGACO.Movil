@@ -68,6 +68,9 @@ import '../features/dashboard/presentation/bloc/dashboard_cubit.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
 import '../features/inspections/presentation/bloc/inspection_detail_cubit.dart';
+import '../features/inspections/presentation/bloc/new_inspection_cubit.dart';
+import '../features/inspections/presentation/pages/new_inspection_page.dart';
+import 'composition/location_finding_position_source.dart';
 import '../features/inspections/presentation/bloc/inspections_cubit.dart';
 import '../features/inspections/presentation/pages/inspection_detail_page.dart';
 import '../features/inspections/presentation/pages/inspections_page.dart';
@@ -487,12 +490,29 @@ GoRouter createRouter(
           child: InspectionsPage(sampleData: sampleInspections),
         ),
         routes: [
+          // Antes que ':id', o "new" se tomaria por un monitoreo.
+          GoRoute(
+            path: 'new',
+            builder: (context, _) => BlocProvider(
+              create: (_) =>
+                  NewInspectionCubit(context.read<InspectionsRepository>())
+                    ..load(),
+              child: ConfigurationGate(
+                title: AppLocalizations.of(context).inspNew,
+                child: const NewInspectionPage(),
+                onSync: () => refreshConcessionZone(context),
+              ),
+            ),
+          ),
           GoRoute(
             path: ':id',
             builder: (context, state) => BlocProvider(
               create: (_) => InspectionDetailCubit(
                 context.read<InspectionsRepository>(),
                 state.pathParameters['id']!,
+                positionSource: LocationFindingPositionSource(
+                  context.read<LocationSource>(),
+                ),
               )..load(),
               child: const InspectionDetailPage(),
             ),

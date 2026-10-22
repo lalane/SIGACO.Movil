@@ -167,7 +167,6 @@ void main() {
       );
       cubit.setTitle('Choque');
       cubit.setType(AccidentType.collision);
-      cubit.setSeverity(AccidentSeverity.low);
       await cubit.save();
       expect(cubit.state.saved, isTrue);
     });
