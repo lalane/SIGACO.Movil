@@ -27,67 +27,40 @@ abstract final class AppConfig {
   /// agrega el modulo al menu, que solo se ve asi en esa prueba.
   static const sampleDocuments = bool.fromEnvironment('SAMPLE_DOCUMENTS');
 
-  /// Mapa con pines de ejemplo, mientras el backend no publique los endpoints
-  /// de activos, tickets, mantenimiento y obras. Tambien agrega el modulo al
-  /// menu. **Por omision esta encendido en debug y profile (F5) y apagado en
-  /// release**, para que una version publicada nunca muestre datos inventados.
-  /// Se fuerza con `--dart-define=SAMPLE_MAP=true` o se apaga con
-  /// `--dart-define=SAMPLE_MAP=false` (para probar contra el servidor real).
-  static const sampleMap = bool.fromEnvironment(
-    'SAMPLE_MAP',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  /// Mapa con pines de ejemplo, para probar sin servidor. Tambien agrega el
+  /// modulo al menu. **Por omision esta apagado: la app habla con el servidor
+  /// real** (activos, tickets y obras). Se enciende con
+  /// `--dart-define=SAMPLE_MAP=true`.
+  static const sampleMap = bool.fromEnvironment('SAMPLE_MAP');
 
-  /// Tickets de ejemplo, mientras el backend no publique sus endpoints.
-  /// Tambien agrega el modulo al menu. Igual que [sampleMap]: encendido en
-  /// debug y profile, apagado en release. Se fuerza o se apaga con
-  /// `--dart-define=SAMPLE_TICKETS=true|false`.
-  static const sampleTickets = bool.fromEnvironment(
-    'SAMPLE_TICKETS',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  /// Tickets de ejemplo, para probar sin servidor. Tambien agrega el modulo al
+  /// menu. Igual que [sampleMap]: apagado por omision (servidor real). Se
+  /// enciende con `--dart-define=SAMPLE_TICKETS=true`.
+  static const sampleTickets = bool.fromEnvironment('SAMPLE_TICKETS');
 
   /// Accidentes de ejemplo, mientras el backend no publique sus endpoints.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_ACCIDENTS=true|false`.
-  static const sampleAccidents = bool.fromEnvironment(
-    'SAMPLE_ACCIDENTS',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleAccidents = bool.fromEnvironment('SAMPLE_ACCIDENTS');
 
   /// Mantenimientos de ejemplo, mientras el backend no publique sus endpoints.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_MAINTENANCE=true|false`.
-  static const sampleMaintenance = bool.fromEnvironment(
-    'SAMPLE_MAINTENANCE',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleMaintenance = bool.fromEnvironment('SAMPLE_MAINTENANCE');
 
   /// Inventario de ejemplo, mientras el backend no publique sus endpoints.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_INVENTORY=true|false`.
-  static const sampleInventory = bool.fromEnvironment(
-    'SAMPLE_INVENTORY',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleInventory = bool.fromEnvironment('SAMPLE_INVENTORY');
 
   /// Obras de ejemplo, mientras el backend no publique sus endpoints. Igual que
   /// [sampleTickets]. `--dart-define=SAMPLE_WORKS=true|false`.
-  static const sampleWorks = bool.fromEnvironment(
-    'SAMPLE_WORKS',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleWorks = bool.fromEnvironment('SAMPLE_WORKS');
 
   /// Alertas de ejemplo, mientras el backend no publique las de la persona.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_ALERTS=true|false`.
-  static const sampleAlerts = bool.fromEnvironment(
-    'SAMPLE_ALERTS',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleAlerts = bool.fromEnvironment('SAMPLE_ALERTS');
 
   /// Inspecciones de ejemplo, mientras el backend no publique sus endpoints.
   /// Igual que [sampleTickets]. `--dart-define=SAMPLE_INSPECTIONS=true|false`.
-  static const sampleInspections = bool.fromEnvironment(
-    'SAMPLE_INSPECTIONS',
-    defaultValue: !bool.fromEnvironment('dart.vm.product'),
-  );
+  static const sampleInspections = bool.fromEnvironment('SAMPLE_INSPECTIONS');
 
   /// Con [sampleMap], los pines de ejemplo se reparten alrededor de donde esta
   /// el telefono (para probar "ubicarme" y los cercanos). Si no hay ubicacion,

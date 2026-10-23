@@ -1,14 +1,17 @@
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api/api_client.dart';
+import '../core/api/api_failure.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
 import '../core/device/device_info_source.dart';
+import '../core/device/device_registrar.dart';
 import '../core/device/device_unlock.dart';
 import '../core/files/file_source.dart';
 import '../core/files/local_file_store.dart';
@@ -49,6 +52,7 @@ import '../core/push/api_push.dart';
 import '../core/push/push_registrar.dart';
 import 'composition/composed_dashboard_repository.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/inspections/data/repositories/api_inspections_repository.dart';
 import '../features/inspections/data/repositories/sample_inspections_repository.dart';
 import '../features/inspections/data/repositories/unavailable_inspections_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
@@ -56,6 +60,7 @@ import '../features/inventory/data/repositories/api_inventory_repository.dart';
 import '../features/inventory/data/repositories/sample_inventory_repository.dart';
 import '../features/inventory/data/repositories/unavailable_inventory_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
+import '../features/maintenance/data/repositories/api_maintenance_repository.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
 import 'composition/maintenance_reports_repository.dart';
 import '../features/alerts/data/repositories/api_alerts_repository.dart';
@@ -65,6 +70,7 @@ import '../features/dashboard/data/repositories/unavailable_compliance_source.da
 import '../features/dashboard/domain/repositories/compliance_source.dart';
 import '../features/alerts/data/repositories/unavailable_alerts_repository.dart';
 import '../features/alerts/domain/repositories/alerts_repository.dart';
+import '../features/works/data/repositories/api_works_repository.dart';
 import '../features/works/data/repositories/sample_works_repository.dart';
 import '../features/works/data/repositories/unavailable_works_repository.dart';
 import '../features/works/domain/repositories/works_repository.dart';
@@ -94,8 +100,11 @@ import '../features/map/domain/repositories/location_source.dart';
 import '../features/map/domain/repositories/map_pack_manager.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/domain/repositories/road_segments_repository.dart';
+import 'composition/map_base_source.dart';
+import '../features/map/presentation/tiles/configured_tile_source.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
+import '../features/tickets/data/repositories/api_tickets_repository.dart';
 import '../features/tickets/data/repositories/sample_tickets_repository.dart';
 import '../features/tickets/data/repositories/unavailable_tickets_repository.dart';
 import '../features/tickets/domain/repositories/tickets_repository.dart';
@@ -255,6 +264,8 @@ class AppDependencies {
     DashboardRepository? dashboardRepository,
     ComplianceSource? complianceSource,
     PushRegistrar? pushRegistrar,
+    DeviceRegistrar? deviceRegistrar,
+    MapBaseLoader? mapBaseLoader,
     this.features = const FeatureFlags(),
     this.mapSettings = const MapSettings(),
     this.mapPacks = const UnavailableMapPackManager(),
@@ -276,6 +287,8 @@ class AppDependencies {
            reportsRepository ??
            MaintenanceReportsRepository(maintenanceRepository),
        pushRegistrar = pushRegistrar ?? PushRegistrar(prefs: prefs),
+       deviceRegistrar = deviceRegistrar ?? DeviceRegistrar(),
+       mapBaseLoader = mapBaseLoader ?? MapBaseLoader.none(),
        dashboardRepository =
            dashboardRepository ??
            ComposedDashboardRepository(
@@ -370,6 +383,14 @@ class AppDependencies {
   /// hace nada.
   final PushRegistrar pushRegistrar;
 
+  /// Registra este telefono en el servidor (version de la app) para que el
+  /// administrador vea quien esta al dia.
+  final DeviceRegistrar deviceRegistrar;
+
+  /// Pide al servidor el mapa base de la concesion activa (proveedor de teselas)
+  /// y lo aplica sobre [mapTileSource].
+  final MapBaseLoader mapBaseLoader;
+
   /// Lo que existe en el codigo pero no se ofrece en el menu.
   final FeatureFlags features;
 
@@ -405,6 +426,37 @@ class AppDependencies {
   /// (pruebas) esta deshabilitada y no hace nada.
   final SyncCubit sync;
 
+  /// La carretera de la concesion activa, si es una sola; con varias no se
+  /// adivina cual es (el servidor pide la carretera o el activo).
+  @visibleForTesting
+  static Future<String?> activeRoadId(ApiClient api) async {
+    try {
+      final me = await api.get('/api/auth/me');
+      final context = me?['context'];
+      final roads = context is Map ? context['roads'] : null;
+      if (roads is List && roads.length == 1 && roads.first is Map) {
+        final id = (roads.first as Map)['id'];
+        return id is String && id.isNotEmpty ? id : null;
+      }
+    } on ApiFailure {
+      // Sin red o sin sesion: el servidor dira que falta la carretera.
+    }
+    return null;
+  }
+
+  /// La persona en sesion, para asignarle lo que levanta.
+  @visibleForTesting
+  static Future<String?> activeUserId(ApiClient api) async {
+    try {
+      final me = await api.get('/api/auth/me');
+      final account = me?['account'];
+      final id = account is Map ? account['id'] : null;
+      return id is String && id.isNotEmpty ? id : null;
+    } on ApiFailure {
+      return null;
+    }
+  }
+
   static Future<AppDependencies> create() async {
     final prefs = await SharedPreferences.getInstance();
     String? userAgent;
@@ -415,6 +467,17 @@ class AppDependencies {
       userAgent = null;
     }
     final api = ApiClient(userAgent: userAgent);
+    // El mapa base lo indica el servidor por concesion; el de la compilacion
+    // (`MAP_TILE_URL`) es el de respaldo.
+    final tiles = ConfiguredTileSource(
+      fallback: AppConfig.mapTileUrl.isEmpty
+          ? const NoTileSource()
+          : const UrlTemplateTileSource(
+              urlTemplate: AppConfig.mapTileUrl,
+              attributionText: AppConfig.mapTileAttribution,
+              attributionLink: AppConfig.mapTileAttributionUrl,
+            ),
+    );
     final queue = OperationQueue(await OfflineDatabase.open());
     // Lo aceptado hace mas de una semana ya no le sirve a nadie.
     await queue.purgeAccepted();
@@ -572,17 +635,16 @@ class AppDependencies {
           ? NearMeSampleRoadSegmentsRepository(road: nearMeRoad)
           : SampleRoadSegmentsRepository(),
       locationSource: const GeolocatorLocationSource(),
-      mapTileSource: AppConfig.mapTileUrl.isEmpty
-          ? const NoTileSource()
-          : const UrlTemplateTileSource(
-              urlTemplate: AppConfig.mapTileUrl,
-              attributionText: AppConfig.mapTileAttribution,
-              attributionLink: AppConfig.mapTileAttributionUrl,
-            ),
+      mapTileSource: tiles,
+      mapBaseLoader: MapBaseLoader(tiles: tiles, source: ApiMapBaseSource(api)),
       sampleMap: AppConfig.sampleMap,
       ticketsRepository: AppConfig.sampleTickets
           ? SampleTicketsRepository()
-          : const UnavailableTicketsRepository(),
+          : ApiTicketsRepository(
+              api,
+              roadId: () => activeRoadId(api),
+              language: language,
+            ),
       sampleTickets: AppConfig.sampleTickets,
       accidentsRepository: AppConfig.sampleAccidents
           ? SampleAccidentsRepository()
@@ -590,7 +652,7 @@ class AppDependencies {
       sampleAccidents: AppConfig.sampleAccidents,
       maintenanceRepository: AppConfig.sampleMaintenance
           ? SampleMaintenanceRepository()
-          : const UnavailableMaintenanceRepository(),
+          : ApiMaintenanceRepository(api),
       sampleMaintenance: AppConfig.sampleMaintenance,
       inventoryRepository: AppConfig.sampleInventory
           ? SampleInventoryRepository()
@@ -604,9 +666,14 @@ class AppDependencies {
         channels: ApiPushChannelSource(api),
         remote: ApiPushRemote(api),
       ),
+      // El telefono se registra en `/api/mobile/devices` con su version de la app.
+      deviceRegistrar: DeviceRegistrar(
+        source: PlatformDeviceProfileSource(prefs),
+        remote: ApiDeviceRemote(api),
+      ),
       worksRepository: AppConfig.sampleWorks
           ? SampleWorksRepository()
-          : const UnavailableWorksRepository(),
+          : ApiWorksRepository(api),
       sampleWorks: AppConfig.sampleWorks,
       // El cumplimiento por indicador lo calcula el servidor; con ejemplos se
       // muestran cifras con la forma del BBP.
@@ -619,7 +686,12 @@ class AppDependencies {
       sampleAlerts: AppConfig.sampleAlerts,
       inspectionsRepository: AppConfig.sampleInspections
           ? SampleInspectionsRepository()
-          : const UnavailableInspectionsRepository(),
+          : ApiInspectionsRepository(
+              api,
+              roadId: () => activeRoadId(api),
+              userId: () => activeUserId(api),
+              language: language,
+            ),
       sampleInspections: AppConfig.sampleInspections,
       features: const FeatureFlags(documents: AppConfig.documentsModule),
       mapPacks: mapPacks,

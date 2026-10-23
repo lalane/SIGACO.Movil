@@ -139,15 +139,98 @@ void main() {
     expect((await repo.pins(MapLayer.inventory)).first.category, 'DEFENSA');
   });
 
-  test('tickets, mantenimiento y obras aun no se publican', () async {
-    for (final layer in [
-      MapLayer.tickets,
-      MapLayer.maintenance,
-      MapLayer.works,
-    ]) {
-      await expectLater(repo.pins(layer), _fails(MapError.notAvailable));
-    }
+  test('el mantenimiento aun no publica pines', () async {
+    await expectLater(
+      repo.pins(MapLayer.maintenance),
+      _fails(MapError.notAvailable),
+    );
     expect(api.requests, isEmpty);
+  });
+
+  group('pines del servidor (tickets y obras)', () {
+    Map<String, Object?> pin(
+      String layer,
+      String id, {
+      String title = 'Bache en carril derecho\n\nCerca del puente',
+      String? priority = 'MEDIA',
+      Object? lat = -18.84,
+      Object? lon = -41.98,
+    }) => {
+      'layer': layer,
+      'id': id,
+      'code': 'COD-$id',
+      'title': title,
+      'status': 'NUEVO',
+      'priority': priority,
+      'longitude': lon,
+      'latitude': lat,
+      'roadId': 'r1',
+      'kmStart': 513.615,
+    };
+
+    Map<String, Object?> answer(String layer, List<Map<String, Object?>> pins) =>
+        {
+          'layers': [
+            {'layer': layer, 'count': pins.length, 'withoutGeometry': 0, 'truncated': false},
+          ],
+          'pins': pins,
+        };
+
+    test('los tickets abiertos salen de /api/map/pins', () async {
+      api.on(
+        'GET /api/map/pins',
+        FakeReply(200, answer('TICKETS', [pin('TICKETS', 't1', priority: 'CRITICA'), pin('TICKETS', 't2', priority: 'ALTA'), pin('TICKETS', 't3')])),
+      );
+      final pins = await repo.pins(MapLayer.tickets);
+
+      final sent = api.to('GET /api/map/pins').single.queryParameters;
+      expect(sent['layers'], 'TICKETS');
+      expect(sent['bbox'], '-180,-90,180,90');
+      expect(sent['limit'], 2000);
+      expect(pins.map((p) => p.id), ['t1', 't2', 't3']);
+      expect(pins.map((p) => p.status), [PinStatus.critical, PinStatus.attention, PinStatus.normal]);
+      expect(pins.first.layer, MapLayer.tickets);
+      expect(pins.first.title, 'Bache en carril derecho');
+      expect(pins.first.subtitle, 'COD-t1');
+      expect(pins.first.kmLabel, 'KM 513+615');
+      expect(pins.first.position.latitude, -18.84);
+      expect(pins.first.position.longitude, -41.98);
+    });
+
+    test('las obras piden la capa OBRAS', () async {
+      api.on('GET /api/map/pins', FakeReply(200, answer('OBRAS', [pin('OBRAS', 'w1', title: 'Repavimentacion km 500')])));
+      final pins = await repo.pins(MapLayer.works);
+      expect(api.to('GET /api/map/pins').single.queryParameters['layers'], 'OBRAS');
+      expect(pins.single.layer, MapLayer.works);
+      expect(pins.single.title, 'Repavimentacion km 500');
+    });
+
+    test('un pin sin coordenadas validas se omite', () async {
+      api.on(
+        'GET /api/map/pins',
+        FakeReply(200, answer('TICKETS', [pin('TICKETS', 'ok'), pin('TICKETS', 'mal', lat: 'x'), pin('TICKETS', 'fuera', lat: 120)])),
+      );
+      expect((await repo.pins(MapLayer.tickets)).map((p) => p.id), ['ok']);
+    });
+
+    test('una capa que el servidor no entrega es falta de permiso', () async {
+      api.on('GET /api/map/pins', const FakeReply(200, {'layers': [], 'pins': []}));
+      await expectLater(repo.pins(MapLayer.tickets), _fails(MapError.permissionDenied));
+    });
+
+    test('una capa sin pines es un mapa vacio, no un error', () async {
+      api.on('GET /api/map/pins', FakeReply(200, answer('TICKETS', [])));
+      expect(await repo.pins(MapLayer.tickets), isEmpty);
+    });
+
+    test('traduce los errores del servidor', () async {
+      api.on('GET /api/map/pins', const FakeReply(500));
+      await expectLater(repo.pins(MapLayer.tickets), _fails(MapError.server));
+      api.on('GET /api/map/pins', const FakeReply(200, {'pins': 'mal'}));
+      await expectLater(repo.pins(MapLayer.works), _fails(MapError.server));
+      api.offline = true;
+      await expectLater(repo.pins(MapLayer.tickets), _fails(MapError.network));
+    });
   });
 
   test('traduce los errores del servidor', () async {

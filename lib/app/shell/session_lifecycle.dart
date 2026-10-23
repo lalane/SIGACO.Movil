@@ -6,7 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/connectivity/connectivity_cubit.dart';
+import '../../core/device/device_registrar.dart';
 import '../../core/push/push_registrar.dart';
+import '../composition/map_base_source.dart';
 import '../../core/session/session_scope.dart';
 import '../../core/offline/operation.dart';
 import '../../core/offline/sync_cubit.dart';
@@ -160,6 +162,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
           branding.load(id);
           _loadZone(id);
           _syncPush(id);
+          _registerDevice(id);
+          _loadMapBase(id);
         } else {
           branding.clear();
         }
@@ -187,6 +191,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       branding.clear();
       context.read<ConcessionZoneCubit>().setFallback(null);
       context.read<PushRegistrar>().forget();
+      context.read<DeviceRegistrar>().forget();
+      context.read<MapBaseLoader>().reset();
       sync.setScope(null);
       lock.stop();
       widget.scope.clear();
@@ -201,6 +207,19 @@ class _SessionLifecycleState extends State<SessionLifecycle>
   Future<void> _syncPush(String concessionId) async {
     final registrar = context.read<PushRegistrar>();
     await registrar.sync(concessionId);
+  }
+
+  /// Registra este telefono en el servidor para que el administrador vea la
+  /// version de la app. Un fallo no estorba a la sesion. Borrar los datos locales
+  /// cuando el administrador bloquea el telefono (`wipeData`) queda pendiente.
+  Future<void> _registerDevice(String concessionId) async {
+    await context.read<DeviceRegistrar>().register(concessionId);
+  }
+
+  /// El mapa base (proveedor de teselas) que el servidor indica para la
+  /// concesion activa. Un fallo no estorba: se queda el de la compilacion.
+  Future<void> _loadMapBase(String concessionId) async {
+    await context.read<MapBaseLoader>().load(concessionId);
   }
 
   /// La zona horaria de la concesion segun el servidor, para cuando la marca no
@@ -251,6 +270,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
                   context.read<ConcessionZoneCubit>().state == null) {
                 _loadZone(id);
               }
+              // Lo que no se pudo registrar sin red (el registro repetido se omite).
+              if (id != null) _registerDevice(id);
             }
           },
         ),

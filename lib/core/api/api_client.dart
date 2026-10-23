@@ -149,6 +149,43 @@ class ApiClient {
     }
   }
 
+  /// POST `multipart/form-data` con un archivo y campos de texto (las fotos de
+  /// evidencia de un ticket). Los campos nulos no se mandan. [contentType] es el
+  /// tipo del archivo: el servidor exige `image/*` para una foto.
+  Future<Map<String, dynamic>?> postMultipart(
+    String path, {
+    required String fileField,
+    required String filePath,
+    required String fileName,
+    required String contentType,
+    Map<String, Object?> fields = const {},
+  }) async {
+    try {
+      final form = FormData.fromMap({
+        for (final e in fields.entries)
+          if (e.value != null) e.key: e.value,
+        fileField: await MultipartFile.fromFile(
+          filePath,
+          filename: fileName,
+          contentType: DioMediaType.parse(contentType),
+        ),
+      });
+      final r = await _dio.post<dynamic>(
+        path,
+        data: form,
+        options: Options(
+          sendTimeout: const Duration(seconds: 60),
+          receiveTimeout: const Duration(seconds: 60),
+        ),
+      );
+      return r.data is Map<String, dynamic>
+          ? r.data as Map<String, dynamic>
+          : null;
+    } on DioException catch (e) {
+      throw ApiFailure.fromDio(e);
+    }
+  }
+
   /// Direccion base de la API, sin barra final.
   String get baseUrl {
     final base = _dio.options.baseUrl;

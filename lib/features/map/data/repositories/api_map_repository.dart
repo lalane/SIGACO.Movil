@@ -1,14 +1,15 @@
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/geojson_anchor.dart';
+import '../../../../core/geo/km_label.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/repositories/map_repository.dart';
 
-/// El mapa contra el backend. Hoy solo el inventario publica algo para dibujar
-/// (`/api/assets/map`, GeoJSON de los activos con geometria de las carreteras
-/// autorizadas); tickets, mantenimiento y obras siguen sin publicarse y dicen
-/// que no estan disponibles en lugar de inventar pines.
+/// El mapa contra el backend. El inventario sale de `/api/assets/map` (GeoJSON
+/// de los activos con geometria de las carreteras autorizadas); los tickets
+/// abiertos y las obras en curso, de `/api/map/pins`. El mantenimiento aun no
+/// publica pines y dice que no esta disponible en lugar de inventarlos.
 class ApiMapRepository implements MapRepository {
   ApiMapRepository(this._api, {required this._language});
 
@@ -20,14 +21,18 @@ class ApiMapRepository implements MapRepository {
   static const _everywhere = '-180,-90,180,90';
   static const _limit = 10000;
 
+  /// Pines por capa que acepta `/api/map/pins` (1 a 2000).
+  static const _pinsLimit = 2000;
+
   Map<String, String>? _typeLabels;
 
   @override
   Future<List<MapPin>> pins(MapLayer layer) async {
-    if (layer != MapLayer.inventory) {
+    if (layer == MapLayer.maintenance) {
       throw const MapException(MapError.notAvailable);
     }
     try {
+      if (layer != MapLayer.inventory) return await _serverPins(layer);
       final labels = await _labels();
       final json = await _api.getJson(
         '/api/assets/map',
@@ -54,6 +59,58 @@ class ApiMapRepository implements MapRepository {
     } catch (_) {
       throw const MapException(MapError.server);
     }
+  }
+
+  /// Tickets abiertos y obras en curso (`/api/map/pins`): el servidor da el
+  /// centroide de cada uno y deja fuera lo que no tiene geometria. Si la persona
+  /// no puede ver la capa, el servidor no la devuelve: eso es falta de permiso,
+  /// no un mapa vacio.
+  Future<List<MapPin>> _serverPins(MapLayer layer) async {
+    final code = layer == MapLayer.tickets ? 'TICKETS' : 'OBRAS';
+    final json = await _api.getJson(
+      '/api/map/pins',
+      query: {'layers': code, 'bbox': _everywhere, 'limit': _pinsLimit},
+    );
+    if (json is! Map) throw const FormatException('respuesta inesperada');
+    final layers = json['layers'];
+    final pins = json['pins'];
+    if (layers is! List || pins is! List) {
+      throw const FormatException('sin pines');
+    }
+    final served = layers.any((l) => l is Map && l['layer'] == code);
+    if (!served) throw const MapException(MapError.permissionDenied);
+    return [
+      for (final p in pins)
+        if (p is Map<String, dynamic> && p['layer'] == code)
+          ?serverPin(p, layer),
+    ];
+  }
+
+  /// Un pin de `/api/map/pins`. El titulo del ticket es la primera linea de su
+  /// descripcion; la prioridad pide mas o menos atencion.
+  static MapPin? serverPin(Map<String, dynamic> p, MapLayer layer) {
+    final id = p['id'];
+    final lat = p['latitude'];
+    final lon = p['longitude'];
+    if (id is! String || lat is! num || lon is! num) return null;
+    final point = GeoPoint(lat.toDouble(), lon.toDouble());
+    if (!point.isValid) return null;
+    final code = (p['code'] as String?)?.trim() ?? id;
+    final title = (p['title'] as String?)?.trim().split('\n').first.trim();
+    final km = p['kmStart'];
+    return MapPin(
+      id: id,
+      layer: layer,
+      title: title == null || title.isEmpty ? code : title,
+      subtitle: code,
+      kmLabel: km is num ? kmLabel(km.toDouble(), null) : null,
+      status: switch ((p['priority'] as String?)?.toUpperCase()) {
+        'CRITICA' => PinStatus.critical,
+        'ALTA' => PinStatus.attention,
+        _ => PinStatus.normal,
+      },
+      position: point,
+    );
   }
 
   /// Tipo de activo -> su nombre en el idioma elegido. Si el catalogo no baja,

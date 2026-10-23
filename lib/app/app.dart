@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
+import '../core/device/device_registrar.dart';
+import 'composition/map_base_source.dart';
 import '../core/device/device_unlock.dart';
 import '../core/files/file_source.dart';
 import '../core/pdf/pdf_renderer.dart';
@@ -180,6 +182,12 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<PushRegistrar>.value(
           value: widget.dependencies.pushRegistrar,
+        ),
+        RepositoryProvider<DeviceRegistrar>.value(
+          value: widget.dependencies.deviceRegistrar,
+        ),
+        RepositoryProvider<MapBaseLoader>.value(
+          value: widget.dependencies.mapBaseLoader,
         ),
         RepositoryProvider<DashboardRepository>.value(
           value: widget.dependencies.dashboardRepository,
