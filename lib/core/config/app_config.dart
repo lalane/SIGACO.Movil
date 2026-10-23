@@ -70,6 +70,16 @@ abstract final class AppConfig {
     defaultValue: true,
   );
 
+  /// PRUEBA DE CONCEPTO de MapLibre (rama `spike/maplibre`): con
+  /// `--dart-define=MAP_SPIKE=true` la ruta del mapa abre la pantalla de prueba.
+  static const mapSpike = bool.fromEnvironment('MAP_SPIKE');
+
+  /// Estilo de MapLibre de la prueba: por omision, Liberty de OpenFreeMap.
+  static const mapStyleUrl = String.fromEnvironment(
+    'MAP_STYLE_URL',
+    defaultValue: 'https://tiles.openfreemap.org/styles/liberty',
+  );
+
   /// Teselas estandar de OpenStreetMap: el proveedor de la app mientras no haya
   /// teselas propias. Su politica de uso permite mostrar el mapa a quien usa la
   /// app, pero no la precarga ni el uso masivo ni el uso sin conexion: para

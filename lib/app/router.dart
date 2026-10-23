@@ -43,12 +43,14 @@ import '../features/map/domain/entities/map_pin.dart';
 import '../features/map/domain/entities/map_settings.dart';
 import '../features/map/domain/repositories/location_source.dart';
 import '../features/map/domain/repositories/map_pack_manager.dart';
+import '../core/config/app_config.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/domain/repositories/road_segments_repository.dart';
 import '../features/map/presentation/bloc/map_packs_cubit.dart';
 import '../features/map/presentation/pages/map_packs_page.dart';
 import '../features/map/presentation/bloc/map_cubit.dart';
 import '../features/map/presentation/pages/map_page.dart';
+import '../features/map/presentation/pages/maplibre_spike_page.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/map/presentation/map_record_actions.dart';
 import '../features/alerts/presentation/pages/alerts_page.dart';
@@ -291,24 +293,28 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/map',
-        builder: (context, state) => BlocProvider(
-          create: (_) => MapCubit(
-            repository: context.read<MapRepository>(),
-            locationSource: context.read<LocationSource>(),
-            packs: context.read<MapPackManager>(),
-            segmentsRepository: context.read<RoadSegmentsRepository>(),
-            settings: context.read<MapSettings>(),
-          ),
-          child: MapPage(
-            tileSource: context.read<MapTileSource>(),
-            sampleData: sampleMap,
-            initialLayer: MapLayer.values
-                .where((l) => l.name == state.uri.queryParameters['layer'])
-                .firstOrNull,
-            initialPinId: state.uri.queryParameters['pin'],
-            actions: _mapActions(context),
-          ),
-        ),
+        builder: (context, state) => AppConfig.mapSpike
+            ? MapLibreSpikePage(repository: context.read<MapRepository>())
+            : BlocProvider(
+                create: (_) => MapCubit(
+                  repository: context.read<MapRepository>(),
+                  locationSource: context.read<LocationSource>(),
+                  packs: context.read<MapPackManager>(),
+                  segmentsRepository: context.read<RoadSegmentsRepository>(),
+                  settings: context.read<MapSettings>(),
+                ),
+                child: MapPage(
+                  tileSource: context.read<MapTileSource>(),
+                  sampleData: sampleMap,
+                  initialLayer: MapLayer.values
+                      .where(
+                        (l) => l.name == state.uri.queryParameters['layer'],
+                      )
+                      .firstOrNull,
+                  initialPinId: state.uri.queryParameters['pin'],
+                  actions: _mapActions(context),
+                ),
+              ),
         routes: [
           GoRoute(
             path: 'packs',
