@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api/api_client.dart';
+import '../core/demo/demo_mode.dart';
 import '../core/api/api_failure.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
@@ -100,7 +101,9 @@ import '../features/map/domain/repositories/location_source.dart';
 import '../features/map/domain/repositories/map_pack_manager.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/domain/repositories/road_segments_repository.dart';
+import 'composition/demo_repositories.dart';
 import 'composition/map_base_source.dart';
+import '../features/map/presentation/map_camera.dart';
 import '../features/map/presentation/tiles/configured_tile_source.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
@@ -221,14 +224,71 @@ class _WithSampleModules implements NavigationRepository {
 /// Solo para las pruebas con datos de ejemplo: si el servidor no publica la
 /// zona horaria de la concesion, usa la de Sao Paulo.
 class _WithSampleZone implements ConcessionZoneSource {
-  const _WithSampleZone(this._inner);
+  const _WithSampleZone(this._inner, {required this.enabled});
 
   final ConcessionZoneSource _inner;
 
+  /// Se consulta en cada llamada: el interruptor de ejemplo de la cuenta la
+  /// enciende y la apaga sin reiniciar la app.
+  final bool Function() enabled;
+
   @override
-  Future<ConcessionZone?> load(String concessionId) async =>
-      await _inner.load(concessionId) ??
-      ConcessionZone.tryParse('America/Sao_Paulo');
+  Future<ConcessionZone?> load(String concessionId) async {
+    final zone = await _inner.load(concessionId);
+    if (zone != null || !enabled()) return zone;
+    return ConcessionZone.tryParse('America/Sao_Paulo');
+  }
+}
+
+/// Con el modo de ejemplo encendido (interruptor de la cuenta), suma al menu
+/// todos los modulos con datos de ejemplo y los permisos que habilitan el mapa.
+class _WithDemoModules implements NavigationRepository {
+  const _WithDemoModules(this._inner, this._demo);
+
+  final NavigationRepository _inner;
+  final bool Function() _demo;
+
+  static const _items = [
+    NavigationItem(code: 'TICKETS', name: 'Tickets'),
+    NavigationItem(
+      code: 'ANTT',
+      name: 'ANTT',
+      submodules: [NavigationItem(code: 'ANTT.ACCIDENTES', name: 'Accidentes')],
+    ),
+    NavigationItem(code: 'MANTENIMIENTO', name: 'Mantenimiento'),
+    NavigationItem(code: 'INVENTARIO', name: 'Inventario'),
+    NavigationItem(code: 'OBRAS', name: 'Obras'),
+    NavigationItem(code: 'ALERTAS_OPERATIVAS', name: 'Alertas'),
+    NavigationItem(code: 'INSPECCIONES', name: 'Inspecciones'),
+    NavigationItem(code: 'PANEL', name: 'Panel'),
+    NavigationItem(code: 'REPORTES', name: 'Reportes'),
+  ];
+
+  @override
+  Stream<void> get accessDenied => _inner.accessDenied;
+
+  @override
+  Future<NavigationMenu> load() async {
+    final menu = await _inner.load();
+    if (!_demo()) return menu;
+    return NavigationMenu(
+      modules: [
+        ...menu.modules,
+        for (final item in _items)
+          if (!menu.has(item.code) &&
+              !item.submodules.any((s) => menu.has(s.code)))
+            item,
+      ],
+      permissions: [
+        ...menu.permissions,
+        for (final key in [
+          PermissionKeys.inventoryView,
+          PermissionKeys.sigView,
+        ])
+          if (!menu.permissions.contains(key)) key,
+      ],
+    );
+  }
 }
 
 /// Raiz de composicion: aqui se crean las implementaciones concretas.
@@ -245,6 +305,7 @@ class AppDependencies {
     this.roadSegmentsRepository = const UnavailableRoadSegmentsRepository(),
     this.locationSource = const UnavailableLocationSource(),
     this.mapTileSource = const NoTileSource(),
+    this.mapEngine = MapEngine.flutterMap,
     this.sampleMap = false,
     this.ticketsRepository = const UnavailableTicketsRepository(),
     this.sampleTickets = false,
@@ -265,6 +326,7 @@ class AppDependencies {
     ComplianceSource? complianceSource,
     PushRegistrar? pushRegistrar,
     DeviceRegistrar? deviceRegistrar,
+    DemoMode? demoMode,
     MapBaseLoader? mapBaseLoader,
     this.features = const FeatureFlags(),
     this.mapSettings = const MapSettings(),
@@ -288,6 +350,7 @@ class AppDependencies {
            MaintenanceReportsRepository(maintenanceRepository),
        pushRegistrar = pushRegistrar ?? PushRegistrar(prefs: prefs),
        deviceRegistrar = deviceRegistrar ?? DeviceRegistrar(),
+       demoMode = demoMode ?? DemoMode(),
        mapBaseLoader = mapBaseLoader ?? MapBaseLoader.none(),
        dashboardRepository =
            dashboardRepository ??
@@ -338,6 +401,10 @@ class AppDependencies {
   /// De donde salen las teselas del mapa base; sin proveedor, solo pines.
   final MapTileSource mapTileSource;
 
+  /// Con que se dibuja el mapa: la app usa MapLibre; las pruebas, `flutter_map`
+  /// (el mapa nativo no existe en ellas).
+  final MapEngine mapEngine;
+
   /// El mapa muestra datos de ejemplo y lo avisa.
   final bool sampleMap;
 
@@ -386,6 +453,9 @@ class AppDependencies {
   /// Registra este telefono en el servidor (version de la app) para que el
   /// administrador vea quien esta al dia.
   final DeviceRegistrar deviceRegistrar;
+
+  /// El interruptor de datos de ejemplo de la cuenta.
+  final DemoMode demoMode;
 
   /// Pide al servidor el mapa base de la concesion activa (proveedor de teselas)
   /// y lo aplica sobre [mapTileSource].
@@ -467,16 +537,26 @@ class AppDependencies {
       userAgent = null;
     }
     final api = ApiClient(userAgent: userAgent);
-    // El mapa base lo indica el servidor por concesion; el de la compilacion
-    // (`MAP_TILE_URL`) es el de respaldo.
+    // Datos de ejemplo en caliente (interruptor de la cuenta); las banderas
+    // `SAMPLE_*` de la compilacion siguen forzando los suyos.
+    final demo = DemoMode();
+    // El mapa base lo indica el servidor por concesion; el de la compilacion es
+    // el de respaldo: una plantilla de teselas (`MAP_TILE_URL`) si se define y,
+    // si no, el estilo de MapLibre (`MAP_STYLE_URL`, OpenFreeMap por omision).
     final tiles = ConfiguredTileSource(
-      fallback: AppConfig.mapTileUrl.isEmpty
-          ? const NoTileSource()
-          : const UrlTemplateTileSource(
+      fallback: AppConfig.mapTileUrl.isNotEmpty
+          ? const UrlTemplateTileSource(
               urlTemplate: AppConfig.mapTileUrl,
               attributionText: AppConfig.mapTileAttribution,
               attributionLink: AppConfig.mapTileAttributionUrl,
-            ),
+            )
+          : AppConfig.mapStyleUrl.isNotEmpty
+          ? const StyleUrlTileSource(
+              styleUrl: AppConfig.mapStyleUrl,
+              attributionText: AppConfig.mapStyleAttribution,
+              attributionLink: AppConfig.mapStyleAttributionUrl,
+            )
+          : const NoTileSource(),
     );
     final queue = OperationQueue(await OfflineDatabase.open());
     // Lo aceptado hace mas de una semana ya no le sirve a nadie.
@@ -531,6 +611,7 @@ class AppDependencies {
       if (AppConfig.sampleMaintenance)
         const NavigationItem(code: 'REPORTES', name: 'Reportes'),
     ]);
+    navigation = _WithDemoModules(navigation, () => demo.on);
     // Etiquetas de tipo y categoria en el idioma elegido (o el del telefono si
     // no eligio ninguno).
     String language() {
@@ -618,45 +699,60 @@ class AppDependencies {
       ),
       navigationRepository: navigation,
       documentsRepository: documents,
-      mapRepository: !AppConfig.sampleMap
-          ? CachedMapRepository(
-              ApiMapRepository(api, language: language),
-              mapPinsCache,
-            )
-          : AppConfig.sampleMapNearMe
-          ? NearMeSampleMapRepository(road: nearMeRoad)
-          : SampleMapRepository(),
-      roadSegmentsRepository: !AppConfig.sampleMap
-          ? CachedRoadSegmentsRepository(
-              const UnavailableRoadSegmentsRepository(),
-              mapPinsCache,
-            )
-          : AppConfig.sampleMapNearMe
-          ? NearMeSampleRoadSegmentsRepository(road: nearMeRoad)
-          : SampleRoadSegmentsRepository(),
+      mapRepository: DemoAwareMap(
+        real: CachedMapRepository(
+          ApiMapRepository(api, language: language),
+          mapPinsCache,
+        ),
+        sample: AppConfig.sampleMapNearMe
+            ? NearMeSampleMapRepository(road: nearMeRoad)
+            : SampleMapRepository(),
+        demo: () => demo.on || AppConfig.sampleMap,
+      ),
+      roadSegmentsRepository: DemoAwareRoadSegments(
+        real: CachedRoadSegmentsRepository(
+          const UnavailableRoadSegmentsRepository(),
+          mapPinsCache,
+        ),
+        sample: AppConfig.sampleMapNearMe
+            ? NearMeSampleRoadSegmentsRepository(road: nearMeRoad)
+            : SampleRoadSegmentsRepository(),
+        demo: () => demo.on || AppConfig.sampleMap,
+      ),
       locationSource: const GeolocatorLocationSource(),
       mapTileSource: tiles,
+      mapEngine: AppConfig.mapLegacy
+          ? MapEngine.flutterMap
+          : MapEngine.maplibre,
       mapBaseLoader: MapBaseLoader(tiles: tiles, source: ApiMapBaseSource(api)),
       sampleMap: AppConfig.sampleMap,
-      ticketsRepository: AppConfig.sampleTickets
-          ? SampleTicketsRepository()
-          : ApiTicketsRepository(
-              api,
-              roadId: () => activeRoadId(api),
-              language: language,
-            ),
+      ticketsRepository: DemoAwareTickets(
+        real: ApiTicketsRepository(
+          api,
+          roadId: () => activeRoadId(api),
+          language: language,
+        ),
+        sample: SampleTicketsRepository(),
+        demo: () => demo.on || AppConfig.sampleTickets,
+      ),
       sampleTickets: AppConfig.sampleTickets,
-      accidentsRepository: AppConfig.sampleAccidents
-          ? SampleAccidentsRepository()
-          : const UnavailableAccidentsRepository(),
+      accidentsRepository: DemoAwareAccidents(
+        real: const UnavailableAccidentsRepository(),
+        sample: SampleAccidentsRepository(),
+        demo: () => demo.on || AppConfig.sampleAccidents,
+      ),
       sampleAccidents: AppConfig.sampleAccidents,
-      maintenanceRepository: AppConfig.sampleMaintenance
-          ? SampleMaintenanceRepository()
-          : ApiMaintenanceRepository(api),
+      maintenanceRepository: DemoAwareMaintenance(
+        real: ApiMaintenanceRepository(api),
+        sample: SampleMaintenanceRepository(),
+        demo: () => demo.on || AppConfig.sampleMaintenance,
+      ),
       sampleMaintenance: AppConfig.sampleMaintenance,
-      inventoryRepository: AppConfig.sampleInventory
-          ? SampleInventoryRepository()
-          : ApiInventoryRepository(api),
+      inventoryRepository: DemoAwareInventory(
+        real: ApiInventoryRepository(api),
+        sample: SampleInventoryRepository(),
+        demo: () => demo.on || AppConfig.sampleInventory,
+      ),
       sampleInventory: AppConfig.sampleInventory,
       // El token push se registra en `/api/auth/me/devices` solo si el canal
       // push de la concesion esta encendido. Falta la fuente del token
@@ -671,27 +767,36 @@ class AppDependencies {
         source: PlatformDeviceProfileSource(prefs),
         remote: ApiDeviceRemote(api),
       ),
-      worksRepository: AppConfig.sampleWorks
-          ? SampleWorksRepository()
-          : ApiWorksRepository(api),
+      worksRepository: DemoAwareWorks(
+        real: ApiWorksRepository(api),
+        sample: SampleWorksRepository(),
+        demo: () => demo.on || AppConfig.sampleWorks,
+      ),
       sampleWorks: AppConfig.sampleWorks,
       // El cumplimiento por indicador lo calcula el servidor; con ejemplos se
       // muestran cifras con la forma del BBP.
-      complianceSource: AppConfig.sampleTickets || AppConfig.sampleMaintenance
-          ? const SampleComplianceSource()
-          : const UnavailableComplianceSource(),
-      alertsRepository: AppConfig.sampleAlerts
-          ? SampleAlertsRepository()
-          : ApiAlertsRepository(api),
+      complianceSource: DemoAwareCompliance(
+        real: const UnavailableComplianceSource(),
+        sample: const SampleComplianceSource(),
+        demo: () =>
+            demo.on || AppConfig.sampleTickets || AppConfig.sampleMaintenance,
+      ),
+      alertsRepository: DemoAwareAlerts(
+        real: ApiAlertsRepository(api),
+        sample: SampleAlertsRepository(),
+        demo: () => demo.on || AppConfig.sampleAlerts,
+      ),
       sampleAlerts: AppConfig.sampleAlerts,
-      inspectionsRepository: AppConfig.sampleInspections
-          ? SampleInspectionsRepository()
-          : ApiInspectionsRepository(
-              api,
-              roadId: () => activeRoadId(api),
-              userId: () => activeUserId(api),
-              language: language,
-            ),
+      inspectionsRepository: DemoAwareInspections(
+        real: ApiInspectionsRepository(
+          api,
+          roadId: () => activeRoadId(api),
+          userId: () => activeUserId(api),
+          language: language,
+        ),
+        sample: SampleInspectionsRepository(),
+        demo: () => demo.on || AppConfig.sampleInspections,
+      ),
       sampleInspections: AppConfig.sampleInspections,
       features: const FeatureFlags(documents: AppConfig.documentsModule),
       mapPacks: mapPacks,
@@ -710,12 +815,15 @@ class AppDependencies {
       pdfRenderer: PlatformPdfRenderer(),
       // Con datos de ejemplo no hay servidor que publique la zona: se usa la
       // de Brasil para poder probar los formularios (RN-13 los bloquea sin zona).
-      zoneSource:
-          (AppConfig.sampleTickets ||
-              AppConfig.sampleAccidents ||
-              AppConfig.sampleInspections)
-          ? _WithSampleZone(ApiConcessionZoneSource(api))
-          : ApiConcessionZoneSource(api),
+      zoneSource: _WithSampleZone(
+        ApiConcessionZoneSource(api),
+        enabled: () =>
+            demo.on ||
+            AppConfig.sampleTickets ||
+            AppConfig.sampleAccidents ||
+            AppConfig.sampleInspections,
+      ),
+      demoMode: demo,
       fileStore: fileStore,
       brandingRepository: BrandingRepositoryImpl(
         api,

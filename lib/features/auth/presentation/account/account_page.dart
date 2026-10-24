@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/branding/sigaco_wordmark.dart';
 import '../../../../core/connectivity/connectivity_cubit.dart';
+import '../../../../core/demo/demo_mode.dart';
 import '../../../../core/device/device_info_source.dart';
 import '../../../../core/offline/sync_cubit.dart';
 import '../../../../core/responsive/responsive.dart';
@@ -221,6 +222,7 @@ class _Body extends StatelessWidget {
     final mfaFromLogin = context.select((AuthBloc b) => b.state.mfaActive);
     final mfaActive = profile.mfa?.active ?? mfaFromLogin;
     final settings = context.select((SettingsCubit c) => c.state);
+    final demo = context.read<DemoMode>();
     // Ultima respuesta del servidor. Cuando exista la sincronizacion sin
     // conexion, aqui se mostrara la ultima sincronizacion.
     final lastContact = context.select(
@@ -506,6 +508,25 @@ class _Body extends StatelessWidget {
               ),
             ),
           ],
+          // Para ver como esta armada la app: todos los modulos con datos
+          // inventados, sin tocar el servidor. Se apaga al cerrar sesion.
+          SizedBox(height: r.s(10)),
+          ListenableBuilder(
+            listenable: demo,
+            builder: (context, _) => _ActionTile(
+              key: const Key('account-demo-switch'),
+              icon: Icons.science_outlined,
+              title: l10n.demoModeTitle,
+              subtitle: demo.on ? l10n.demoModeOn : l10n.demoModeOff,
+              onTap: () => _toggleDemo(context, !demo.on),
+              trailing: Switch(
+                value: demo.on,
+                activeTrackColor: p.accent,
+                activeThumbColor: p.onAccent,
+                onChanged: (on) => _toggleDemo(context, on),
+              ),
+            ),
+          ),
           SizedBox(height: r.s(20)),
           PrimaryButton(
             label: l10n.signOut,
@@ -588,6 +609,18 @@ class _Body extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _toggleDemo(BuildContext context, bool on) {
+    context.read<DemoMode>().set(on);
+    final l10n = AppLocalizations.of(context);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(on ? l10n.demoModeSnackOn : l10n.demoModeSnackOff),
+        ),
+      );
   }
 
   void _toggleBiometric(BuildContext context, bool on) {

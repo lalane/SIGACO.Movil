@@ -628,11 +628,7 @@ class _ModuleCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                _iconFor(module),
-                color: p.accentIconOnLight,
-                size: r.s(34),
-              ),
+              Icon(_iconFor(module), color: p.accentIconOnLight, size: r.s(34)),
               const Spacer(),
               // Una sola linea: si el titulo no cabe, se reduce en vez de partirse.
               FittedBox(

@@ -39,18 +39,37 @@ class ApiMapBaseSource implements MapBaseSource {
     }
   }
 
-  /// El mapa base de un `mapBase` del servidor, o null si no es valido.
+  /// El mapa base de un `mapBase` del servidor, o null si no es valido. Puede
+  /// ser un estilo de MapLibre (`styleUrl`, teselas vectoriales) o una plantilla
+  /// de teselas de imagen (`urlTemplate`); si vienen las dos, manda el estilo.
   static MapTileSource? parse(Object? raw) {
     if (raw is! Map) return null;
+    final link = _text(raw['attributionUrl']);
+    final attributionLink = link != null && link.startsWith('https://')
+        ? link
+        : null;
+    final attribution = _text(raw['attribution']);
+    final zoom = raw['maxZoom'];
+    final zoomMax = zoom is num
+        ? zoom.toDouble().clamp(1.0, 22.0).toDouble()
+        : 19.0;
+
+    final style = _text(raw['styleUrl']);
+    if (style != null && style.startsWith('https://')) {
+      return StyleUrlTileSource(
+        styleUrl: style,
+        attributionText: attribution,
+        attributionLink: attributionLink,
+        zoomMax: zoomMax,
+      );
+    }
     final url = _text(raw['urlTemplate']);
     if (url == null || !_validTemplate(url)) return null;
-    final link = _text(raw['attributionUrl']);
-    final zoom = raw['maxZoom'];
     return UrlTemplateTileSource(
       urlTemplate: url,
-      attributionText: _text(raw['attribution']),
-      attributionLink: link != null && link.startsWith('https://') ? link : null,
-      zoomMax: zoom is num ? zoom.toDouble().clamp(1.0, 22.0).toDouble() : 19,
+      attributionText: attribution,
+      attributionLink: attributionLink,
+      zoomMax: zoomMax,
     );
   }
 

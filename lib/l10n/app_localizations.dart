@@ -530,6 +530,36 @@ abstract class AppLocalizations {
   /// **'Preferencias'**
   String get preferencesTitle;
 
+  /// No description provided for @demoModeTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo'**
+  String get demoModeTitle;
+
+  /// No description provided for @demoModeOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Todo se ve con datos inventados; no se consulta el servidor'**
+  String get demoModeOn;
+
+  /// No description provided for @demoModeOff.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver la app con datos inventados para conocer cómo está armada'**
+  String get demoModeOff;
+
+  /// No description provided for @demoModeSnackOn.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de ejemplo activados'**
+  String get demoModeSnackOn;
+
+  /// No description provided for @demoModeSnackOff.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos reales'**
+  String get demoModeSnackOff;
+
   /// No description provided for @preferencesSubtitle.
   ///
   /// In es, this message translates to:

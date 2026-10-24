@@ -244,6 +244,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get preferencesTitle => 'Preferências';
 
   @override
+  String get demoModeTitle => 'Dados de exemplo';
+
+  @override
+  String get demoModeOn =>
+      'Tudo aparece com dados inventados; o servidor não é consultado';
+
+  @override
+  String get demoModeOff =>
+      'Ver o app com dados inventados para conhecer a estrutura';
+
+  @override
+  String get demoModeSnackOn => 'Dados de exemplo ativados';
+
+  @override
+  String get demoModeSnackOff => 'Dados reais';
+
+  @override
   String get preferencesSubtitle => 'Ficam salvas neste dispositivo.';
 
   @override

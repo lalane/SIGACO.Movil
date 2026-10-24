@@ -763,6 +763,12 @@ class _FakeTiles extends MapTileSource {
   Widget? buildLayer() => const SizedBox.shrink();
 
   @override
+  String get styleString => MapTileSource.neutralStyle;
+
+  @override
+  bool get hasBase => true;
+
+  @override
   String? get attribution => '© Proveedor de prueba';
 
   @override

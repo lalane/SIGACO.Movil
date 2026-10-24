@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../core/connectivity/connectivity_cubit.dart';
 import '../core/device/device_info_source.dart';
 import '../core/device/device_registrar.dart';
+import '../core/demo/demo_mode.dart';
+import '../features/map/presentation/map_camera.dart';
 import 'composition/map_base_source.dart';
 import '../core/device/device_unlock.dart';
 import '../core/files/file_source.dart';
@@ -189,6 +191,10 @@ class _SigacoAppState extends State<SigacoApp> {
         RepositoryProvider<MapBaseLoader>.value(
           value: widget.dependencies.mapBaseLoader,
         ),
+        RepositoryProvider<MapEngine>.value(
+          value: widget.dependencies.mapEngine,
+        ),
+        RepositoryProvider<DemoMode>.value(value: widget.dependencies.demoMode),
         RepositoryProvider<DashboardRepository>.value(
           value: widget.dependencies.dashboardRepository,
         ),

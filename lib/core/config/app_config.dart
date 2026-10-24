@@ -70,30 +70,38 @@ abstract final class AppConfig {
     defaultValue: true,
   );
 
-  /// PRUEBA DE CONCEPTO de MapLibre (rama `spike/maplibre`): con
-  /// `--dart-define=MAP_SPIKE=true` la ruta del mapa abre la pantalla de prueba.
-  static const mapSpike = bool.fromEnvironment('MAP_SPIKE');
+  /// El mapa de la app es de MapLibre. Con `--dart-define=MAP_LEGACY=true` se
+  /// vuelve al de `flutter_map` (solo de respaldo mientras se estabiliza el
+  /// nuevo): ese no dibuja teselas vectoriales, asi que necesita [mapTileUrl].
+  static const mapLegacy = bool.fromEnvironment('MAP_LEGACY');
 
-  /// Estilo de MapLibre de la prueba: por omision, Liberty de OpenFreeMap.
+  /// Estilo de MapLibre del mapa base: por omision, Liberty de OpenFreeMap
+  /// (teselas vectoriales abiertas, gratuitas y de uso comercial, con
+  /// atribucion). Lo normal es que el servidor indique el de cada concesion
+  /// (`mapBase` en la configuracion); este es el de respaldo.
+  /// `--dart-define=MAP_STYLE_URL=https://...`; vacio = sin mapa base.
   static const mapStyleUrl = String.fromEnvironment(
     'MAP_STYLE_URL',
     defaultValue: 'https://tiles.openfreemap.org/styles/liberty',
   );
 
-  /// Teselas estandar de OpenStreetMap: el proveedor de la app mientras no haya
-  /// teselas propias. Su politica de uso permite mostrar el mapa a quien usa la
-  /// app, pero no la precarga ni el uso masivo ni el uso sin conexion: para
-  /// produccion hay que apuntar a teselas propias con [mapTileUrl] y usar los
-  /// paquetes por concesion para trabajar sin red.
-  static const osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-  /// Plantilla de teselas del mapa base. Por omision, OpenStreetMap; para otro
-  /// proveedor: `--dart-define=MAP_TILE_URL=https://tiles.example.com/{z}/{x}/{y}.png`.
-  /// Definida y vacia (`MAP_TILE_URL=`) = sin mapa base, solo pines.
-  static const mapTileUrl = String.fromEnvironment(
-    'MAP_TILE_URL',
-    defaultValue: osmTileUrl,
+  /// Atribucion del estilo de [mapStyleUrl].
+  static const mapStyleAttribution = String.fromEnvironment(
+    'MAP_STYLE_ATTRIBUTION',
+    defaultValue: 'OpenFreeMap © OpenMapTiles Data from OpenStreetMap',
   );
+
+  /// A donde lleva tocar la atribucion del estilo.
+  static const mapStyleAttributionUrl = String.fromEnvironment(
+    'MAP_STYLE_ATTRIBUTION_URL',
+    defaultValue: 'https://openfreemap.org',
+  );
+
+  /// Plantilla de teselas de imagen del mapa base, para un proveedor que no
+  /// entrega un estilo: `--dart-define=MAP_TILE_URL=https://tiles.example.com/{z}/{x}/{y}.png`.
+  /// Si se define, manda sobre [mapStyleUrl]. Ya no hay un valor por omision: el
+  /// servidor publico de OpenStreetMap no se usa en produccion.
+  static const mapTileUrl = String.fromEnvironment('MAP_TILE_URL');
 
   /// Atribucion que se muestra sobre el mapa con [mapTileUrl].
   static const mapTileAttribution = String.fromEnvironment(

@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/connectivity/connectivity_cubit.dart';
+import '../../core/demo/demo_mode.dart';
 import '../../core/device/device_registrar.dart';
 import '../../core/push/push_registrar.dart';
 import '../composition/map_base_source.dart';
@@ -55,11 +56,13 @@ class _SessionLifecycleState extends State<SessionLifecycle>
   String? _lastConcession;
 
   StreamSubscription<SessionRevalidation>? _revalidations;
+  late final DemoMode _demo = context.read<DemoMode>();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _demo.addListener(_onDemoChanged);
     _revalidations = context.read<AuthRepository>().revalidations.listen(
       _onRevalidated,
     );
@@ -68,9 +71,26 @@ class _SessionLifecycleState extends State<SessionLifecycle>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _demo.removeListener(_onDemoChanged);
     _revalidations?.cancel();
     _probe?.cancel();
     super.dispose();
+  }
+
+  /// El interruptor de datos de ejemplo cambio: el menu (con o sin los modulos de
+  /// ejemplo) y las alertas se vuelven a pedir; lo demas se pide al abrirse.
+  void _onDemoChanged() {
+    // Se mira la sesion de ahora: al cerrarla el modo se apaga antes de que este
+    // objeto anote el cambio.
+    if (!mounted || context.read<AuthBloc>().state.step != AuthStep.signedIn) {
+      return;
+    }
+    context.read<NavigationBloc>().add(
+      const NavigationRefreshed(gap: Duration.zero),
+    );
+    context.read<AlertsCubit>()
+      ..clear()
+      ..load();
   }
 
   /// El servidor confirmo la sesion con el menu y los permisos vigentes. Si ya no
@@ -192,6 +212,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       context.read<ConcessionZoneCubit>().setFallback(null);
       context.read<PushRegistrar>().forget();
       context.read<DeviceRegistrar>().forget();
+      // El modo de ejemplo no pasa a la siguiente sesion.
+      _demo.set(false);
       context.read<MapBaseLoader>().reset();
       sync.setScope(null);
       lock.stop();

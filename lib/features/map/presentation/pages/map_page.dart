@@ -28,6 +28,8 @@ import '../../domain/entities/road_segment.dart';
 import '../../domain/repositories/location_source.dart';
 import '../../domain/repositories/map_repository.dart';
 import '../bloc/map_cubit.dart';
+import '../map_camera.dart';
+import '../maplibre/maplibre_engine.dart';
 import '../map_labels.dart';
 import '../tiles/map_tile_source.dart';
 import '../tiles/reader_tile_provider.dart';
@@ -52,9 +54,14 @@ class MapPage extends StatefulWidget {
     this.initialLayer,
     this.initialPinId,
     this.actions = MapRecordActions.none,
+    this.engine = MapEngine.flutterMap,
   });
 
   final MapTileSource tileSource;
+
+  /// Con que se dibuja el mapa. La app usa MapLibre; las pruebas de la pantalla
+  /// usan `flutter_map`, que se puede probar sin el mapa nativo.
+  final MapEngine engine;
 
   /// Abrir el mapa sobre un elemento (desde la ficha de un activo, por
   /// ejemplo): su pestana y su id. Si ya no esta, el mapa se ve normal.
@@ -76,6 +83,7 @@ LatLng _ll(GeoPoint p) => LatLng(p.latitude, p.longitude);
 
 class _MapPageState extends State<MapPage> {
   final _controller = MapController();
+  final _camera = MapCameraController();
 
   /// Zoom del mapa, a medio nivel: es lo que decide como se agrupan los pines.
   final _zoom = ValueNotifier<double>(14);
@@ -90,6 +98,11 @@ class _MapPageState extends State<MapPage> {
   @override
   void initState() {
     super.initState();
+    // Con `flutter_map` la camara se mueve con su controlador; MapLibre conecta
+    // la suya al crearse.
+    _camera.attach((point, minZoom) async {
+      _controller.move(_ll(point), math.max(_controller.camera.zoom, minZoom));
+    });
     context.read<MapCubit>().load().then((_) => _showInitialPin());
   }
 
@@ -156,14 +169,8 @@ class _MapPageState extends State<MapPage> {
   void _focusOnUser(MapState state) {
     final here = state.location;
     if (here == null) return;
-    try {
-      _controller.move(
-        _ll(here.position),
-        math.max(_controller.camera.zoom, 16),
-      );
-    } catch (_) {
-      // El mapa todavia no esta listo: la proxima ubicacion lo centrara.
-    }
+    // Si el mapa todavia no esta listo, la proxima ubicacion lo centrara.
+    _camera.moveTo(here.position);
   }
 
   /// Los mapas sin conexion: al volver se vuelve a buscar el paquete instalado.
@@ -176,12 +183,7 @@ class _MapPageState extends State<MapPage> {
   /// Elegir un elemento de la lista de abajo: se selecciona y el mapa se centra.
   void _focusPin(MapPin pin) {
     context.read<MapCubit>().selectPin(pin.id);
-    try {
-      _controller.move(
-        _ll(pin.position),
-        math.max(_controller.camera.zoom, 16),
-      );
-    } catch (_) {}
+    _camera.moveTo(pin.position);
   }
 
   Future<void> _openNearby() async {
@@ -190,12 +192,7 @@ class _MapPageState extends State<MapPage> {
     if (picked == null || !mounted) return;
     await cubit.selectLayer(MapLayer.inventory);
     cubit.selectPin(picked.id);
-    try {
-      _controller.move(
-        _ll(picked.position),
-        math.max(_controller.camera.zoom, 16),
-      );
-    } catch (_) {}
+    _camera.moveTo(picked.position);
   }
 
   @override
@@ -224,12 +221,15 @@ class _MapPageState extends State<MapPage> {
                   onPressed: _openNearby,
                   icon: Icons.near_me_outlined,
                 ),
-                ModuleHeaderAction(
-                  key: const Key('map-packs-button'),
-                  tooltip: l10n.mapPacksAction,
-                  onPressed: _openPacks,
-                  icon: Icons.download_for_offline_outlined,
-                ),
+                // Los mapas descargables son de teselas de imagen: con MapLibre no
+                // hay paquetes (el sin conexion sera con sus regiones).
+                if (widget.engine == MapEngine.flutterMap)
+                  ModuleHeaderAction(
+                    key: const Key('map-packs-button'),
+                    tooltip: l10n.mapPacksAction,
+                    onPressed: _openPacks,
+                    icon: Icons.download_for_offline_outlined,
+                  ),
                 ModuleHeaderAction(
                   key: const Key('map-filter-button'),
                   tooltip: state.activeFilterCount == 0
@@ -277,6 +277,8 @@ class _MapPageState extends State<MapPage> {
           segmentHit: _segmentHit,
           onPick: _focusPin,
           actions: widget.actions,
+          engine: widget.engine,
+          camera: _camera,
         );
     }
   }
@@ -355,9 +357,13 @@ class _MapArea extends StatelessWidget {
     required this.segmentHit,
     required this.onPick,
     required this.actions,
+    required this.engine,
+    required this.camera,
   });
 
   final MapRecordActions actions;
+  final MapEngine engine;
+  final MapCameraController camera;
   final MapState state;
   final MapTileSource tileSource;
   final MapController controller;
@@ -516,8 +522,9 @@ class _MapArea extends StatelessWidget {
     // encima. Sin conexion solo queda el paquete; con conexion el de en linea
     // rellena lo que el paquete no cubre.
     final online = context.select((ConnectivityCubit c) => c.state.online);
-    final reader = state.offlineReader;
-    final pack = state.offlinePack;
+    // Los paquetes sin conexion son teselas de imagen de `flutter_map`.
+    final reader = engine == MapEngine.flutterMap ? state.offlineReader : null;
+    final pack = engine == MapEngine.flutterMap ? state.offlinePack : null;
     final onlineLayer = tileSource.buildLayer();
     final tileLayers = <Widget>[
       if (onlineLayer != null && (reader == null || online)) onlineLayer,
@@ -556,168 +563,176 @@ class _MapArea extends StatelessWidget {
 
     return Stack(
       children: [
-        ClipRect(
-          child: FlutterMap(
-            key: ValueKey(fitKey),
-            mapController: controller,
-            options: MapOptions(
-              initialCenter: points.isEmpty
-                  ? _MapPageState._fallbackCenter
-                  : points.first,
-              initialZoom: points.isEmpty ? 4 : 14,
-              initialCameraFit: points.length > 1
-                  ? CameraFit.coordinates(
-                      coordinates: points,
-                      padding: EdgeInsets.fromLTRB(
-                        r.s(48),
-                        r.s(48),
-                        r.s(48),
-                        r.s(180),
-                      ),
-                      maxZoom: 16,
-                    )
-                  : null,
-              minZoom: 3,
-              maxZoom: tileSource.maxZoom,
-              backgroundColor: p.fieldFill,
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-              ),
-              onTap: (_, _) {
-                // El toque cae en un tramo solo si la capa de lineas lo anoto
-                // justo antes; se lee y se borra para no arrastrar uno viejo.
-                final hit = segmentHit.value?.hitValues.firstOrNull;
-                segmentHit.value = null;
-                if (hit != null) {
-                  cubit.selectSegment(hit);
-                } else {
-                  cubit.selectPin(null);
-                  cubit.selectSegment(null);
-                }
-              },
-              // Mantener presionado elige un punto (para registrar o navegar).
-              onLongPress: (_, point) =>
-                  cubit.pickPoint(GeoPoint(point.latitude, point.longitude)),
-              onMapReady: () => _syncZoom(),
-              onPositionChanged: (camera, hasGesture) {
-                // Un arrastre que empezo sobre una linea no es un toque en ella.
-                if (hasGesture) segmentHit.value = null;
-                _syncZoom(camera.zoom);
-              },
-            ),
-            children: [
-              ...tileLayers,
-              // La carretera va debajo de los pines: son el fondo en el que se
-              // leen.
-              if (segments.isNotEmpty)
-                PolylineLayer<String>(
-                  hitNotifier: segmentHit,
-                  polylines: [
-                    for (final s in segments)
-                      Polyline<String>(
-                        points: [for (final point in s.points) _ll(point)],
-                        strokeWidth: isHighlighted(s) ? 8 : 5,
-                        color: segmentColor(s.direction),
-                        borderStrokeWidth: 2,
-                        borderColor: Colors.white,
-                        hitValue: s.id,
-                      ),
-                  ],
+        if (engine == MapEngine.maplibre)
+          MapLibreEngine(
+            state: state,
+            tileSource: tileSource,
+            camera: camera,
+            fitKey: fitKey,
+          )
+        else
+          ClipRect(
+            child: FlutterMap(
+              key: ValueKey(fitKey),
+              mapController: controller,
+              options: MapOptions(
+                initialCenter: points.isEmpty
+                    ? _MapPageState._fallbackCenter
+                    : points.first,
+                initialZoom: points.isEmpty ? 4 : 14,
+                initialCameraFit: points.length > 1
+                    ? CameraFit.coordinates(
+                        coordinates: points,
+                        padding: EdgeInsets.fromLTRB(
+                          r.s(48),
+                          r.s(48),
+                          r.s(48),
+                          r.s(180),
+                        ),
+                        maxZoom: 16,
+                      )
+                    : null,
+                minZoom: 3,
+                maxZoom: tileSource.maxZoom,
+                backgroundColor: p.fieldFill,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                 ),
-              if (segments.isNotEmpty)
+                onTap: (_, _) {
+                  // El toque cae en un tramo solo si la capa de lineas lo anoto
+                  // justo antes; se lee y se borra para no arrastrar uno viejo.
+                  final hit = segmentHit.value?.hitValues.firstOrNull;
+                  segmentHit.value = null;
+                  if (hit != null) {
+                    cubit.selectSegment(hit);
+                  } else {
+                    cubit.selectPin(null);
+                    cubit.selectSegment(null);
+                  }
+                },
+                // Mantener presionado elige un punto (para registrar o navegar).
+                onLongPress: (_, point) =>
+                    cubit.pickPoint(GeoPoint(point.latitude, point.longitude)),
+                onMapReady: () => _syncZoom(),
+                onPositionChanged: (camera, hasGesture) {
+                  // Un arrastre que empezo sobre una linea no es un toque en ella.
+                  if (hasGesture) segmentHit.value = null;
+                  _syncZoom(camera.zoom);
+                },
+              ),
+              children: [
+                ...tileLayers,
+                // La carretera va debajo de los pines: son el fondo en el que se
+                // leen.
+                if (segments.isNotEmpty)
+                  PolylineLayer<String>(
+                    hitNotifier: segmentHit,
+                    polylines: [
+                      for (final s in segments)
+                        Polyline<String>(
+                          points: [for (final point in s.points) _ll(point)],
+                          strokeWidth: isHighlighted(s) ? 8 : 5,
+                          color: segmentColor(s.direction),
+                          borderStrokeWidth: 2,
+                          borderColor: Colors.white,
+                          hitValue: s.id,
+                        ),
+                    ],
+                  ),
+                if (segments.isNotEmpty)
+                  ValueListenableBuilder<double>(
+                    valueListenable: zoom,
+                    builder: (context, z, _) => z < _segmentLabelZoom
+                        ? const SizedBox.shrink()
+                        : MarkerLayer(markers: _segmentLabels(segments)),
+                  ),
+                if (here != null)
+                  CircleLayer(
+                    circles: [
+                      CircleMarker(
+                        point: _ll(here.position),
+                        radius: here.accuracyMeters,
+                        useRadiusInMeter: true,
+                        color: Colors.blue.withValues(alpha: 0.12),
+                        borderColor: Colors.blue.withValues(alpha: 0.5),
+                        borderStrokeWidth: 1,
+                      ),
+                    ],
+                  ),
                 ValueListenableBuilder<double>(
                   valueListenable: zoom,
-                  builder: (context, z, _) => z < _segmentLabelZoom
-                      ? const SizedBox.shrink()
-                      : MarkerLayer(markers: _segmentLabels(segments)),
-                ),
-              if (here != null)
-                CircleLayer(
-                  circles: [
-                    CircleMarker(
-                      point: _ll(here.position),
-                      radius: here.accuracyMeters,
-                      useRadiusInMeter: true,
-                      color: Colors.blue.withValues(alpha: 0.12),
-                      borderColor: Colors.blue.withValues(alpha: 0.5),
-                      borderStrokeWidth: 1,
-                    ),
-                  ],
-                ),
-              ValueListenableBuilder<double>(
-                valueListenable: zoom,
-                builder: (context, z, _) => MarkerLayer(
-                  markers: [
-                    for (final item in clusterPins(
-                      pins,
-                      zoom: z,
-                      radiusPx: state.settings.clusterRadiusPx,
-                      keepSingleId: state.selectedId,
-                    ))
-                      switch (item) {
-                        SinglePin(:final pin) => Marker(
-                          point: _ll(pin.position),
-                          width: 48,
-                          height: 48,
-                          child: MapPinMarker(
-                            key: Key('map-pin-${pin.id}'),
-                            pin: pin,
-                            selected: pin.id == state.selectedId,
-                            onTap: () => cubit.selectPin(pin.id),
+                  builder: (context, z, _) => MarkerLayer(
+                    markers: [
+                      for (final item in clusterPins(
+                        pins,
+                        zoom: z,
+                        radiusPx: state.settings.clusterRadiusPx,
+                        keepSingleId: state.selectedId,
+                      ))
+                        switch (item) {
+                          SinglePin(:final pin) => Marker(
+                            point: _ll(pin.position),
+                            width: 48,
+                            height: 48,
+                            child: MapPinMarker(
+                              key: Key('map-pin-${pin.id}'),
+                              pin: pin,
+                              selected: pin.id == state.selectedId,
+                              onTap: () => cubit.selectPin(pin.id),
+                            ),
                           ),
-                        ),
-                        PinCluster() => Marker(
-                          point: _ll(item.position),
-                          width: 52,
-                          height: 52,
-                          child: PinClusterMarker(
-                            key: Key('map-cluster-${item.key}'),
-                            cluster: item,
-                            onTap: () => _zoomInto(item),
+                          PinCluster() => Marker(
+                            point: _ll(item.position),
+                            width: 52,
+                            height: 52,
+                            child: PinClusterMarker(
+                              key: Key('map-cluster-${item.key}'),
+                              cluster: item,
+                              onTap: () => _zoomInto(item),
+                            ),
                           ),
-                        ),
-                      },
-                  ],
+                        },
+                    ],
+                  ),
                 ),
-              ),
-              if (state.pickedPoint != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _ll(state.pickedPoint!),
-                      width: 40,
-                      height: 40,
-                      alignment: Alignment.topCenter,
-                      child: const Icon(
-                        Icons.place,
-                        key: Key('map-picked-marker'),
-                        size: 40,
-                        color: Color(0xFFDC2626),
-                      ),
-                    ),
-                  ],
-                ),
-              if (here != null)
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: _ll(here.position),
-                      width: 22,
-                      height: 22,
-                      child: Container(
-                        key: const Key('map-user-marker'),
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
+                if (state.pickedPoint != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _ll(state.pickedPoint!),
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.topCenter,
+                        child: const Icon(
+                          Icons.place,
+                          key: Key('map-picked-marker'),
+                          size: 40,
+                          color: Color(0xFFDC2626),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-            ],
+                    ],
+                  ),
+                if (here != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _ll(here.position),
+                        width: 22,
+                        height: 22,
+                        child: Container(
+                          key: const Key('map-user-marker'),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
           ),
-        ),
         if (pins.isEmpty)
           Positioned(
             top: r.s(16),
@@ -825,7 +840,9 @@ class _MapArea extends StatelessWidget {
                   child: _Attribution(
                     source: tileSource,
                     packAttribution: reader == null ? null : pack?.attribution,
-                    hasTiles: tileLayers.isNotEmpty,
+                    hasTiles: engine == MapEngine.maplibre
+                        ? tileSource.hasBase
+                        : tileLayers.isNotEmpty,
                     usingPackOnly: usingPackOnly,
                   ),
                 ),

@@ -43,14 +43,14 @@ import '../features/map/domain/entities/map_pin.dart';
 import '../features/map/domain/entities/map_settings.dart';
 import '../features/map/domain/repositories/location_source.dart';
 import '../features/map/domain/repositories/map_pack_manager.dart';
-import '../core/config/app_config.dart';
 import '../features/map/domain/repositories/map_repository.dart';
 import '../features/map/domain/repositories/road_segments_repository.dart';
 import '../features/map/presentation/bloc/map_packs_cubit.dart';
 import '../features/map/presentation/pages/map_packs_page.dart';
 import '../features/map/presentation/bloc/map_cubit.dart';
 import '../features/map/presentation/pages/map_page.dart';
-import '../features/map/presentation/pages/maplibre_spike_page.dart';
+import '../core/demo/demo_mode.dart';
+import '../features/map/presentation/map_camera.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/map/presentation/map_record_actions.dart';
 import '../features/alerts/presentation/pages/alerts_page.dart';
@@ -293,28 +293,25 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/map',
-        builder: (context, state) => AppConfig.mapSpike
-            ? MapLibreSpikePage(repository: context.read<MapRepository>())
-            : BlocProvider(
-                create: (_) => MapCubit(
-                  repository: context.read<MapRepository>(),
-                  locationSource: context.read<LocationSource>(),
-                  packs: context.read<MapPackManager>(),
-                  segmentsRepository: context.read<RoadSegmentsRepository>(),
-                  settings: context.read<MapSettings>(),
-                ),
-                child: MapPage(
-                  tileSource: context.read<MapTileSource>(),
-                  sampleData: sampleMap,
-                  initialLayer: MapLayer.values
-                      .where(
-                        (l) => l.name == state.uri.queryParameters['layer'],
-                      )
-                      .firstOrNull,
-                  initialPinId: state.uri.queryParameters['pin'],
-                  actions: _mapActions(context),
-                ),
-              ),
+        builder: (context, state) => BlocProvider(
+          create: (_) => MapCubit(
+            repository: context.read<MapRepository>(),
+            locationSource: context.read<LocationSource>(),
+            packs: context.read<MapPackManager>(),
+            segmentsRepository: context.read<RoadSegmentsRepository>(),
+            settings: context.read<MapSettings>(),
+          ),
+          child: MapPage(
+            tileSource: context.read<MapTileSource>(),
+            sampleData: sampleMap || context.read<DemoMode>().on,
+            initialLayer: MapLayer.values
+                .where((l) => l.name == state.uri.queryParameters['layer'])
+                .firstOrNull,
+            initialPinId: state.uri.queryParameters['pin'],
+            actions: _mapActions(context),
+            engine: context.read<MapEngine>(),
+          ),
+        ),
         routes: [
           GoRoute(
             path: 'packs',
@@ -329,7 +326,9 @@ GoRouter createRouter(
         path: '/tickets',
         builder: (context, _) => BlocProvider(
           create: (_) => TicketsCubit(context.read<TicketsRepository>()),
-          child: TicketsPage(sampleData: sampleTickets),
+          child: TicketsPage(
+            sampleData: sampleTickets || context.read<DemoMode>().on,
+          ),
         ),
         routes: [
           // Antes que ':id', o "new" se tomaria por un ticket.
@@ -381,7 +380,9 @@ GoRouter createRouter(
         path: '/accidents',
         builder: (context, _) => BlocProvider(
           create: (_) => AccidentsCubit(context.read<AccidentsRepository>()),
-          child: AccidentsPage(sampleData: sampleAccidents),
+          child: AccidentsPage(
+            sampleData: sampleAccidents || context.read<DemoMode>().on,
+          ),
         ),
         routes: [
           // Antes que ':id', o "new" se tomaria por un accidente.
@@ -433,7 +434,7 @@ GoRouter createRouter(
                 indicator: MaintenanceIndicator.values.byName(
                   state.pathParameters['indicator']!,
                 ),
-                sampleData: sampleMaintenance,
+                sampleData: sampleMaintenance || context.read<DemoMode>().on,
               ),
             ),
             routes: [
@@ -456,7 +457,7 @@ GoRouter createRouter(
         builder: (context, _) {
           final menu = context.read<NavigationBloc>().state.menu;
           return AlertsPage(
-            sampleData: sampleAlerts,
+            sampleData: sampleAlerts || context.read<DemoMode>().on,
             routeFor: (alert) => alertRoute(alert, menu),
           );
         },
@@ -473,7 +474,9 @@ GoRouter createRouter(
         path: '/works',
         builder: (context, _) => BlocProvider(
           create: (_) => WorksCubit(context.read<WorksRepository>()),
-          child: WorksPage(sampleData: sampleWorks),
+          child: WorksPage(
+            sampleData: sampleWorks || context.read<DemoMode>().on,
+          ),
         ),
         routes: [
           GoRoute(
@@ -493,7 +496,9 @@ GoRouter createRouter(
         builder: (context, _) => BlocProvider(
           create: (_) =>
               InspectionsCubit(context.read<InspectionsRepository>()),
-          child: InspectionsPage(sampleData: sampleInspections),
+          child: InspectionsPage(
+            sampleData: sampleInspections || context.read<DemoMode>().on,
+          ),
         ),
         routes: [
           // Antes que ':id', o "new" se tomaria por un monitoreo.
@@ -534,7 +539,8 @@ GoRouter createRouter(
                 sampleTickets ||
                 sampleAccidents ||
                 sampleMaintenance ||
-                sampleInventory,
+                sampleInventory ||
+                context.read<DemoMode>().on,
           ),
         ),
       ),
@@ -558,7 +564,9 @@ GoRouter createRouter(
                   state.pathParameters['indicator']!,
                 ),
               ),
-              child: ReportPage(sampleData: sampleMaintenance),
+              child: ReportPage(
+                sampleData: sampleMaintenance || context.read<DemoMode>().on,
+              ),
             ),
           ),
         ],
@@ -567,7 +575,9 @@ GoRouter createRouter(
         path: '/inventory',
         builder: (context, _) => BlocProvider(
           create: (_) => InventoryCubit(context.read<InventoryRepository>()),
-          child: InventoryPage(sampleData: sampleInventory),
+          child: InventoryPage(
+            sampleData: sampleInventory || context.read<DemoMode>().on,
+          ),
         ),
         routes: [
           GoRoute(

@@ -135,7 +135,10 @@ class ApiMapRepository implements MapRepository {
     }
   }
 
-  static MapPin? _pin(Map<String, dynamic> feature, Map<String, String> labels) {
+  static MapPin? _pin(
+    Map<String, dynamic> feature,
+    Map<String, String> labels,
+  ) {
     final id = feature['id'];
     final props = feature['properties'];
     final anchor = geoJsonAnchor(feature['geometry']);

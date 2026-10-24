@@ -22,6 +22,12 @@ class ConfiguredTileSource extends MapTileSource {
   Widget? buildLayer() => current.buildLayer();
 
   @override
+  String get styleString => current.styleString;
+
+  @override
+  bool get hasBase => current.hasBase;
+
+  @override
   String? get attribution => current.attribution;
 
   @override
