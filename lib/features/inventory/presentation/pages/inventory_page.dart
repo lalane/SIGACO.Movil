@@ -93,7 +93,8 @@ class _InventoryPageState extends State<InventoryPage> {
                     badge:
                         (state.conditionFilter == null ? 0 : 1) +
                         (state.category == null ? 0 : 1) +
-                        (state.inspectedFrom == null ? 0 : 1),
+                        (state.inspectedFrom == null ? 0 : 1) +
+                        (state.inspectedTo == null ? 0 : 1),
                     onPressed: state.hasActiveFilters
                         ? () {
                             _search.clear();
@@ -231,55 +232,80 @@ class _FilterRow extends StatelessWidget {
     final cubit = context.read<InventoryCubit>();
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: r.s(16)),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            flex: 10,
-            child: ModuleDropdownPill<AssetCondition>(
-              key: const Key('inventory-condition-filter'),
-              value: state.conditionFilter,
-              hint: l10n.invFilterCondition,
-              allLabel: l10n.invFilterAllConditions,
-              options: [
-                for (final c in AssetCondition.values)
-                  (c, conditionLabel(l10n, c)),
-              ],
-              onChanged: cubit.setCondition,
-            ),
-          ),
-          SizedBox(width: r.s(8)),
-          Expanded(
-            flex: 11,
-            child: ModuleDropdownPill<String>(
-              key: const Key('inventory-category-filter'),
-              value: state.category,
-              hint: l10n.invFilterCategory,
-              allLabel: l10n.invFilterAllCategories,
-              options: [for (final c in state.categories) (c, c)],
-              onChanged: cubit.setCategory,
-            ),
+          Row(
+            children: [
+              Expanded(
+                flex: 10,
+                child: ModuleDropdownPill<AssetCondition>(
+                  key: const Key('inventory-condition-filter'),
+                  value: state.conditionFilter,
+                  hint: l10n.invFilterCondition,
+                  allLabel: l10n.invFilterAllConditions,
+                  options: [
+                    for (final c in AssetCondition.values)
+                      (c, conditionLabel(l10n, c)),
+                  ],
+                  onChanged: cubit.setCondition,
+                ),
+              ),
+              SizedBox(width: r.s(8)),
+              Expanded(
+                flex: 11,
+                child: ModuleDropdownPill<String>(
+                  key: const Key('inventory-category-filter'),
+                  value: state.category,
+                  hint: l10n.invFilterCategory,
+                  allLabel: l10n.invFilterAllCategories,
+                  options: [for (final c in state.categories) (c, c)],
+                  onChanged: cubit.setCategory,
+                ),
+              ),
+            ],
           ),
           // El servidor aun no publica la fecha de inspeccion: sin ella no hay
           // nada que filtrar.
           if (state.hasInspectionDates) ...[
-            SizedBox(width: r.s(8)),
-            Expanded(
-              flex: 11,
-              child: ModuleDatePill(
-              key: const Key('inventory-from'),
-              tooltip: l10n.invInspectedFrom,
-              hint: l10n.invDateHint,
-              day: state.inspectedFrom,
-              onTap: () async {
-                final day = await ModuleDatePill.pick(
-                  context,
-                  state.inspectedFrom,
-                );
-                if (day != null) cubit.setInspectedFrom(day);
-              },
-              onClear: () => cubit.setInspectedFrom(null),
-                clearKey: const Key('inventory-from-clear'),
-              ),
+            SizedBox(height: r.s(8)),
+            Row(
+              children: [
+                Expanded(
+                  child: ModuleDatePill(
+                    key: const Key('inventory-from'),
+                    tooltip: l10n.invInspectedFrom,
+                    hint: l10n.invDateHint,
+                    day: state.inspectedFrom,
+                    onTap: () async {
+                      final day = await ModuleDatePill.pick(
+                        context,
+                        state.inspectedFrom,
+                      );
+                      if (day != null) cubit.setInspectedFrom(day);
+                    },
+                    onClear: () => cubit.setInspectedFrom(null),
+                    clearKey: const Key('inventory-from-clear'),
+                  ),
+                ),
+                SizedBox(width: r.s(8)),
+                Expanded(
+                  child: ModuleDatePill(
+                    key: const Key('inventory-to'),
+                    tooltip: l10n.invInspectedTo,
+                    hint: l10n.invDateHint,
+                    day: state.inspectedTo,
+                    onTap: () async {
+                      final day = await ModuleDatePill.pick(
+                        context,
+                        state.inspectedTo,
+                      );
+                      if (day != null) cubit.setInspectedTo(day);
+                    },
+                    onClear: () => cubit.setInspectedTo(null),
+                    clearKey: const Key('inventory-to-clear'),
+                  ),
+                ),
+              ],
             ),
           ],
         ],

@@ -858,6 +858,7 @@
   "invFilterCategory": "Tipo",
   "invFilterAllCategories": "Todos os tipos",
   "invInspectedFrom": "Monitoração desde",
+  "invInspectedTo": "Monitoração até",
   "invDateHint": "Data",
   "invEmptyAll": "Ainda não há ativos registrados.",
   "invEmpty": "Nenhum ativo corresponde aos filtros.",

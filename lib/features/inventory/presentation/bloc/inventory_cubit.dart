@@ -14,6 +14,7 @@ class InventoryState extends Equatable {
     this.conditionFilter,
     this.category,
     this.inspectedFrom,
+    this.inspectedTo,
     this.query = '',
   });
 
@@ -30,13 +31,19 @@ class InventoryState extends Equatable {
   /// Dia de calendario desde el que se inspecciono (incluido); null = sin
   /// limite.
   final DateTime? inspectedFrom;
+
+  /// Dia de calendario hasta el que se inspecciono (incluido); null = sin
+  /// limite.
+  final DateTime? inspectedTo;
   final String query;
 
   int get total => assets.length;
 
   /// Algun activo trae la fecha de su ultima inspeccion (o ya se eligio una).
   bool get hasInspectionDates =>
-      inspectedFrom != null || assets.any((a) => a.lastInspectionAt != null);
+      inspectedFrom != null ||
+      inspectedTo != null ||
+      assets.any((a) => a.lastInspectionAt != null);
 
   int count(AssetCondition c) => assets.where((a) => a.condition == c).length;
 
@@ -54,7 +61,7 @@ class InventoryState extends Equatable {
       for (final a in assets)
         if ((conditionFilter == null || a.condition == conditionFilter) &&
             (category == null || a.category == category) &&
-            _inspectedSince(a) &&
+            _inspectedInRange(a) &&
             a.matches(query))
           a,
     ];
@@ -65,22 +72,29 @@ class InventoryState extends Equatable {
     return list;
   }
 
-  bool _inspectedSince(InventoryAsset a) {
+  /// La ultima inspeccion cae entre los dos dias elegidos, ambos incluidos.
+  bool _inspectedInRange(InventoryAsset a) {
     final from = inspectedFrom;
-    if (from == null) return true;
+    final to = inspectedTo;
+    if (from == null && to == null) return true;
     final last = a.lastInspectionAt;
     if (last == null) return false;
-    return !DateTime.utc(
-      last.year,
-      last.month,
-      last.day,
-    ).isBefore(DateTime.utc(from.year, from.month, from.day));
+    final day = DateTime.utc(last.year, last.month, last.day);
+    if (from != null &&
+        day.isBefore(DateTime.utc(from.year, from.month, from.day))) {
+      return false;
+    }
+    if (to != null && day.isAfter(DateTime.utc(to.year, to.month, to.day))) {
+      return false;
+    }
+    return true;
   }
 
   bool get hasActiveFilters =>
       conditionFilter != null ||
       category != null ||
       inspectedFrom != null ||
+      inspectedTo != null ||
       query.trim().isNotEmpty;
 
   InventoryState copyWith({
@@ -94,6 +108,8 @@ class InventoryState extends Equatable {
     bool clearCategory = false,
     DateTime? inspectedFrom,
     bool clearInspectedFrom = false,
+    DateTime? inspectedTo,
+    bool clearInspectedTo = false,
     String? query,
   }) => InventoryState(
     status: status ?? this.status,
@@ -106,6 +122,7 @@ class InventoryState extends Equatable {
     inspectedFrom: clearInspectedFrom
         ? null
         : (inspectedFrom ?? this.inspectedFrom),
+    inspectedTo: clearInspectedTo ? null : (inspectedTo ?? this.inspectedTo),
     query: query ?? this.query,
   );
 
@@ -117,6 +134,7 @@ class InventoryState extends Equatable {
     conditionFilter,
     category,
     inspectedFrom,
+    inspectedTo,
     query,
   ];
 }
@@ -178,6 +196,12 @@ class InventoryCubit extends Cubit<InventoryState> {
         : state.copyWith(inspectedFrom: day),
   );
 
+  void setInspectedTo(DateTime? day) => emit(
+    day == null
+        ? state.copyWith(clearInspectedTo: true)
+        : state.copyWith(inspectedTo: day),
+  );
+
   void setQuery(String query) => emit(state.copyWith(query: query));
 
   void clearFilters() => emit(
@@ -185,6 +209,7 @@ class InventoryCubit extends Cubit<InventoryState> {
       clearCondition: true,
       clearCategory: true,
       clearInspectedFrom: true,
+      clearInspectedTo: true,
       query: '',
     ),
   );

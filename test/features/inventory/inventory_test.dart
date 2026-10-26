@@ -130,6 +130,19 @@ void main() {
       expect(cubit.state.visible.map((a) => a.id), ['A-001']);
       cubit.setInspectedFrom(null);
 
+      // Hasta: el primero (hace 3 dias) queda fuera si el tope es anterior, y
+      // el rango desde-hasta deja solo lo que cae dentro, extremos incluidos.
+      cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 4));
+      expect(cubit.state.visible.map((a) => a.id), isNot(contains('A-001')));
+      cubit.setInspectedFrom(DateTime.utc(2026, 10, 15 - 3));
+      expect(cubit.state.visible, isEmpty);
+      cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 3));
+      expect(cubit.state.visible.map((a) => a.id), ['A-001']);
+      expect(cubit.state.hasActiveFilters, isTrue);
+      cubit.clearFilters();
+      expect(cubit.state.inspectedTo, isNull);
+      expect(cubit.state.inspectedFrom, isNull);
+
       cubit.setQuery('SV-114');
       expect(cubit.state.visible.map((a) => a.id), ['A-002']);
       expect(cubit.state.hasActiveFilters, isTrue);

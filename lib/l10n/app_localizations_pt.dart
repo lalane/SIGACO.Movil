@@ -2052,6 +2052,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get invInspectedFrom => 'Monitoração desde';
 
   @override
+  String get invInspectedTo => 'Monitoração até';
+
+  @override
   String get invDateHint => 'Data';
 
   @override

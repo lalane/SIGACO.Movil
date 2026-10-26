@@ -3752,6 +3752,12 @@ abstract class AppLocalizations {
   /// **'Monitoreo desde'**
   String get invInspectedFrom;
 
+  /// No description provided for @invInspectedTo.
+  ///
+  /// In es, this message translates to:
+  /// **'Monitoreo hasta'**
+  String get invInspectedTo;
+
   /// No description provided for @invDateHint.
   ///
   /// In es, this message translates to:

@@ -2050,6 +2050,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get invInspectedFrom => 'Monitoreo desde';
 
   @override
+  String get invInspectedTo => 'Monitoreo hasta';
+
+  @override
   String get invDateHint => 'Fecha';
 
   @override
