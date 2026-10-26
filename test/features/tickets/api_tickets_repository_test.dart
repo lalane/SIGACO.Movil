@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -183,6 +184,54 @@ void main() {
       expect(t.followUps.first.description, 'Se tapo el bache');
       // Sin cambio de estado, hereda el del ticket.
       expect(t.followUps.last.status, TicketStatus.attended);
+    });
+
+    test('la ficha baja las fotos del ticket y de sus seguimientos', () async {
+      final dir = _tempDir();
+      final withPhotos = ApiTicketsRepository(
+        api.client(),
+        roadId: () async => 'road-1',
+        cacheDir: () async => dir,
+      );
+      api.on('GET /api/tickets/1', FakeReply(200, _dto('1')));
+      api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, [
+        {'id': 'f1', 'kind': 'PROGRESS', 'description': 'Listo', 'createdAt': '2026-10-23T18:00:00Z'},
+      ]));
+      api.on('GET /api/tickets/1/attachments', const FakeReply(200, [
+        {'id': 'a1', 'kind': 'PHOTO', 'contentType': 'image/jpeg', 'followUpId': null},
+        {'id': 'a2', 'kind': 'PHOTO', 'contentType': 'image/png', 'followUpId': 'f1'},
+        {'id': 'a3', 'kind': 'DOCUMENT', 'contentType': 'application/pdf', 'followUpId': null},
+      ]));
+      api.on('GET /api/tickets/1/attachments/a1/content', FakeReply.bytes(200, Uint8List.fromList([1, 2, 3])));
+      api.on('GET /api/tickets/1/attachments/a2/content', FakeReply.bytes(200, Uint8List.fromList([4, 5])));
+
+      final t = await withPhotos.get('1');
+      expect(t.photoPaths, hasLength(1));
+      expect(File(t.photoPaths.single).readAsBytesSync(), [1, 2, 3]);
+      expect(t.photoPaths.single, endsWith('.jpg'));
+      expect(t.followUps.single.photoPaths, hasLength(1));
+      expect(File(t.followUps.single.photoPaths.single).readAsBytesSync(), [4, 5]);
+      // El documento no es una foto: no se baja.
+      expect(api.to('GET /api/tickets/1/attachments/a3/content'), isEmpty);
+
+      // La segunda vez usa lo ya bajado.
+      await withPhotos.get('1');
+      expect(api.to('GET /api/tickets/1/attachments/a1/content'), hasLength(1));
+    });
+
+    test('una foto que no baja no impide ver la ficha', () async {
+      final dir = _tempDir();
+      final withPhotos = ApiTicketsRepository(
+        api.client(),
+        roadId: () async => 'road-1',
+        cacheDir: () async => dir,
+      );
+      api.on('GET /api/tickets/1', FakeReply(200, _dto('1')));
+      api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, []));
+      api.on('GET /api/tickets/1/attachments', const FakeReply(500));
+      final t = await withPhotos.get('1');
+      expect(t.photoPaths, isEmpty);
+      expect(t.code, 'TK-2026-0001');
     });
 
     test('errores del servidor segun el estado', () async {

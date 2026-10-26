@@ -100,6 +100,31 @@ void main() {
     expect((await repo.list(MaintenanceIndicator.sgs)).map((o) => o.id), ['1', '2', '3']);
   });
 
+  test('el avance se envia con su clave y devuelve la orden', () async {
+    api.on('POST /api/preventive-maintenance/1/progress', const FakeReply(201, {'id': 'p1'}));
+    api.on('GET /api/preventive-maintenance/1', FakeReply(200, _dto('1')));
+    final order = await repo.addProgress(
+      '1',
+      percent: 120,
+      executedVolume: 60,
+      notes: '  Se limpio el tramo  ',
+      clientId: 'c0a80101-0000-4000-8000-000000000009',
+    );
+    expect(order.id, '1');
+    final body = api.to('POST /api/preventive-maintenance/1/progress').single.data as Map;
+    expect(body['progressPercent'], 100);
+    expect(body['executedVolume'], 60);
+    expect(body['notes'], 'Se limpio el tramo');
+    expect(body['clientUuid'], 'c0a80101-0000-4000-8000-000000000009');
+  });
+
+  test('un avance sin permiso o sin red lo dice', () async {
+    api.on('POST /api/preventive-maintenance/1/progress', const FakeReply(403));
+    await expectLater(repo.addProgress('1', percent: 10), _fails(MaintenanceError.permissionDenied));
+    api.offline = true;
+    await expectLater(repo.addProgress('1', percent: 10), _fails(MaintenanceError.network));
+  });
+
   test('traduce los errores del servidor', () async {
     api.on('GET /api/preventive-maintenance', const FakeReply(403));
     await expectLater(repo.list(MaintenanceIndicator.sgs), _fails(MaintenanceError.permissionDenied));

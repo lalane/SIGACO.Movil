@@ -26,6 +26,14 @@ class TicketFollowUp extends Equatable {
   /// Rutas locales de las fotos.
   final List<String> photoPaths;
 
+  TicketFollowUp withPhotos(List<String> photoPaths) => TicketFollowUp(
+    id: id,
+    at: at,
+    status: status,
+    description: description,
+    photoPaths: photoPaths,
+  );
+
   @override
   List<Object?> get props => [id, at, status, description, photoPaths];
 }
@@ -101,27 +109,30 @@ class Ticket extends Equatable {
     ].any((v) => v != null && v.toLowerCase().contains(q));
   }
 
-  Ticket copyWith({TicketStatus? status, List<TicketFollowUp>? followUps}) =>
-      Ticket(
-        id: id,
-        code: code,
-        title: title,
-        status: status ?? this.status,
-        createdAt: createdAt,
-        description: description,
-        category: category,
-        dueAt: dueAt,
-        authorName: authorName,
-        authorProfile: authorProfile,
-        company: company,
-        concessionName: concessionName,
-        kmLabel: kmLabel,
-        latitude: latitude,
-        longitude: longitude,
-        carriageway: carriageway,
-        photoPaths: photoPaths,
-        followUps: followUps ?? this.followUps,
-      );
+  Ticket copyWith({
+    TicketStatus? status,
+    List<TicketFollowUp>? followUps,
+    List<String>? photoPaths,
+  }) => Ticket(
+    id: id,
+    code: code,
+    title: title,
+    status: status ?? this.status,
+    createdAt: createdAt,
+    description: description,
+    category: category,
+    dueAt: dueAt,
+    authorName: authorName,
+    authorProfile: authorProfile,
+    company: company,
+    concessionName: concessionName,
+    kmLabel: kmLabel,
+    latitude: latitude,
+    longitude: longitude,
+    carriageway: carriageway,
+    photoPaths: photoPaths ?? this.photoPaths,
+    followUps: followUps ?? this.followUps,
+  );
 
   @override
   List<Object?> get props => [

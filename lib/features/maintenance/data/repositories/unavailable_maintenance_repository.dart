@@ -15,4 +15,13 @@ class UnavailableMaintenanceRepository implements MaintenanceRepository {
 
   @override
   Future<MaintenanceOrder> get(String id) => Future.error(_error);
+
+  @override
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  }) => Future.error(_error);
 }

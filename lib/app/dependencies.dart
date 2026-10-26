@@ -24,7 +24,6 @@ import '../core/pdf/pdf_renderer.dart';
 import '../core/permissions/permission_keys.dart';
 import 'feature_flags.dart';
 import 'sync_revalidation.dart';
-import '../core/offline/unavailable_remote.dart';
 import '../core/session/session_scope.dart';
 import '../core/time/concession_zone.dart';
 import '../core/time/concession_zone_source.dart';
@@ -107,7 +106,12 @@ import '../features/map/presentation/map_camera.dart';
 import '../features/map/presentation/tiles/configured_tile_source.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
+import '../core/api/response_cache.dart';
+import '../core/offline/routed_sync_remote.dart';
+import 'composition/tickets_summary_source.dart';
 import '../features/tickets/data/repositories/api_tickets_repository.dart';
+import '../features/tickets/data/repositories/offline_tickets_repository.dart';
+import '../features/tickets/data/sync/tickets_sync_remote.dart';
 import '../features/tickets/data/repositories/sample_tickets_repository.dart';
 import '../features/tickets/data/repositories/unavailable_tickets_repository.dart';
 import '../features/tickets/domain/repositories/tickets_repository.dart';
@@ -324,6 +328,7 @@ class AppDependencies {
     ReportsRepository? reportsRepository,
     DashboardRepository? dashboardRepository,
     ComplianceSource? complianceSource,
+    TicketsSummarySource? ticketsSummarySource,
     PushRegistrar? pushRegistrar,
     DeviceRegistrar? deviceRegistrar,
     DemoMode? demoMode,
@@ -361,6 +366,8 @@ class AppDependencies {
              inventory: inventoryRepository,
              compliance:
                  complianceSource ?? const UnavailableComplianceSource(),
+             ticketsSummary:
+                 ticketsSummarySource ?? const NoTicketsSummarySource(),
            ),
        fileStore = fileStore ?? DiskLocalFileStore(),
        documentsRepository =
@@ -536,7 +543,10 @@ class AppDependencies {
     } catch (_) {
       userAgent = null;
     }
-    final api = ApiClient(userAgent: userAgent);
+    // Lo consultado con conexion se ve sin ella; es de la persona y concesion
+    // activas y se descarta al cambiar o cerrar sesion.
+    final responseCache = FileResponseCache();
+    final api = ApiClient(userAgent: userAgent, cache: responseCache);
     // Datos de ejemplo en caliente (interruptor de la cuenta); las banderas
     // `SAMPLE_*` de la compilacion siguen forzando los suyos.
     final demo = DemoMode();
@@ -562,7 +572,7 @@ class AppDependencies {
     // Lo aceptado hace mas de una semana ya no le sirve a nadie.
     await queue.purgeAccepted();
     final fileStore = DiskLocalFileStore();
-    final scope = SessionScope();
+    final scope = SessionScope()..register(responseCache);
     // Los paquetes de mapa son de la persona y la concesion activas.
     final mapPacks = FileMapPackManager(remote: ApiMapPackRemote(api));
     scope.register(mapPacks);
@@ -622,15 +632,38 @@ class AppDependencies {
           : 'es';
     }
 
+    // Los tickets del servidor; lo que se captura sin red sale por la cola.
+    final apiTickets = ApiTicketsRepository(
+      api,
+      roadId: () => activeRoadId(api),
+      language: language,
+    );
+    final offlineTickets = OfflineTicketsRepository(
+      apiTickets,
+      queue,
+      fileStore,
+    );
+    scope.register(offlineTickets);
+    final deviceSource = PlatformDeviceProfileSource(prefs);
+    final ticketsRemote = TicketsSyncRemote(
+      api,
+      apiTickets,
+      () async => (await deviceSource.read())?.identifier,
+    );
+
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
       // Con datos de ejemplo no hay servidor al que enviar: todo se queda en la
       // cola.
       documents = SampleDocumentsRepository();
-      remote = const UnavailableSyncRemote();
+      remote = RoutedSyncRemote({
+        OfflineTicketsRepository.ticketEntity: ticketsRemote,
+        OfflineTicketsRepository.followUpEntity: ticketsRemote,
+      });
     } else {
       final server = DocumentsRepositoryImpl(api, language: language);
+      final documentsRemote = DocumentsSyncRemote(api, server, fileStore);
       // Lo ya consultado queda en el telefono para verlo sin conexion; es de la
       // persona y concesion activas y se descarta al cambiar o cerrar sesion.
       final cache = FileDocumentsCache();
@@ -640,7 +673,12 @@ class AppDependencies {
       documents = CachedDocumentsRepository(server, cache);
       // Los documentos y las firmas capturados salen por /api/uploads y
       // /api/documents.
-      remote = DocumentsSyncRemote(api, server, fileStore);
+      remote = RoutedSyncRemote({
+        'documento': documentsRemote,
+        'documento_firma': documentsRemote,
+        OfflineTicketsRepository.ticketEntity: ticketsRemote,
+        OfflineTicketsRepository.followUpEntity: ticketsRemote,
+      });
     }
     final authRepository = AuthRepositoryImpl(api);
     final engine = SyncEngine(
@@ -687,6 +725,12 @@ class AppDependencies {
         onDiscarded: (operation) async {
           final path = operation.payload['localPath'];
           if (path is String) await fileStore.remove(path);
+          final photos = operation.payload[OfflineTicketsRepository.photosKey];
+          if (photos is List) {
+            for (final photo in photos) {
+              if (photo is String) await fileStore.remove(photo);
+            }
+          }
         },
       ),
       sessionScope: scope,
@@ -727,11 +771,7 @@ class AppDependencies {
       mapBaseLoader: MapBaseLoader(tiles: tiles, source: ApiMapBaseSource(api)),
       sampleMap: AppConfig.sampleMap,
       ticketsRepository: DemoAwareTickets(
-        real: ApiTicketsRepository(
-          api,
-          roadId: () => activeRoadId(api),
-          language: language,
-        ),
+        real: offlineTickets,
         sample: SampleTicketsRepository(),
         demo: () => demo.on || AppConfig.sampleTickets,
       ),
@@ -764,7 +804,7 @@ class AppDependencies {
       ),
       // El telefono se registra en `/api/mobile/devices` con su version de la app.
       deviceRegistrar: DeviceRegistrar(
-        source: PlatformDeviceProfileSource(prefs),
+        source: deviceSource,
         remote: ApiDeviceRemote(api),
       ),
       worksRepository: DemoAwareWorks(
@@ -775,6 +815,12 @@ class AppDependencies {
       sampleWorks: AppConfig.sampleWorks,
       // El cumplimiento por indicador lo calcula el servidor; con ejemplos se
       // muestran cifras con la forma del BBP.
+      // Los tickets del dashboard salen del resumen del servidor, salvo con
+      // datos de ejemplo.
+      ticketsSummarySource: ApiTicketsSummarySource(
+        api,
+        enabled: () => !(demo.on || AppConfig.sampleTickets),
+      ),
       complianceSource: DemoAwareCompliance(
         real: const UnavailableComplianceSource(),
         sample: const SampleComplianceSource(),

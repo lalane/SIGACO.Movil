@@ -56,6 +56,30 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
     return orderFromDto(dto);
   });
 
+  @override
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  }) => _guard(() async {
+    final key = Uri.encodeComponent(id);
+    final text = notes?.trim();
+    await _api.post(
+      '/api/preventive-maintenance/$key/progress',
+      data: {
+        'progressPercent': percent.clamp(0, 100),
+        'executedVolume': ?executedVolume,
+        if (text != null && text.isNotEmpty) 'notes': text,
+        'clientUuid': ?clientId,
+      },
+    );
+    return orderFromDto(
+      _asMap(await _api.getJson('/api/preventive-maintenance/$key')),
+    );
+  });
+
   /// El codigo de subsistema del servidor: el nombre del indicador en mayusculas.
   static String subsystemCode(MaintenanceIndicator i) => i.name.toUpperCase();
 
@@ -90,7 +114,10 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
     return MaintenanceOrder(
       id: _text(m['id']) ?? '',
       indicator: indicator ?? indicatorFromCode(_text(m['subsystemCode'])),
-      title: [folio, activity].where((s) => s != null && s.isNotEmpty).join(' · '),
+      title: [
+        folio,
+        activity,
+      ].where((s) => s != null && s.isNotEmpty).join(' · '),
       activity: activity,
       status: statusFromCode(_text(m['status'])),
       totalVolume: total,
@@ -127,10 +154,7 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
     throw const FormatException('respuesta inesperada');
   }
 
-  Future<T> _guard<T>(
-    Future<T> Function() body, {
-    bool listing = false,
-  }) async {
+  Future<T> _guard<T>(Future<T> Function() body, {bool listing = false}) async {
     try {
       return await body();
     } on ApiFailure catch (e) {

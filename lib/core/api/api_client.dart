@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import 'api_failure.dart';
+import 'response_cache.dart';
 
 /// Identificador de operacion (UUID v4). El backend lo acepta en
 /// `X-Correlation-Id` y lo guarda en su auditoria: permite cruzar un reporte de
@@ -24,7 +25,7 @@ String newCorrelationId() {
 }
 
 class ApiClient {
-  ApiClient({Dio? dio, String? userAgent})
+  ApiClient({Dio? dio, String? userAgent, this.cache = const NoResponseCache()})
     : _dio =
           dio ??
           Dio(
@@ -86,6 +87,11 @@ class ApiClient {
   }
 
   final Dio _dio;
+
+  /// Lo consultado con conexion, para volver a verlo sin ella: si una consulta de
+  /// lectura falla por falta de red y ya se habia hecho antes, se entrega lo
+  /// guardado. Un error del servidor nunca se esconde con lo guardado.
+  final ResponseCache cache;
 
   /// Consulta de los accesos de la sesion (el menu): se vuelve a pedir cuando
   /// el servidor niega una accion.
@@ -213,11 +219,46 @@ class ApiClient {
 
   /// GET que devuelve el JSON tal cual llega (objeto o lista).
   Future<Object?> getJson(String path, {Map<String, Object?>? query}) async {
+    final key = _cacheKey(path, query);
     try {
       final r = await _dio.get<dynamic>(path, queryParameters: _clean(query));
+      await _remember(path, key, r.data);
       return r.data;
     } on DioException catch (e) {
-      throw ApiFailure.fromDio(e);
+      final failure = ApiFailure.fromDio(e);
+      final saved = await _recall(path, key, failure);
+      if (saved != null) return saved.json;
+      throw failure;
+    }
+  }
+
+  /// La clave de una consulta: el metodo, la ruta y los filtros en orden.
+  static String _cacheKey(String path, Map<String, Object?>? query) {
+    final clean = _clean(query);
+    if (clean == null || clean.isEmpty) return 'GET $path';
+    final names = clean.keys.toList()..sort();
+    return 'GET $path?${[for (final n in names) '$n=${clean[n]}'].join('&')}';
+  }
+
+  /// Guardar es un extra: un fallo del disco no debe romper la consulta.
+  Future<void> _remember(String path, String key, Object? json) async {
+    if (json == null || !cache.accepts(path)) return;
+    try {
+      await cache.save(key, json);
+    } catch (_) {}
+  }
+
+  /// Lo guardado de una consulta, solo cuando fallo por falta de red.
+  Future<({Object? json, DateTime savedAt})?> _recall(
+    String path,
+    String key,
+    ApiFailure failure,
+  ) async {
+    if (!failure.isNetwork || !cache.accepts(path)) return null;
+    try {
+      return await cache.read(key);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -345,13 +386,19 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>?> get(String path) async {
+    final key = _cacheKey(path, null);
     try {
       final r = await _dio.get<dynamic>(path);
+      await _remember(path, key, r.data);
       return r.data is Map<String, dynamic>
           ? r.data as Map<String, dynamic>
           : null;
     } on DioException catch (e) {
-      throw ApiFailure.fromDio(e);
+      final failure = ApiFailure.fromDio(e);
+      final saved = await _recall(path, key, failure);
+      final json = saved?.json;
+      if (json is Map<String, dynamic>) return json;
+      throw failure;
     }
   }
 }

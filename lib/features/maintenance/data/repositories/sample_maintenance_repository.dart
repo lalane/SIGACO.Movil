@@ -313,4 +313,14 @@ class SampleMaintenanceRepository implements MaintenanceRepository {
       orElse: () => throw const MaintenanceException(MaintenanceError.notFound),
     );
   }
+
+  /// Los ejemplos no guardan nada: devuelve la orden como esta.
+  @override
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  }) => get(id);
 }

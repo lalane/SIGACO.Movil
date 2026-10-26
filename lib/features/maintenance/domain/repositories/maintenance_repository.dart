@@ -33,4 +33,15 @@ abstract interface class MaintenanceRepository {
   Future<List<MaintenanceOrder>> list(MaintenanceIndicator indicator);
 
   Future<MaintenanceOrder> get(String id);
+
+  /// Registra el avance de una orden (`progressPercent` de 0 a 100, y el
+  /// volumen ejecutado si se conoce) y devuelve la orden ya con el. [clientId]
+  /// hace el registro idempotente.
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  });
 }

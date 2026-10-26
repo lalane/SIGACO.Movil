@@ -132,6 +132,21 @@ class DemoAwareMaintenance implements MaintenanceRepository {
 
   @override
   Future<MaintenanceOrder> get(String id) => _r.get(id);
+
+  @override
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  }) => _r.addProgress(
+    id,
+    percent: percent,
+    executedVolume: executedVolume,
+    notes: notes,
+    clientId: clientId,
+  );
 }
 
 class DemoAwareAccidents implements AccidentsRepository {

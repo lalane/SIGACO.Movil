@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/geojson_anchor.dart';
@@ -18,9 +21,16 @@ class ApiTicketsRepository implements TicketsRepository {
     required this.roadId,
     this.language = _spanish,
     this.defaultPriority = 'MEDIA',
-  });
+    Future<Directory> Function()? cacheDir,
+  }) : _cacheDir = cacheDir ?? getTemporaryDirectory;
 
   final ApiClient _api;
+
+  /// Donde se guardan las fotos que baja de los tickets.
+  final Future<Directory> Function() _cacheDir;
+
+  /// Una foto de ticket pesa unos cuantos MB; mas que esto no se baja.
+  static const _maxPhotoBytes = 8 * 1024 * 1024;
 
   /// La carretera donde se levanta un ticket que no viene de un activo; null si
   /// no se puede saber (el servidor lo rechaza y la pantalla lo dice).
@@ -74,13 +84,60 @@ class ApiTicketsRepository implements TicketsRepository {
         ? raw
         : (raw is Map ? raw['items'] : null) as List? ?? const [];
     final base = ticketFromDto(dto);
+    final photos = await _photos(key);
     return base.copyWith(
+      photoPaths: photos[null] ?? const [],
       followUps: [
         for (final f in items)
-          if (f is Map<String, dynamic>) followUpFromDto(f, fallback: base.status),
+          if (f is Map<String, dynamic>)
+            followUpFromDto(
+              f,
+              fallback: base.status,
+            ).withPhotos(photos[_text(f['id'])] ?? const []),
       ],
     );
   }
+
+  /// Las fotos del ticket bajadas al telefono, por seguimiento (la clave null es
+  /// el ticket mismo). Una foto que no baja no impide ver la ficha.
+  Future<Map<String?, List<String>>> _photos(String key) async {
+    final result = <String?, List<String>>{};
+    try {
+      final raw = await _api.getJson('/api/tickets/$key/attachments');
+      final items = raw is List
+          ? raw
+          : (raw is Map ? raw['items'] : null) as List? ?? const [];
+      final dir = Directory(p.join((await _cacheDir()).path, 'ticket_photos'));
+      for (final a in items) {
+        if (a is! Map<String, dynamic>) continue;
+        final id = _text(a['id']);
+        final type = _text(a['contentType']) ?? '';
+        if (id == null || !type.startsWith('image/')) continue;
+        final file = File(p.join(dir.path, '$id${_extension(type)}'));
+        if (!file.existsSync()) {
+          final bytes = await _api.downloadFile(
+            '/api/tickets/$key/attachments/${Uri.encodeComponent(id)}/content',
+            maxBytes: _maxPhotoBytes,
+          );
+          if (bytes == null) continue;
+          await dir.create(recursive: true);
+          await file.writeAsBytes(bytes, flush: true);
+        }
+        (result[_text(a['followUpId'])] ??= []).add(file.path);
+      }
+    } catch (_) {
+      // Sin las fotos la ficha se ve igual.
+    }
+    return result;
+  }
+
+  static String _extension(String contentType) => switch (contentType) {
+    'image/png' => '.png',
+    'image/webp' => '.webp',
+    'image/heic' || 'image/heif' => '.heic',
+    'image/gif' => '.gif',
+    _ => '.jpg',
+  };
 
   @override
   Future<List<String>> categories() => _guard(() async {
@@ -106,17 +163,36 @@ class ApiTicketsRepository implements TicketsRepository {
     return labels;
   });
 
-  @override
-  Future<Ticket> create(NewTicket draft) => _guard(() async {
+  /// La carretera de la concesion activa, la ultima que se pudo saber: sin red no
+  /// se puede preguntar, y lo capturado sin conexion la necesita.
+  String? _road;
+
+  /// Pregunta la carretera ahora para tenerla si despues falta la red.
+  Future<void> warmRoad() async => _road = await roadId() ?? _road;
+
+  /// Olvida lo aprendido de la concesion (al cambiar de concesion o cerrar
+  /// sesion).
+  void forget() {
+    _road = null;
+    _typeCodes.clear();
+  }
+
+  /// Lo que el servidor recibe para crear el ticket. Sin red solo se puede armar
+  /// si ya se conocian los tipos de ticket y la carretera.
+  Future<Map<String, Object?>> ticketBody(NewTicket draft) async {
     if (_typeCodes.isEmpty) await categories();
     final code = _typeCodes[draft.category] ?? _codeOf(draft.category);
     if (code == null) throw const TicketsException(TicketsError.server);
 
     final location = draft.location;
     final assetId = location?.assetId;
-    final road = assetId == null ? await roadId() : null;
+    String? road;
+    if (assetId == null) {
+      road = await roadId() ?? _road;
+      _road = road;
+    }
     final km = parseKm(draft.kmLabel ?? location?.kmLabel);
-    final body = <String, Object?>{
+    return <String, Object?>{
       'ticketTypeCode': code,
       'priority': defaultPriority,
       'description': composeDescription(draft.title, draft.description),
@@ -132,49 +208,91 @@ class ApiTicketsRepository implements TicketsRepository {
         'detectedAt': draft.capturedAt!.toUtc().toIso8601String(),
       'clientUuid': ?draft.clientId,
     };
+  }
+
+  @override
+  Future<Ticket> create(NewTicket draft) => _guard(() async {
+    final body = await ticketBody(draft);
     final dto = (await _api.post('/api/tickets', data: body)) ?? const {};
     final id = _text(dto['id']);
     if (id == null) throw const FormatException('sin id');
-    await _uploadPhotos(
-      '/api/tickets/${Uri.encodeComponent(id)}/attachments',
+    await attachPhotos(
+      id,
       draft.photoPaths,
       capturedAt: draft.capturedAt,
-      location: location,
+      location: draft.location,
     );
     return ticketFromDto(dto);
   });
+
+  /// Sube las fotos de un ticket ya creado.
+  Future<void> attachPhotos(
+    String ticketId,
+    List<String> photos, {
+    DateTime? capturedAt,
+    TicketLocation? location,
+    String? followUpId,
+  }) => _uploadPhotos(
+    '/api/tickets/${Uri.encodeComponent(ticketId)}/attachments',
+    photos,
+    capturedAt: capturedAt,
+    location: location,
+    followUpId: followUpId,
+  );
+
+  /// Lo que el servidor recibe para registrar el seguimiento.
+  Map<String, Object?> followUpBody(NewFollowUp followUp) {
+    final text = followUp.description.trim();
+    return {
+      'kind': 'PROGRESS',
+      'description': text.isEmpty ? _fallbackNote : text,
+    };
+  }
+
+  /// Lo que sigue a un seguimiento ya registrado: sus fotos y, si se marco como
+  /// atendido, pasar a en proceso un ticket que nadie ha tomado. Si ya esta en
+  /// proceso, resuelto o en espera, el seguimiento basta; resolverlo o cerrarlo
+  /// es de otro perfil y de la web.
+  Future<void> finishFollowUp(
+    String ticketId,
+    String? followUpId, {
+    required List<String> photos,
+    required DateTime at,
+    required bool attended,
+  }) async {
+    final key = Uri.encodeComponent(ticketId);
+    await attachPhotos(
+      ticketId,
+      photos,
+      capturedAt: at,
+      followUpId: followUpId,
+    );
+    if (attended) {
+      final dto = _asMap(await _api.getJson('/api/tickets/$key'));
+      if (_pending.contains(_text(dto['status']))) {
+        await _api.post(
+          '/api/tickets/$key/status',
+          data: {'status': 'EN_PROCESO', 'rowVersion': dto['rowVersion']},
+        );
+      }
+    }
+  }
 
   @override
   Future<Ticket> addFollowUp(String ticketId, NewFollowUp followUp) =>
       _guard(() async {
         final key = Uri.encodeComponent(ticketId);
-        final text = followUp.description.trim();
         final created = await _api.post(
           '/api/tickets/$key/follow-ups',
-          data: {
-            'kind': 'PROGRESS',
-            'description': text.isEmpty ? _fallbackNote : text,
-          },
+          data: followUpBody(followUp),
         );
-        final followUpId = _text(created?['id']);
-        await _uploadPhotos(
-          '/api/tickets/$key/attachments',
-          followUp.photoPaths,
-          capturedAt: followUp.at,
-          followUpId: followUpId,
+        await finishFollowUp(
+          ticketId,
+          _text(created?['id']),
+          photos: followUp.photoPaths,
+          at: followUp.at,
+          attended: followUp.status == TicketStatus.attended,
         );
-        // «Atendido» pone en proceso un ticket que nadie ha tomado. Si ya esta en
-        // proceso, resuelto o en espera, el seguimiento basta; resolverlo o
-        // cerrarlo es de otro perfil y de la web.
-        if (followUp.status == TicketStatus.attended) {
-          final dto = _asMap(await _api.getJson('/api/tickets/$key'));
-          if (_pending.contains(_text(dto['status']))) {
-            await _api.post(
-              '/api/tickets/$key/status',
-              data: {'status': 'EN_PROCESO', 'rowVersion': dto['rowVersion']},
-            );
-          }
-        }
         return _load(ticketId);
       });
 
@@ -315,10 +433,7 @@ class ApiTicketsRepository implements TicketsRepository {
 
   /// [listing]: un 404 al listar es que el servidor aun no publica los tickets;
   /// al pedir uno es que ya no existe.
-  Future<T> _guard<T>(
-    Future<T> Function() body, {
-    bool listing = false,
-  }) async {
+  Future<T> _guard<T>(Future<T> Function() body, {bool listing = false}) async {
     try {
       return await body();
     } on ApiFailure catch (e) {

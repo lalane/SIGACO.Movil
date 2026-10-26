@@ -10,10 +10,11 @@ import '../../features/dashboard/domain/entities/dashboard_summary.dart';
 import '../../features/dashboard/data/repositories/unavailable_compliance_source.dart';
 import '../../features/dashboard/domain/repositories/compliance_source.dart';
 import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
+import 'tickets_summary_source.dart';
 
-/// Arma el resumen con lo que ya consultan los modulos. Mientras el backend no
-/// publique un endpoint de resumen, las cifras son las mismas que se ven en las
-/// listas; cuando exista, se cambia esta clase por la que lo llame.
+/// Arma el resumen. Los tickets salen del resumen que calcula el servidor; si no
+/// responde (o con datos de ejemplo), y para los demas modulos, las cifras son
+/// las mismas que se ven en las listas.
 class ComposedDashboardRepository implements DashboardRepository {
   ComposedDashboardRepository({
     required this.tickets,
@@ -21,11 +22,15 @@ class ComposedDashboardRepository implements DashboardRepository {
     required this.maintenance,
     required this.inventory,
     this.compliance = const UnavailableComplianceSource(),
+    this.ticketsSummary = const NoTicketsSummarySource(),
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
 
   /// Cumplimiento por indicador: lo calcula el servidor (BBP §7.8).
   final ComplianceSource compliance;
+
+  /// El resumen de tickets del servidor.
+  final TicketsSummarySource ticketsSummary;
 
   final TicketsRepository tickets;
   final AccidentsRepository accidents;
@@ -79,6 +84,8 @@ class ComposedDashboardRepository implements DashboardRepository {
   }
 
   Future<TicketsSummary> _tickets(DateTime now) async {
+    final fromServer = await ticketsSummary.load();
+    if (fromServer != null) return fromServer;
     final all = await tickets.list();
     final open = all.where((t) => t.status == TicketStatus.open).toList();
     return TicketsSummary(
