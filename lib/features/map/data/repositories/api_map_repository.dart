@@ -8,8 +8,9 @@ import '../../domain/repositories/map_repository.dart';
 
 /// El mapa contra el backend. El inventario sale de `/api/assets/map` (GeoJSON
 /// de los activos con geometria de las carreteras autorizadas); los tickets
-/// abiertos y las obras en curso, de `/api/map/pins`. El mantenimiento aun no
-/// publica pines y dice que no esta disponible en lugar de inventarlos.
+/// abiertos y las obras en curso, de `/api/map/pins`; el mantenimiento, de las
+/// ordenes de mantenimiento preventivo que siguen abiertas y tienen geometria
+/// (`/api/preventive-maintenance`).
 class ApiMapRepository implements MapRepository {
   ApiMapRepository(this._api, {required this._language});
 
@@ -28,10 +29,8 @@ class ApiMapRepository implements MapRepository {
 
   @override
   Future<List<MapPin>> pins(MapLayer layer) async {
-    if (layer == MapLayer.maintenance) {
-      throw const MapException(MapError.notAvailable);
-    }
     try {
+      if (layer == MapLayer.maintenance) return await _maintenancePins();
       if (layer != MapLayer.inventory) return await _serverPins(layer);
       final labels = await _labels();
       final json = await _api.getJson(
@@ -59,6 +58,64 @@ class ApiMapRepository implements MapRepository {
     } catch (_) {
       throw const MapException(MapError.server);
     }
+  }
+
+  static const _maintenancePageSize = 100;
+  static const _maintenanceMaxPages = 10;
+
+  /// Las ordenes de mantenimiento programadas o en ejecucion que se pueden
+  /// ubicar: el pin cae en el centro de su geometria y pide atencion si ya
+  /// vencio.
+  Future<List<MapPin>> _maintenancePins() async {
+    final pins = <MapPin>[];
+    var page = 1;
+    var received = 0;
+    var total = 0;
+    do {
+      final json = await _api.getJson(
+        '/api/preventive-maintenance',
+        query: {'page': page, 'pageSize': _maintenancePageSize},
+      );
+      if (json is! Map) throw const FormatException('respuesta inesperada');
+      total = (json['total'] as num?)?.toInt() ?? 0;
+      final items = json['items'];
+      if (items is! List) throw const FormatException('sin items');
+      if (items.isEmpty) break;
+      received += items.length;
+      for (final item in items) {
+        if (item is Map<String, dynamic>) {
+          final pin = maintenancePin(item);
+          if (pin != null) pins.add(pin);
+        }
+      }
+      page++;
+    } while (received < total && page <= _maintenanceMaxPages);
+    return pins;
+  }
+
+  /// Un pin de una orden de mantenimiento preventivo; null si ya termino, se
+  /// cancelo o no tiene geometria.
+  static MapPin? maintenancePin(Map<String, dynamic> m) {
+    final status = (m['status'] as String?)?.toUpperCase();
+    if (status == 'COMPLETADO' || status == 'CANCELADO') return null;
+    final id = m['id'];
+    final anchor = geoJsonAnchor(m['geometry']);
+    if (id is! String || anchor == null) return null;
+    final point = GeoPoint(anchor.$1, anchor.$2);
+    if (!point.isValid) return null;
+    final folio = (m['folio'] as String?)?.trim();
+    final activity = (m['activity'] as String?)?.trim();
+    final km = m['kmStart'];
+    return MapPin(
+      id: id,
+      layer: MapLayer.maintenance,
+      title: activity == null || activity.isEmpty ? (folio ?? id) : activity,
+      subtitle: folio == null || folio.isEmpty ? null : folio,
+      category: (m['subsystemCode'] as String?)?.trim(),
+      kmLabel: km is num ? kmLabel(km.toDouble(), null) : null,
+      status: m['isOverdue'] == true ? PinStatus.attention : PinStatus.normal,
+      position: point,
+    );
   }
 
   /// Tickets abiertos y obras en curso (`/api/map/pins`): el servidor da el

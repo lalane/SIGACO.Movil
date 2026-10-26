@@ -37,19 +37,30 @@ Map<String, Object?> _point(GeoPoint p, Map<String, Object?> properties) => {
   'properties': properties,
 };
 
+/// El nombre con el que el mapa conoce el icono de una capa.
+String pinIconName(MapLayer layer) => 'pin-${layer.name}';
+
 /// Los pines de la pestana: el id y la atencion que piden. El elegido va aparte
 /// (se dibuja sobre los demas y no entra en ningun grupo).
 Map<String, Object?> pinsGeoJson(List<MapPin> pins, {String? exceptId}) =>
     _collection([
       for (final p in pins)
         if (p.id != exceptId)
-          _point(p.position, {'id': p.id, 'sev': severity(p.status)}),
+          _point(p.position, {
+            'id': p.id,
+            'sev': severity(p.status),
+            'ic': pinIconName(p.layer),
+          }),
     ]);
 
 /// El pin elegido, o nada.
 Map<String, Object?> selectedPinGeoJson(MapPin? pin) => _collection([
   if (pin != null)
-    _point(pin.position, {'id': pin.id, 'sev': severity(pin.status)}),
+    _point(pin.position, {
+      'id': pin.id,
+      'sev': severity(pin.status),
+      'ic': pinIconName(pin.layer),
+    }),
 ]);
 
 /// Los tramos como lineas: el id, el sentido (`inc` o `dec`) y si estan

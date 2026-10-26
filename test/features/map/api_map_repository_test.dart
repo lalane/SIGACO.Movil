@@ -139,12 +139,85 @@ void main() {
     expect((await repo.pins(MapLayer.inventory)).first.category, 'DEFENSA');
   });
 
-  test('el mantenimiento aun no publica pines', () async {
-    await expectLater(
-      repo.pins(MapLayer.maintenance),
-      _fails(MapError.notAvailable),
-    );
-    expect(api.requests, isEmpty);
+  group('pines de mantenimiento', () {
+    Map<String, Object?> order(
+      String id, {
+      String status = 'PROGRAMADO',
+      bool overdue = false,
+      Object? geometry = const {
+        'type': 'LineString',
+        'coordinates': [
+          [-41.98, -18.84],
+          [-41.97, -18.85],
+          [-41.96, -18.86],
+        ],
+      },
+    }) => {
+      'id': id,
+      'folio': 'MP-$id',
+      'activity': 'Bacheo',
+      'status': status,
+      'isOverdue': overdue,
+      'subsystemCode': 'SGP',
+      'kmStart': 513.615,
+      'geometry': geometry,
+    };
+
+    test('las ordenes abiertas con geometria se ubican en su centro', () async {
+      api.on(
+        'GET /api/preventive-maintenance',
+        FakeReply(200, {
+          'items': [
+            order('m1'),
+            order('m2', overdue: true),
+            order('m3', status: 'COMPLETADO'),
+            order('m4', status: 'CANCELADO'),
+            order('m5', geometry: null),
+          ],
+          'total': 5,
+          'page': 1,
+          'pageSize': 100,
+        }),
+      );
+      final pins = await repo.pins(MapLayer.maintenance);
+      expect(pins.map((p) => p.id), ['m1', 'm2']);
+      expect(pins.first.layer, MapLayer.maintenance);
+      expect(pins.first.title, 'Bacheo');
+      expect(pins.first.subtitle, 'MP-m1');
+      expect(pins.first.category, 'SGP');
+      expect(pins.first.kmLabel, 'KM 513+615');
+      expect(pins.first.position.latitude, -18.85);
+      expect(pins.first.position.longitude, -41.97);
+      expect(pins.first.status, PinStatus.normal);
+      expect(pins.last.status, PinStatus.attention);
+    });
+
+    test('pide las paginas que faltan', () async {
+      api.reply('GET /api/preventive-maintenance', (o) {
+        final page = o.queryParameters['page'];
+        return FakeReply(200, {
+          'items': [order(page == 1 ? 'a' : 'b')],
+          'total': 2,
+          'page': page,
+          'pageSize': 100,
+        });
+      });
+      final pins = await repo.pins(MapLayer.maintenance);
+      expect(pins.map((p) => p.id), ['a', 'b']);
+    });
+
+    test('sin permiso o sin red lo dice', () async {
+      api.on('GET /api/preventive-maintenance', const FakeReply(403));
+      await expectLater(
+        repo.pins(MapLayer.maintenance),
+        _fails(MapError.permissionDenied),
+      );
+      api.offline = true;
+      await expectLater(
+        repo.pins(MapLayer.maintenance),
+        _fails(MapError.network),
+      );
+    });
   });
 
   group('pines del servidor (tickets y obras)', () {
@@ -168,18 +241,32 @@ void main() {
       'kmStart': 513.615,
     };
 
-    Map<String, Object?> answer(String layer, List<Map<String, Object?>> pins) =>
+    Map<String, Object?> answer(
+      String layer,
+      List<Map<String, Object?>> pins,
+    ) => {
+      'layers': [
         {
-          'layers': [
-            {'layer': layer, 'count': pins.length, 'withoutGeometry': 0, 'truncated': false},
-          ],
-          'pins': pins,
-        };
+          'layer': layer,
+          'count': pins.length,
+          'withoutGeometry': 0,
+          'truncated': false,
+        },
+      ],
+      'pins': pins,
+    };
 
     test('los tickets abiertos salen de /api/map/pins', () async {
       api.on(
         'GET /api/map/pins',
-        FakeReply(200, answer('TICKETS', [pin('TICKETS', 't1', priority: 'CRITICA'), pin('TICKETS', 't2', priority: 'ALTA'), pin('TICKETS', 't3')])),
+        FakeReply(
+          200,
+          answer('TICKETS', [
+            pin('TICKETS', 't1', priority: 'CRITICA'),
+            pin('TICKETS', 't2', priority: 'ALTA'),
+            pin('TICKETS', 't3'),
+          ]),
+        ),
       );
       final pins = await repo.pins(MapLayer.tickets);
 
@@ -188,7 +275,11 @@ void main() {
       expect(sent['bbox'], '-180,-90,180,90');
       expect(sent['limit'], 2000);
       expect(pins.map((p) => p.id), ['t1', 't2', 't3']);
-      expect(pins.map((p) => p.status), [PinStatus.critical, PinStatus.attention, PinStatus.normal]);
+      expect(pins.map((p) => p.status), [
+        PinStatus.critical,
+        PinStatus.attention,
+        PinStatus.normal,
+      ]);
       expect(pins.first.layer, MapLayer.tickets);
       expect(pins.first.title, 'Bache en carril derecho');
       expect(pins.first.subtitle, 'COD-t1');
@@ -198,9 +289,20 @@ void main() {
     });
 
     test('las obras piden la capa OBRAS', () async {
-      api.on('GET /api/map/pins', FakeReply(200, answer('OBRAS', [pin('OBRAS', 'w1', title: 'Repavimentacion km 500')])));
+      api.on(
+        'GET /api/map/pins',
+        FakeReply(
+          200,
+          answer('OBRAS', [
+            pin('OBRAS', 'w1', title: 'Repavimentacion km 500'),
+          ]),
+        ),
+      );
       final pins = await repo.pins(MapLayer.works);
-      expect(api.to('GET /api/map/pins').single.queryParameters['layers'], 'OBRAS');
+      expect(
+        api.to('GET /api/map/pins').single.queryParameters['layers'],
+        'OBRAS',
+      );
       expect(pins.single.layer, MapLayer.works);
       expect(pins.single.title, 'Repavimentacion km 500');
     });
@@ -208,14 +310,27 @@ void main() {
     test('un pin sin coordenadas validas se omite', () async {
       api.on(
         'GET /api/map/pins',
-        FakeReply(200, answer('TICKETS', [pin('TICKETS', 'ok'), pin('TICKETS', 'mal', lat: 'x'), pin('TICKETS', 'fuera', lat: 120)])),
+        FakeReply(
+          200,
+          answer('TICKETS', [
+            pin('TICKETS', 'ok'),
+            pin('TICKETS', 'mal', lat: 'x'),
+            pin('TICKETS', 'fuera', lat: 120),
+          ]),
+        ),
       );
       expect((await repo.pins(MapLayer.tickets)).map((p) => p.id), ['ok']);
     });
 
     test('una capa que el servidor no entrega es falta de permiso', () async {
-      api.on('GET /api/map/pins', const FakeReply(200, {'layers': [], 'pins': []}));
-      await expectLater(repo.pins(MapLayer.tickets), _fails(MapError.permissionDenied));
+      api.on(
+        'GET /api/map/pins',
+        const FakeReply(200, {'layers': [], 'pins': []}),
+      );
+      await expectLater(
+        repo.pins(MapLayer.tickets),
+        _fails(MapError.permissionDenied),
+      );
     });
 
     test('una capa sin pines es un mapa vacio, no un error', () async {

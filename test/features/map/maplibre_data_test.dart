@@ -76,7 +76,7 @@ void main() {
       expect(json['type'], 'FeatureCollection');
       final f = _features(json).single;
       expect((f['geometry']! as Map)['coordinates'], [-41.98, -18.85]);
-      expect(f['properties'], {'id': 'a', 'sev': 2});
+      expect(f['properties'], {'id': 'a', 'sev': 2, 'ic': 'pin-inventory'});
     });
 
     test('el pin elegido no entra en los grupos y va aparte', () {
@@ -90,6 +90,7 @@ void main() {
       expect(_features(selectedPinGeoJson(pins.first)).single['properties'], {
         'id': 'a',
         'sev': 0,
+        'ic': 'pin-inventory',
       });
       expect(_features(selectedPinGeoJson(null)), isEmpty);
     });

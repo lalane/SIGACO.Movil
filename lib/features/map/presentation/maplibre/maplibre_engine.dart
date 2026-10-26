@@ -15,6 +15,7 @@ import '../map_camera.dart';
 import '../map_labels.dart';
 import '../tiles/map_tile_source.dart';
 import 'map_data.dart';
+import 'pin_icons.dart';
 
 /// El mapa dibujado con MapLibre: el mapa base de un estilo (teselas vectoriales
 /// o de imagen) y, encima, los tramos, los pines (con agrupacion), la ubicacion
@@ -53,8 +54,10 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
   static const _clusterLayer = 'pins-clusters';
   static const _countLayer = 'pins-counts';
   static const _pointLayer = 'pins-points';
+  static const _iconLayer = 'pins-icons';
   static const _selSource = 'sel';
   static const _selLayer = 'sel-ring';
+  static const _selIconLayer = 'sel-icon';
   static const _pickSource = 'pick';
   static const _pickLayer = 'pick-marker';
 
@@ -110,6 +113,11 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
     final p = context.palette;
     final s = widget.state;
     const text = ['Noto Sans Regular'];
+
+    // El icono de cada capa, para ponerlo dentro del circulo del pin.
+    for (final image in (await pinIconImages()).entries) {
+      await map.addImage(image.key, image.value);
+    }
 
     // Los tramos van debajo de los pines: son el fondo en el que se leen.
     await map.addSource(
@@ -268,6 +276,21 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
         ['has', 'point_count'],
       ],
     );
+    await map.addSymbolLayer(
+      _pinSource,
+      _iconLayer,
+      const SymbolLayerProperties(
+        iconImage: ['get', 'ic'],
+        iconSize: 0.42,
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
+      ),
+      filter: [
+        '!',
+        ['has', 'point_count'],
+      ],
+      enableInteraction: false,
+    );
 
     await map.addSource(
       _selSource,
@@ -282,6 +305,17 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
         circleStrokeColor: '#FFFFFF',
         circleStrokeWidth: 4,
       ),
+    );
+    await map.addSymbolLayer(
+      _selSource,
+      _selIconLayer,
+      const SymbolLayerProperties(
+        iconImage: ['get', 'ic'],
+        iconSize: 0.6,
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
+      ),
+      enableInteraction: false,
     );
 
     await map.addSource(
