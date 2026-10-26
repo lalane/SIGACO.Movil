@@ -210,7 +210,10 @@ void main() {
       await tester.tap(find.byKey(const Key('inventory-g-1')));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('DEFENSA-000001 · Defensa metálica'), findsOneWidget);
+      expect(
+        find.textContaining('DEFENSA-000001 · Defensa metálica'),
+        findsOneWidget,
+      );
       await tester.scrollUntilVisible(
         find.byKey(const Key('inventory-detail-photo')),
         200,

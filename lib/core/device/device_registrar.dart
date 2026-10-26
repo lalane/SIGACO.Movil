@@ -194,7 +194,10 @@ class DeviceRegistrar {
   String? _lastKey;
   DateTime? _lastAt;
 
-  Future<DeviceOutcome> register(String concessionId, {bool force = false}) async {
+  Future<DeviceOutcome> register(
+    String concessionId, {
+    bool force = false,
+  }) async {
     try {
       final profile = await source.read();
       if (profile == null) return DeviceOutcome.skipped;

@@ -27,14 +27,19 @@ void main() {
   group('ApiMapBaseSource.parse', () {
     test('una plantilla valida se vuelve el mapa base', () {
       final source = ApiMapBaseSource.parse(_good)! as UrlTemplateTileSource;
-      expect(source.urlTemplate, 'https://tiles.tekia.example/{z}/{x}/{y}.png?key=abc');
+      expect(
+        source.urlTemplate,
+        'https://tiles.tekia.example/{z}/{x}/{y}.png?key=abc',
+      );
       expect(source.attribution, '© TEKIA');
       expect(source.attributionUrl, 'https://tekia.example/licencia');
       expect(source.maxZoom, 18);
     });
 
     test('sin zoom ni atribucion usa lo normal', () {
-      final source = ApiMapBaseSource.parse({'urlTemplate': 'https://t.example/{z}/{x}/{y}.png'})!;
+      final source = ApiMapBaseSource.parse({
+        'urlTemplate': 'https://t.example/{z}/{x}/{y}.png',
+      })!;
       expect(source.maxZoom, 19);
       expect(source.attribution, isNull);
       expect(source.attributionUrl, isNull);
@@ -54,7 +59,11 @@ void main() {
         '',
         ' ',
       ]) {
-        expect(ApiMapBaseSource.parse({'urlTemplate': url}), isNull, reason: url);
+        expect(
+          ApiMapBaseSource.parse({'urlTemplate': url}),
+          isNull,
+          reason: url,
+        );
       }
       expect(ApiMapBaseSource.parse(null), isNull);
       expect(ApiMapBaseSource.parse('texto'), isNull);
@@ -62,7 +71,10 @@ void main() {
     });
 
     test('un enlace de atribucion que no es https se descarta', () {
-      final source = ApiMapBaseSource.parse({..._good, 'attributionUrl': 'http://x.example'})!;
+      final source = ApiMapBaseSource.parse({
+        ..._good,
+        'attributionUrl': 'http://x.example',
+      })!;
       expect(source.attributionUrl, isNull);
     });
   });
@@ -82,7 +94,10 @@ void main() {
     });
 
     test('una configuracion de otra concesion no vale', () async {
-      api.on('GET /api/app-configuration', FakeReply(200, _config(_good, concession: 'otra')));
+      api.on(
+        'GET /api/app-configuration',
+        FakeReply(200, _config(_good, concession: 'otra')),
+      );
       expect(await source.load('c1'), isNull);
     });
 
@@ -108,22 +123,33 @@ void main() {
       expect(tiles.attribution, 'respaldo');
     });
 
-    test('al iniciar sesion aplica el del servidor y al cerrarla vuelve', () async {
-      final api = FakeApi()..on('GET /api/app-configuration', FakeReply(200, _config(_good)));
-      final tiles = ConfiguredTileSource(fallback: _fallback);
-      final loader = MapBaseLoader(tiles: tiles, source: ApiMapBaseSource(api.client()));
+    test(
+      'al iniciar sesion aplica el del servidor y al cerrarla vuelve',
+      () async {
+        final api = FakeApi()
+          ..on('GET /api/app-configuration', FakeReply(200, _config(_good)));
+        final tiles = ConfiguredTileSource(fallback: _fallback);
+        final loader = MapBaseLoader(
+          tiles: tiles,
+          source: ApiMapBaseSource(api.client()),
+        );
 
-      await loader.load('c1');
-      expect(tiles.attribution, '© TEKIA');
+        await loader.load('c1');
+        expect(tiles.attribution, '© TEKIA');
 
-      loader.reset();
-      expect(tiles.attribution, 'respaldo');
-    });
+        loader.reset();
+        expect(tiles.attribution, 'respaldo');
+      },
+    );
 
     test('un fallo del servidor deja el mapa que ya habia', () async {
-      final api = FakeApi()..on('GET /api/app-configuration', const FakeReply(500));
+      final api = FakeApi()
+        ..on('GET /api/app-configuration', const FakeReply(500));
       final tiles = ConfiguredTileSource(fallback: _fallback);
-      await MapBaseLoader(tiles: tiles, source: ApiMapBaseSource(api.client())).load('c1');
+      await MapBaseLoader(
+        tiles: tiles,
+        source: ApiMapBaseSource(api.client()),
+      ).load('c1');
       expect(tiles.attribution, 'respaldo');
     });
 

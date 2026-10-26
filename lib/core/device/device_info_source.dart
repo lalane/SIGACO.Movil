@@ -37,10 +37,7 @@ class DeviceInfoPlusSource implements DeviceInfoSource {
 }
 
 /// Une fabricante y modelo sin repetir el fabricante.
-String deviceModelLabel({
-  required String manufacturer,
-  required String model,
-}) {
+String deviceModelLabel({required String manufacturer, required String model}) {
   String capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
   final maker = capitalize(manufacturer.trim());

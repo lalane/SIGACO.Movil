@@ -143,10 +143,7 @@ class ApiInventoryRepository implements InventoryRepository {
 
   /// [listing]: un 404 al listar es que el servidor aun no publica el
   /// inventario; al pedir una ficha es que el activo ya no existe.
-  Future<T> _guard<T>(
-    Future<T> Function() body, {
-    bool listing = false,
-  }) async {
+  Future<T> _guard<T>(Future<T> Function() body, {bool listing = false}) async {
     try {
       return await body();
     } on ApiFailure catch (e) {

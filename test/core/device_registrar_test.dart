@@ -60,11 +60,14 @@ void main() {
     });
 
     test('registra en /api/mobile/devices y lee el estado', () async {
-      api.on('POST /api/mobile/devices', const FakeReply(200, {
-        'id': 'd1',
-        'status': 'ACTIVO',
-        'wipeData': false,
-      }));
+      api.on(
+        'POST /api/mobile/devices',
+        const FakeReply(200, {
+          'id': 'd1',
+          'status': 'ACTIVO',
+          'wipeData': false,
+        }),
+      );
       final result = await remote.register(_profile);
 
       expect(result?.status, 'ACTIVO');
@@ -74,10 +77,10 @@ void main() {
     });
 
     test('un telefono bloqueado pide borrar los datos', () async {
-      api.on('POST /api/mobile/devices', const FakeReply(200, {
-        'status': 'BLOQUEADO',
-        'wipeData': true,
-      }));
+      api.on(
+        'POST /api/mobile/devices',
+        const FakeReply(200, {'status': 'BLOQUEADO', 'wipeData': true}),
+      );
       expect((await remote.register(_profile))?.wipeData, isTrue);
     });
   });
@@ -123,23 +126,33 @@ void main() {
       expect(remote.sent, hasLength(3));
     });
 
-    test('una version nueva de la app se registra aunque sea reciente', () async {
-      final source = _Source(_profile);
-      registrar = DeviceRegistrar(source: source, remote: remote, now: () => now);
-      await registrar.register('c1');
-      source.profile = const DeviceProfile(
-        identifier: 'dev-1',
-        appVersion: '1.0.2+24',
-      );
-      expect(await registrar.register('c1'), DeviceOutcome.registered);
-      expect(remote.sent.last.appVersion, '1.0.2+24');
-    });
+    test(
+      'una version nueva de la app se registra aunque sea reciente',
+      () async {
+        final source = _Source(_profile);
+        registrar = DeviceRegistrar(
+          source: source,
+          remote: remote,
+          now: () => now,
+        );
+        await registrar.register('c1');
+        source.profile = const DeviceProfile(
+          identifier: 'dev-1',
+          appVersion: '1.0.2+24',
+        );
+        expect(await registrar.register('c1'), DeviceOutcome.registered);
+        expect(remote.sent.last.appVersion, '1.0.2+24');
+      },
+    );
 
-    test('al cerrar la sesion la siguiente persona registra de nuevo', () async {
-      await registrar.register('c1');
-      registrar.forget();
-      expect(await registrar.register('c1'), DeviceOutcome.registered);
-    });
+    test(
+      'al cerrar la sesion la siguiente persona registra de nuevo',
+      () async {
+        await registrar.register('c1');
+        registrar.forget();
+        expect(await registrar.register('c1'), DeviceOutcome.registered);
+      },
+    );
 
     test('un telefono bloqueado se avisa', () async {
       remote.reply = const DeviceRegistration(
@@ -171,10 +184,7 @@ void main() {
       expect(await empty.register('c1'), DeviceOutcome.skipped);
       expect(remote.sent, isEmpty);
 
-      expect(
-        await DeviceRegistrar().register('c1'),
-        DeviceOutcome.skipped,
-      );
+      expect(await DeviceRegistrar().register('c1'), DeviceOutcome.skipped);
     });
   });
 
@@ -189,21 +199,24 @@ void main() {
       );
     });
 
-    test('lee la version con su compilacion y guarda un identificador', () async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final source = PlatformDeviceProfileSource(prefs);
+    test(
+      'lee la version con su compilacion y guarda un identificador',
+      () async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final source = PlatformDeviceProfileSource(prefs);
 
-      final first = await source.read();
-      expect(first?.appVersion, '1.0.1+23');
-      expect(first?.platform, 'ANDROID');
-      expect(first?.identifier, isNotEmpty);
+        final first = await source.read();
+        expect(first?.appVersion, '1.0.1+23');
+        expect(first?.platform, 'ANDROID');
+        expect(first?.identifier, isNotEmpty);
 
-      // El mismo telefono sigue siendo el mismo.
-      final again = await PlatformDeviceProfileSource(prefs).read();
-      expect(again?.identifier, first?.identifier);
-      expect(prefs.getString('device_install_id'), first?.identifier);
-    });
+        // El mismo telefono sigue siendo el mismo.
+        final again = await PlatformDeviceProfileSource(prefs).read();
+        expect(again?.identifier, first?.identifier);
+        expect(prefs.getString('device_install_id'), first?.identifier);
+      },
+    );
 
     test('un identificador ya guardado se respeta', () async {
       SharedPreferences.setMockInitialValues({'device_install_id': 'abc-123'});
