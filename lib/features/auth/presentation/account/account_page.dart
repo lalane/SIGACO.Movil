@@ -512,7 +512,7 @@ class _Body extends StatelessWidget {
           // inventados, sin tocar el servidor. Se apaga al cerrar sesion.
           SizedBox(height: r.s(10)),
           ListenableBuilder(
-            listenable: demo,
+            listenable: demo.listenable,
             builder: (context, _) => _ActionTile(
               key: const Key('account-demo-switch'),
               icon: Icons.science_outlined,

@@ -178,8 +178,9 @@ void main() {
 
     await openPreferences(tester);
     expect(find.text('Colores de mi concesión'), findsOneWidget);
-    expect(tester.widget<Switch>(find.byType(Switch).last).value, isTrue);
-    await tester.tap(find.byType(Switch).last);
+    // El de los colores va antes que el de datos de ejemplo, que es el ultimo.
+    expect(tester.widget<Switch>(find.byType(Switch).first).value, isTrue);
+    await tester.tap(find.byType(Switch).first);
     await tester.pumpAndSettle();
     expect(palette(tester).accent, SigacoPalette.original.accent);
     final prefs = await SharedPreferences.getInstance();

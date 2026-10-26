@@ -4,16 +4,23 @@ import 'package:flutter/foundation.dart';
 /// modulos muestran datos inventados (sin llamar al servidor) para ver como esta
 /// armada la app. Vive solo en memoria: al cerrar sesion o abrir la app otra vez
 /// se vuelve a los datos reales, para que nadie lo deje encendido sin querer.
-class DemoMode extends ChangeNotifier {
+///
+/// No es un `Listenable` a proposito: se entrega con un `RepositoryProvider` y el
+/// proveedor rechaza a los que lo son. Quien quiera enterarse del cambio usa
+/// [addListener] o [listenable].
+class DemoMode {
   DemoMode();
 
-  bool _on = false;
+  final _value = ValueNotifier<bool>(false);
 
-  bool get on => _on;
+  bool get on => _value.value;
 
-  void set(bool value) {
-    if (value == _on) return;
-    _on = value;
-    notifyListeners();
-  }
+  /// Para `ListenableBuilder`.
+  Listenable get listenable => _value;
+
+  void set(bool value) => _value.value = value;
+
+  void addListener(VoidCallback listener) => _value.addListener(listener);
+
+  void removeListener(VoidCallback listener) => _value.removeListener(listener);
 }

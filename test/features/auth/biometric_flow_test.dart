@@ -143,12 +143,12 @@ void main() {
       await tester.pumpAndSettle();
       await openAccountBiometricTile(tester);
 
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
-      await tester.tap(find.byType(Switch));
+      expect(tester.widget<Switch>(find.byType(Switch).first).value, isTrue);
+      await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
       expect(store.biometricEnabled, isFalse);
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+      expect(tester.widget<Switch>(find.byType(Switch).first).value, isFalse);
       expect(find.text('Acceso con biometría desactivado.'), findsOneWidget);
     });
 
@@ -162,14 +162,14 @@ void main() {
       expect(store.biometricEnabled, isFalse);
 
       await openAccountBiometricTile(tester);
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
-      await tester.tap(find.byType(Switch));
+      expect(tester.widget<Switch>(find.byType(Switch).first).value, isFalse);
+      await tester.tap(find.byType(Switch).first);
       await tester.pumpAndSettle();
 
       expect(store.biometricEnabled, isTrue);
       expect(store.stored?.email, 'a@b.com');
       expect(store.stored?.password, 'S3creto!x');
-      expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue);
+      expect(tester.widget<Switch>(find.byType(Switch).first).value, isTrue);
       expect(find.text('Acceso con biometría activado.'), findsOneWidget);
     });
 
