@@ -231,6 +231,7 @@
   "syncEntityAsset": "Ativo",
   "syncEntitySurvey": "Levantamento",
   "syncEntityMedia": "Arquivo",
+  "syncEntityMaintenanceProgress": "Avanço de manutenção",
   "syncEntityOther": "Operação",
   "syncKindInsert": "Inclusão",
   "syncKindUpdate": "Alteração",

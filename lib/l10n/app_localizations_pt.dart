@@ -644,6 +644,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get syncEntityMedia => 'Arquivo';
 
   @override
+  String get syncEntityMaintenanceProgress => 'Avanço de manutenção';
+
+  @override
   String get syncEntityOther => 'Operação';
 
   @override

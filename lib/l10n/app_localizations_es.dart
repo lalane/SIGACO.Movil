@@ -642,6 +642,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get syncEntityMedia => 'Archivo';
 
   @override
+  String get syncEntityMaintenanceProgress => 'Avance de mantenimiento';
+
+  @override
   String get syncEntityOther => 'Operación';
 
   @override

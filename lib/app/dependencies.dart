@@ -61,6 +61,8 @@ import '../features/inventory/data/repositories/sample_inventory_repository.dart
 import '../features/inventory/data/repositories/unavailable_inventory_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/api_maintenance_repository.dart';
+import '../features/maintenance/data/repositories/offline_maintenance_repository.dart';
+import '../features/maintenance/data/sync/maintenance_sync_remote.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
 import 'composition/maintenance_reports_repository.dart';
 import '../features/alerts/data/repositories/api_alerts_repository.dart';
@@ -658,6 +660,17 @@ class AppDependencies {
       () async => (await deviceSource.read())?.identifier,
     );
 
+    // Los avances de mantenimiento: sin red quedan en la cola y salen igual.
+    final offlineMaintenance = OfflineMaintenanceRepository(
+      ApiMaintenanceRepository(api),
+      queue,
+    );
+    scope.register(offlineMaintenance);
+    final maintenanceRemote = MaintenanceSyncRemote(
+      api,
+      () async => (await deviceSource.read())?.identifier,
+    );
+
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
@@ -667,6 +680,7 @@ class AppDependencies {
       remote = RoutedSyncRemote({
         OfflineTicketsRepository.ticketEntity: ticketsRemote,
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
+        OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
       });
     } else {
       final server = DocumentsRepositoryImpl(api, language: language);
@@ -685,6 +699,7 @@ class AppDependencies {
         'documento_firma': documentsRemote,
         OfflineTicketsRepository.ticketEntity: ticketsRemote,
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
+        OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
       });
     }
     final authRepository = AuthRepositoryImpl(api);
@@ -790,7 +805,7 @@ class AppDependencies {
       ),
       sampleAccidents: AppConfig.sampleAccidents,
       maintenanceRepository: DemoAwareMaintenance(
-        real: ApiMaintenanceRepository(api),
+        real: offlineMaintenance,
         sample: SampleMaintenanceRepository(),
         demo: () => demo.on || AppConfig.sampleMaintenance,
       ),

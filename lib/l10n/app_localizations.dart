@@ -1232,6 +1232,12 @@ abstract class AppLocalizations {
   /// **'Archivo'**
   String get syncEntityMedia;
 
+  /// No description provided for @syncEntityMaintenanceProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance de mantenimiento'**
+  String get syncEntityMaintenanceProgress;
+
   /// No description provided for @syncEntityOther.
   ///
   /// In es, this message translates to:

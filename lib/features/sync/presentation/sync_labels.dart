@@ -5,17 +5,21 @@ import '../../../core/theme/status_colors.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// Nombre legible del tipo de registro (`sync.operacion.entidad`).
-String entityLabel(AppLocalizations l10n, String entity) => switch (entity) {
-  'documento' => l10n.syncEntityDocument,
-  'documento_firma' => l10n.syncEntitySignature,
-  'ticket' || 'ticket_seguimiento' => l10n.syncEntityTicket,
-  'inspeccion' => l10n.syncEntityInspection,
-  'evento' => l10n.syncEntityEvent,
-  'activo' => l10n.syncEntityAsset,
-  'levantamiento' => l10n.syncEntitySurvey,
-  'media' => l10n.syncEntityMedia,
-  _ => l10n.syncEntityOther,
-};
+String entityLabel(AppLocalizations l10n, String entity) =>
+    switch (entity.toLowerCase()) {
+      'documento' => l10n.syncEntityDocument,
+      'documento_firma' => l10n.syncEntitySignature,
+      'ticket' ||
+      'ticket_seguimiento' ||
+      'ticket_follow_up' => l10n.syncEntityTicket,
+      'maintenance_progress' => l10n.syncEntityMaintenanceProgress,
+      'inspeccion' => l10n.syncEntityInspection,
+      'evento' => l10n.syncEntityEvent,
+      'activo' => l10n.syncEntityAsset,
+      'levantamiento' => l10n.syncEntitySurvey,
+      'media' => l10n.syncEntityMedia,
+      _ => l10n.syncEntityOther,
+    };
 
 String kindLabel(AppLocalizations l10n, OperationKind kind) => switch (kind) {
   OperationKind.insert => l10n.syncKindInsert,
