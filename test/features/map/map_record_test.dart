@@ -19,6 +19,7 @@ import 'package:sigaco_movil/features/map/domain/entities/geo_point.dart';
 import 'package:sigaco_movil/features/map/domain/entities/map_pin.dart';
 import 'package:sigaco_movil/features/map/domain/entities/map_settings.dart';
 import 'package:sigaco_movil/features/map/domain/entities/user_location.dart';
+import 'package:sigaco_movil/features/map/domain/repositories/location_source.dart';
 import 'package:sigaco_movil/features/map/presentation/bloc/map_cubit.dart';
 import 'package:sigaco_movil/features/tickets/data/repositories/sample_tickets_repository.dart';
 import 'package:sigaco_movil/features/tickets/domain/entities/ticket.dart';
@@ -302,6 +303,7 @@ void main() {
       WidgetTester tester, {
       List<String> modules = const ['PANEL', 'INVENTARIO', 'TICKETS'],
       UserLocation? location,
+      bool locatable = true,
     }) async {
       await tester.runAsync(loadAppFonts);
       useSurface(tester, TestSurface.phone);
@@ -316,7 +318,10 @@ void main() {
         logoStore: FakeLogoStore(),
         mapRepository: SampleMapRepository(),
         roadSegmentsRepository: FakeRoadSegmentsRepository(),
-        locationSource: FakeLocationSource(location: location ?? here()),
+        locationSource: FakeLocationSource(
+          location: location ?? here(),
+          failure: locatable ? null : LocationFailure.unavailable,
+        ),
         sampleMap: true,
         ticketsRepository: tickets,
         sampleTickets: true,
@@ -357,7 +362,9 @@ void main() {
     testWidgets('la ficha del equipo muestra su estado operativo', (
       tester,
     ) async {
-      await launch(tester);
+      // Sin ubicacion el mapa encuadra los pines (con ella se queda donde esta
+      // la persona y el equipo queda lejos).
+      await launch(tester, locatable: false);
       await openInventoryPin(tester, 'A-005');
       expect(
         tester
@@ -516,8 +523,7 @@ void main() {
       tester,
     ) async {
       await launch(tester);
-      expect(find.byKey(const Key('map-record-here')), findsNothing);
-      await tester.tap(find.byKey(const Key('map-locate')));
+      // Al abrir el mapa ya se ubico a la persona.
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('map-record-here')));
       await tester.pumpAndSettle();

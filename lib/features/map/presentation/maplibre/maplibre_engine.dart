@@ -61,6 +61,9 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
   static const _pickSource = 'pick';
   static const _pickLayer = 'pick-marker';
 
+  /// El zoom con el que se llega a la persona (se distinguen las calles).
+  static const _userZoom = 15.0;
+
   /// Centro y zoom cuando no hay nada que mostrar (Brasil, vista general).
   static const _fallbackCenter = LatLng(-15.78, -47.93);
 
@@ -423,8 +426,20 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
     if (map == null || !_installed || _fitted == widget.fitKey) return;
     _fitted = widget.fitKey;
     final s = widget.state;
-    final points = fitPoints(s.visiblePins, s.segments);
     final r = context.responsive;
+    // Con la ubicacion de la persona, el mapa se queda donde esta ella, sea cual
+    // sea la pestana; sin ella, encuadra lo que hay que ver.
+    final here = s.location;
+    if (here != null) {
+      await map.moveCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(here.position.latitude, here.position.longitude),
+          _userZoom,
+        ),
+      );
+      return;
+    }
+    final points = fitPoints(s.visiblePins, s.segments);
     if (points.isEmpty) {
       await map.moveCamera(CameraUpdate.newLatLngZoom(_fallbackCenter, 4));
       return;

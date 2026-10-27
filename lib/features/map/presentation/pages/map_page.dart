@@ -103,7 +103,11 @@ class _MapPageState extends State<MapPage> {
     _camera.attach((point, minZoom) async {
       _controller.move(_ll(point), math.max(_controller.camera.zoom, minZoom));
     });
-    context.read<MapCubit>().load().then((_) => _showInitialPin());
+    final cubit = context.read<MapCubit>();
+    cubit.load().then((_) => _showInitialPin());
+    // Al abrir, el mapa va a donde esta la persona; si llego para ver un
+    // elemento concreto, se queda en el.
+    if (widget.initialPinId == null) cubit.locate(silent: true);
   }
 
   /// Selecciona y centra el elemento pedido al abrir el mapa.

@@ -442,8 +442,10 @@ class MapCubit extends Cubit<MapState> {
   );
 
   /// Busca la ubicacion del usuario y pide centrar el mapa en ella. Tambien
-  /// trae el inventario, que es de donde salen los cercanos.
-  Future<void> locate() async {
+  /// trae el inventario, que es de donde salen los cercanos. Con [silent] (al
+  /// abrir el mapa) un fallo no muestra aviso: el usuario no pidio ubicarse y
+  /// puede hacerlo con el boton.
+  Future<void> locate({bool silent = false}) async {
     emit(state.copyWith(locate: LocateStatus.locating));
     if (!state.inventoryLoaded) {
       // Sin esperarlo: los cercanos aparecen cuando llegue.
@@ -461,6 +463,10 @@ class MapCubit extends Cubit<MapState> {
       );
     } on LocationException catch (e) {
       if (isClosed) return;
+      if (silent) {
+        emit(state.copyWith(locate: LocateStatus.idle));
+        return;
+      }
       emit(
         state.copyWith(
           locate: switch (e.failure) {

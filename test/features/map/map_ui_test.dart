@@ -454,12 +454,38 @@ void main() {
   });
 
   group('ubicarme y cercanos', () {
+    testWidgets('al abrir el mapa va a tu ubicacion, sin tocar nada', (
+      tester,
+    ) async {
+      final source = await launch(tester);
+      await openMap(tester);
+      await tester.pumpAndSettle();
+      expect(source.calls, 1);
+      expect(find.byKey(const Key('map-user-marker')), findsOneWidget);
+      // Sin aviso: el usuario no pidio ubicarse.
+      expect(find.byKey(const Key('map-locate-message')), findsNothing);
+    });
+
+    testWidgets('si no se puede ubicar al abrir, no molesta con un aviso', (
+      tester,
+    ) async {
+      await launch(
+        tester,
+        location: FakeLocationSource(failure: LocationFailure.permissionDenied),
+      );
+      await openMap(tester);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('map-locate-message')), findsNothing);
+      expect(find.byKey(const Key('map-user-marker')), findsNothing);
+    });
+
     testWidgets('ubicarme muestra tu posicion y la precision', (tester) async {
       final source = await launch(tester);
       await openMap(tester);
       await tester.tap(find.byKey(const Key('map-locate')));
       await tester.pumpAndSettle();
-      expect(source.calls, 1);
+      // Una al abrir y otra al tocar el boton.
+      expect(source.calls, 2);
       expect(find.byKey(const Key('map-user-marker')), findsOneWidget);
       expect(find.byKey(const Key('map-accuracy-ok')), findsOneWidget);
       expect(find.text('Precisión ±10 m'), findsOneWidget);
@@ -551,7 +577,11 @@ void main() {
     });
 
     testWidgets('sin ubicacion pide tocar Ubicarme', (tester) async {
-      await launch(tester);
+      // Sin GPS, al abrir no se pudo ubicar: queda el boton.
+      await launch(
+        tester,
+        location: FakeLocationSource(failure: LocationFailure.unavailable),
+      );
       await openMap(tester);
       await tester.tap(find.byKey(const Key('map-nearby-button')));
       await tester.pumpAndSettle();
