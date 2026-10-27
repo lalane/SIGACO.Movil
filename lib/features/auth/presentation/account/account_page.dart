@@ -9,10 +9,12 @@ import '../../../../core/connectivity/connectivity_cubit.dart';
 import '../../../../core/demo/demo_mode.dart';
 import '../../../../core/device/device_info_source.dart';
 import '../../../../core/offline/sync_cubit.dart';
+import '../../../../core/profile/profile_photo_cubit.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/settings/settings_cubit.dart';
 import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/time/concession_zone_cubit.dart';
+import '../../../../core/ui/profile_avatar.dart';
 import '../../../../core/ui/widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/auth_entities.dart';
@@ -238,7 +240,9 @@ class _Body extends StatelessWidget {
       (
         Icons.badge_outlined,
         l10n.fieldProfile,
-        profile.profile?.localizedName(language) ?? '—',
+        profile.profileLabel(language).isEmpty
+            ? '—'
+            : profile.profileLabel(language),
       ),
       (
         Icons.location_on_outlined,
@@ -307,16 +311,34 @@ class _Body extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: r.s(32),
-                backgroundColor: p.accent,
-                child: Text(
-                  initialsOf(user.fullName),
-                  style: TextStyle(
-                    color: p.onAccent,
-                    fontSize: r.s(22),
-                    fontWeight: FontWeight.w800,
-                  ),
+              InkWell(
+                key: const Key('account-photo'),
+                customBorder: const CircleBorder(),
+                onTap: () => _changePhoto(context),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ProfileAvatar(
+                      initials: initialsOf(user.fullName),
+                      radius: r.s(32),
+                      background: p.accent,
+                      foreground: p.onAccent,
+                      fontSize: r.s(22),
+                    ),
+                    Positioned(
+                      right: -r.s(2),
+                      bottom: -r.s(2),
+                      child: CircleAvatar(
+                        radius: r.s(11),
+                        backgroundColor: p.gradientTop,
+                        child: Icon(
+                          Icons.photo_camera_outlined,
+                          size: r.s(14),
+                          color: p.accentOnBottom,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(width: r.s(16)),
@@ -333,7 +355,7 @@ class _Body extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      profile.profile?.localizedName(language) ?? '',
+                      profile.profileLabel(language),
                       style: TextStyle(
                         color: p.accentOnBottom,
                         fontSize: r.s(14),
@@ -609,6 +631,65 @@ class _Body extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Cambiar o quitar la foto de perfil: camara, galeria o volver a las
+  /// iniciales.
+  Future<void> _changePhoto(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final cubit = context.read<ProfilePhotoCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      constraints: const BoxConstraints(maxWidth: Responsive.formMaxWidth),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                l10n.profilePhotoTitle,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            ListTile(
+              key: const Key('photo-camera'),
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.profilePhotoTake),
+              onTap: () => Navigator.pop(ctx, 'camera'),
+            ),
+            ListTile(
+              key: const Key('photo-gallery'),
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.profilePhotoGallery),
+              onTap: () => Navigator.pop(ctx, 'gallery'),
+            ),
+            if (cubit.state.path != null)
+              ListTile(
+                key: const Key('photo-remove'),
+                leading: const Icon(Icons.delete_outline),
+                title: Text(l10n.profilePhotoRemove),
+                onTap: () => Navigator.pop(ctx, 'remove'),
+              ),
+          ],
+        ),
+      ),
+    );
+    switch (choice) {
+      case 'camera':
+        await cubit.change(ProfilePhotoSource.camera);
+      case 'gallery':
+        await cubit.change(ProfilePhotoSource.gallery);
+      case 'remove':
+        await cubit.remove();
+      default:
+        return;
+    }
+    if (cubit.state.failed) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.profilePhotoFailed)));
+    }
   }
 
   void _toggleDemo(BuildContext context, bool on) {

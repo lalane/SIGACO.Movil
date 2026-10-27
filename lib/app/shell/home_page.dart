@@ -9,6 +9,7 @@ import '../../core/offline/sync_cubit.dart';
 import '../../core/responsive/responsive.dart';
 import '../../core/theme/sigaco_palette.dart';
 import '../../core/theme/status_colors.dart';
+import '../../core/ui/profile_avatar.dart';
 import '../../core/ui/access_state_view.dart';
 import '../../features/alerts/presentation/bloc/alerts_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -208,17 +209,12 @@ class _Header extends StatelessWidget {
           InkWell(
             customBorder: const CircleBorder(),
             onTap: () => context.push('/account'),
-            child: CircleAvatar(
+            child: ProfileAvatar(
+              initials: _initials(name),
               radius: r.s(20),
-              backgroundColor: p.accent,
-              child: Text(
-                _initials(name),
-                style: TextStyle(
-                  color: p.onAccent,
-                  fontWeight: FontWeight.w800,
-                  fontSize: r.s(14),
-                ),
-              ),
+              background: p.accent,
+              foreground: p.onAccent,
+              fontSize: r.s(14),
             ),
           ),
         ],

@@ -219,6 +219,7 @@ class _SigacoAppState extends State<SigacoApp> {
           BlocProvider.value(value: _connectivity),
           BlocProvider.value(value: _zone),
           BlocProvider.value(value: widget.dependencies.sync),
+          BlocProvider.value(value: widget.dependencies.profilePhoto),
         ],
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, settings) => BlocBuilder<BrandingCubit, BrandingState>(

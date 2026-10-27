@@ -490,6 +490,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get actionSwitchConcession => 'Cambiar de concesión';
 
   @override
+  String get profilePhotoTitle => 'Foto de perfil';
+
+  @override
+  String get profilePhotoTake => 'Tomar una foto';
+
+  @override
+  String get profilePhotoGallery => 'Elegir de la galería';
+
+  @override
+  String get profilePhotoRemove => 'Quitar la foto';
+
+  @override
+  String get profilePhotoFailed => 'No se pudo guardar la foto';
+
+  @override
   String get actionSwitchConcessionSub => 'Elige otra concesión para trabajar';
 
   @override

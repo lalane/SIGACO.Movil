@@ -992,6 +992,36 @@ abstract class AppLocalizations {
   /// **'Cambiar de concesión'**
   String get actionSwitchConcession;
 
+  /// No description provided for @profilePhotoTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Foto de perfil'**
+  String get profilePhotoTitle;
+
+  /// No description provided for @profilePhotoTake.
+  ///
+  /// In es, this message translates to:
+  /// **'Tomar una foto'**
+  String get profilePhotoTake;
+
+  /// No description provided for @profilePhotoGallery.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir de la galería'**
+  String get profilePhotoGallery;
+
+  /// No description provided for @profilePhotoRemove.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar la foto'**
+  String get profilePhotoRemove;
+
+  /// No description provided for @profilePhotoFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar la foto'**
+  String get profilePhotoFailed;
+
   /// No description provided for @actionSwitchConcessionSub.
   ///
   /// In es, this message translates to:

@@ -107,6 +107,8 @@ import '../features/map/presentation/tiles/configured_tile_source.dart';
 import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
 import '../core/api/response_cache.dart';
+import '../core/profile/profile_photo.dart';
+import '../core/profile/profile_photo_cubit.dart';
 import '../core/offline/routed_sync_remote.dart';
 import 'composition/tickets_summary_source.dart';
 import '../features/tickets/data/repositories/api_tickets_repository.dart';
@@ -341,6 +343,7 @@ class AppDependencies {
     this.connectivity = const AlwaysOnlineSource(),
     this.serverReachable = const Stream<bool>.empty(),
     this.deviceInfo = const NoDeviceInfo(),
+    ProfilePhotoCubit? profilePhoto,
     this.deviceUnlock = const NoDeviceUnlock(),
     this.logoStore = const DownloadLogoStore(),
     this.fileSource = const NoFileSource(),
@@ -369,6 +372,7 @@ class AppDependencies {
              ticketsSummary:
                  ticketsSummarySource ?? const NoTicketsSummarySource(),
            ),
+       profilePhoto = profilePhoto ?? ProfilePhotoCubit(),
        fileStore = fileStore ?? DiskLocalFileStore(),
        documentsRepository =
            documentsRepository ?? const UnavailableDocumentsRepository(),
@@ -490,6 +494,9 @@ class AppDependencies {
 
   /// Datos del telefono que se muestran en la cuenta.
   final DeviceInfoSource deviceInfo;
+
+  /// La foto de perfil de la persona en sesion.
+  final ProfilePhotoCubit profilePhoto;
   final DeviceUnlock deviceUnlock;
 
   /// De donde salen los logos de la concesion (en la app, guardados en disco).
@@ -849,6 +856,12 @@ class AppDependencies {
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
+      // Hasta que el servidor publique la foto de perfil (MOB-001), vive solo en
+      // el telefono.
+      profilePhoto: ProfilePhotoCubit(
+        store: LocalProfilePhotoStore(),
+        picker: PlatformProfilePhotoPicker(),
+      ),
       deviceUnlock: LocalAuthDeviceUnlock(LocalAuthentication()),
       // Los logos de la propia API piden sesion; los de otro servidor (marca de
       // prueba) se bajan tal cual.

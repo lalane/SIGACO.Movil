@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/connectivity/connectivity_cubit.dart';
 import '../../core/demo/demo_mode.dart';
 import '../../core/device/device_registrar.dart';
+import '../../core/profile/profile_photo_cubit.dart';
 import '../../core/push/push_registrar.dart';
 import '../composition/map_base_source.dart';
 import '../../core/session/session_scope.dart';
@@ -198,6 +199,8 @@ class _SessionLifecycleState extends State<SessionLifecycle>
         );
         // Los caches de documentos son de esta persona y concesion.
         widget.scope.bind(offlineScope);
+        // La foto de perfil es de la persona (no de la concesion).
+        context.read<ProfilePhotoCubit>().load(userId);
         sync.setOnline(context.read<ConnectivityCubit>().state.online);
         sync.setScope(offlineScope);
       } else {
@@ -214,6 +217,7 @@ class _SessionLifecycleState extends State<SessionLifecycle>
       context.read<DeviceRegistrar>().forget();
       // El modo de ejemplo no pasa a la siguiente sesion.
       _demo.set(false);
+      context.read<ProfilePhotoCubit>().clear();
       context.read<MapBaseLoader>().reset();
       sync.setScope(null);
       lock.stop();
