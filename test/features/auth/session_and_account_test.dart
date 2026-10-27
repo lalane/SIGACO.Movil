@@ -139,6 +139,51 @@ void main() {
       expect(p.roads.single.code, 'BR381');
     });
 
+    test('el servidor da un perfil por modulo (profiles)', () {
+      Map<String, dynamic> body(Map<String, dynamic> context) => {
+        'account': {
+          'id': 'u1',
+          'username': 'jperez',
+          'fullName': 'Juan Perez',
+          'email': 'j@x.com',
+        },
+        'context': {
+          'activeConcession': {'id': 'c1', 'code': 'C1', 'name': 'NOVA 381'},
+          'roads': <Object>[],
+          'availableConcessions': <Object>[],
+          ...context,
+        },
+      };
+
+      final p = profileFromJson(
+        body({
+          'profiles': [
+            {'code': 'CAPTURA', 'nameEs': 'Captura', 'namePt': 'Captura PT'},
+            {'code': 'CONSULTA', 'nameEs': 'Consulta', 'namePt': null},
+            {'code': 'CAPTURA', 'nameEs': 'Captura', 'namePt': 'Captura PT'},
+          ],
+          'administration': 'NINGUNO',
+        }),
+      );
+      expect(p.profiles.map((x) => x.code), ['CAPTURA', 'CONSULTA', 'CAPTURA']);
+      expect(p.profile?.code, 'CAPTURA', reason: 'el primero');
+      expect(p.profileLabel('es'), 'Captura, Consulta', reason: 'sin repetir');
+      expect(p.profileLabel('pt'), 'Captura PT, Consulta');
+
+      // Sin perfiles no hay nada que mostrar; el formato anterior sigue valiendo.
+      expect(
+        profileFromJson(body({'profiles': <Object>[]})).profileLabel('es'),
+        '',
+      );
+      final old = profileFromJson(
+        body({
+          'profile': {'code': 'SUPERVISION', 'nameEs': 'Supervisión'},
+        }),
+      );
+      expect(old.profileLabel('es'), 'Supervisión');
+      expect(old.profiles, hasLength(1));
+    });
+
     test('contrasenas distintas no llegan al servidor', () async {
       final repo = FakeAuthRepository();
       final c = ChangePasswordCubit(repo, FakeCredentialStore());

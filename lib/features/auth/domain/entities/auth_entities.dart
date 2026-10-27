@@ -208,6 +208,7 @@ class MyProfile extends Equatable {
     required this.roads,
     required this.availableConcessions,
     this.mfa,
+    this.profiles = const [],
   });
 
   /// Nulo si el servidor no lo informo (versiones anteriores del backend).
@@ -216,14 +217,27 @@ class MyProfile extends Equatable {
   final CurrentUser user;
   final ConcessionSummary? activeConcession;
   final ProfileSummary? profile;
+
+  /// Todos los perfiles de la persona en la concesion: el servidor le da un
+  /// perfil distinto a cada modulo. Vacio si el servidor solo informa uno
+  /// ([profile]).
+  final List<ProfileSummary> profiles;
   final List<RoadSummary> roads;
   final List<ConcessionSummary> availableConcessions;
+
+  /// Los nombres de sus perfiles, sin repetir y separados por coma; el unico si
+  /// solo tiene uno.
+  String profileLabel(String languageCode) {
+    final all = profiles.isNotEmpty ? profiles : [?profile];
+    return {for (final p in all) p.localizedName(languageCode)}.join(', ');
+  }
 
   @override
   List<Object?> get props => [
     user,
     activeConcession,
     profile,
+    profiles,
     roads,
     availableConcessions,
     mfa,

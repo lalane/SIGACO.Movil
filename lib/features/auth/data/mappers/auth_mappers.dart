@@ -68,17 +68,25 @@ MyProfile profileFromJson(Map<String, dynamic> j) {
   final ctx =
       (j['context'] ?? const <String, dynamic>{}) as Map<String, dynamic>;
   final active = ctx['activeConcession'] as Map<String, dynamic>?;
-  final profile = ctx['profile'] as Map<String, dynamic>?;
+  // El servidor da un perfil por modulo (`profiles`); versiones anteriores
+  // daban uno solo (`profile`).
+  ProfileSummary? summary(Object? p) => p is Map<String, dynamic>
+      ? ProfileSummary(
+          code: (p['code'] ?? '') as String,
+          nameEs: (p['nameEs'] ?? '') as String,
+          namePt: p['namePt'] as String?,
+        )
+      : null;
+  final listed = [
+    if (ctx['profiles'] is List)
+      for (final p in ctx['profiles'] as List) ?summary(p),
+  ];
+  final profiles = listed.isNotEmpty ? listed : [?summary(ctx['profile'])];
   return MyProfile(
     user: userFromJson(account),
     activeConcession: active == null ? null : concessionFromJson(active),
-    profile: profile == null
-        ? null
-        : ProfileSummary(
-            code: (profile['code'] ?? '') as String,
-            nameEs: (profile['nameEs'] ?? '') as String,
-            namePt: profile['namePt'] as String?,
-          ),
+    profile: profiles.firstOrNull,
+    profiles: profiles,
     roads: ((ctx['roads'] ?? const []) as List)
         .map((e) => e as Map<String, dynamic>)
         .map(
