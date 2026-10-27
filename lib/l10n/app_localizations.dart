@@ -3530,6 +3530,84 @@ abstract class AppLocalizations {
   /// **'Reintentar'**
   String get maintRetry;
 
+  /// No description provided for @maintProgressTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar avance'**
+  String get maintProgressTitle;
+
+  /// No description provided for @maintProgressPercent.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance del proyecto (%)'**
+  String get maintProgressPercent;
+
+  /// No description provided for @maintProgressVolume.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen ejecutado'**
+  String get maintProgressVolume;
+
+  /// No description provided for @maintProgressVolumeUnit.
+  ///
+  /// In es, this message translates to:
+  /// **'Volumen ejecutado ({unit})'**
+  String maintProgressVolumeUnit(String unit);
+
+  /// No description provided for @maintProgressNotes.
+  ///
+  /// In es, this message translates to:
+  /// **'Notas'**
+  String get maintProgressNotes;
+
+  /// No description provided for @maintProgressOptional.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional'**
+  String get maintProgressOptional;
+
+  /// No description provided for @maintProgressSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar avance'**
+  String get maintProgressSave;
+
+  /// No description provided for @maintProgressSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Avance guardado.'**
+  String get maintProgressSaved;
+
+  /// No description provided for @maintProgressErrorPercent.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un avance entre 0 y 100.'**
+  String get maintProgressErrorPercent;
+
+  /// No description provided for @maintProgressErrorVolume.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe un volumen válido.'**
+  String get maintProgressErrorVolume;
+
+  /// No description provided for @maintProgressNetwork.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión. Revisa tu red e inténtalo de nuevo.'**
+  String get maintProgressNetwork;
+
+  /// No description provided for @maintProgressNoPermission.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede registrar avances.'**
+  String get maintProgressNoPermission;
+
+  /// No description provided for @maintProgressFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar el avance. Inténtalo de nuevo.'**
+  String get maintProgressFailed;
+
   /// No description provided for @maintSampleBanner.
   ///
   /// In es, this message translates to:

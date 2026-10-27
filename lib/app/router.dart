@@ -95,9 +95,11 @@ import '../features/reports/presentation/pages/reports_page.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../features/maintenance/presentation/bloc/maintenance_cubit.dart';
 import '../features/maintenance/presentation/bloc/maintenance_detail_cubit.dart';
+import '../features/maintenance/presentation/bloc/maintenance_progress_cubit.dart';
 import '../features/maintenance/presentation/pages/maintenance_detail_page.dart';
 import '../features/maintenance/presentation/pages/maintenance_indicators_page.dart';
 import '../features/maintenance/presentation/pages/maintenance_page.dart';
+import '../features/maintenance/presentation/pages/maintenance_progress_page.dart';
 import '../features/splash/presentation/splash_page.dart';
 import '../features/tickets/domain/repositories/tickets_repository.dart';
 import '../features/tickets/presentation/bloc/follow_up_cubit.dart';
@@ -447,6 +449,26 @@ GoRouter createRouter(
                   )..load(),
                   child: const MaintenanceDetailPage(),
                 ),
+                routes: [
+                  // El avance abre desde la ficha, que pasa la orden: de ella
+                  // salen el avance de partida y la unidad del volumen.
+                  GoRoute(
+                    path: 'progress',
+                    builder: (context, state) {
+                      final order = state.extra is MaintenanceOrder
+                          ? state.extra! as MaintenanceOrder
+                          : null;
+                      return BlocProvider(
+                        create: (_) => MaintenanceProgressCubit(
+                          context.read<MaintenanceRepository>(),
+                          state.pathParameters['id']!,
+                          currentProgress: order?.progress,
+                        ),
+                        child: MaintenanceProgressPage(unit: order?.unit),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

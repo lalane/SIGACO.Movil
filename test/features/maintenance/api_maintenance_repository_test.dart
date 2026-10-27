@@ -42,7 +42,13 @@ void main() {
   });
 
   test('un mantenimiento del servidor se ve como la app lo muestra', () async {
-    api.on('GET /api/preventive-maintenance', FakeReply(200, {'items': [_dto('1')], 'total': 1}));
+    api.on(
+      'GET /api/preventive-maintenance',
+      FakeReply(200, {
+        'items': [_dto('1')],
+        'total': 1,
+      }),
+    );
     final o = (await repo.list(MaintenanceIndicator.sgs)).single;
 
     expect(o.id, '1');
@@ -67,10 +73,22 @@ void main() {
   });
 
   test('el indicador es un filtro del servidor', () async {
-    api.on('GET /api/preventive-maintenance', const FakeReply(200, {'items': <Object>[], 'total': 0}));
+    api.on(
+      'GET /api/preventive-maintenance',
+      const FakeReply(200, {'items': <Object>[], 'total': 0}),
+    );
     await repo.list(MaintenanceIndicator.sgoae);
-    expect(api.to('GET /api/preventive-maintenance').single.queryParameters['subsystemCode'], 'SGOAE');
-    expect(ApiMaintenanceRepository.subsystemCode(MaintenanceIndicator.conservacion), 'CONSERVACION');
+    expect(
+      api
+          .to('GET /api/preventive-maintenance')
+          .single
+          .queryParameters['subsystemCode'],
+      'SGOAE',
+    );
+    expect(
+      ApiMaintenanceRepository.subsystemCode(MaintenanceIndicator.conservacion),
+      'CONSERVACION',
+    );
   });
 
   test('sin costo unitario no hay montos', () {
@@ -81,27 +99,61 @@ void main() {
   });
 
   test('los estados del servidor se agrupan en los tres de la app', () {
-    expect(ApiMaintenanceRepository.statusFromCode('PROGRAMADO'), MaintenanceStatus.open);
-    expect(ApiMaintenanceRepository.statusFromCode('EN_EJECUCION'), MaintenanceStatus.inProgress);
-    expect(ApiMaintenanceRepository.statusFromCode('COMPLETADO'), MaintenanceStatus.closed);
-    expect(ApiMaintenanceRepository.statusFromCode('CANCELADO'), MaintenanceStatus.closed);
+    expect(
+      ApiMaintenanceRepository.statusFromCode('PROGRAMADO'),
+      MaintenanceStatus.open,
+    );
+    expect(
+      ApiMaintenanceRepository.statusFromCode('EN_EJECUCION'),
+      MaintenanceStatus.inProgress,
+    );
+    expect(
+      ApiMaintenanceRepository.statusFromCode('COMPLETADO'),
+      MaintenanceStatus.closed,
+    );
+    expect(
+      ApiMaintenanceRepository.statusFromCode('CANCELADO'),
+      MaintenanceStatus.closed,
+    );
   });
 
   test('la ficha saca el indicador del subsistema del servidor', () async {
-    api.on('GET /api/preventive-maintenance/2', FakeReply(200, _dto('2', subsystem: 'SGOAC')));
+    api.on(
+      'GET /api/preventive-maintenance/2',
+      FakeReply(200, _dto('2', subsystem: 'SGOAC')),
+    );
     expect((await repo.get('2')).indicator, MaintenanceIndicator.sgoac);
-    expect(ApiMaintenanceRepository.indicatorFromCode('desconocido'), MaintenanceIndicator.sgp);
+    expect(
+      ApiMaintenanceRepository.indicatorFromCode('desconocido'),
+      MaintenanceIndicator.sgp,
+    );
   });
 
   test('trae todas las paginas', () async {
-    api.reply('GET /api/preventive-maintenance', (o) => o.queryParameters['page'] == 1
-        ? FakeReply(200, {'items': [_dto('1'), _dto('2')], 'total': 3})
-        : FakeReply(200, {'items': [_dto('3')], 'total': 3}));
-    expect((await repo.list(MaintenanceIndicator.sgs)).map((o) => o.id), ['1', '2', '3']);
+    api.reply(
+      'GET /api/preventive-maintenance',
+      (o) => o.queryParameters['page'] == 1
+          ? FakeReply(200, {
+              'items': [_dto('1'), _dto('2')],
+              'total': 3,
+            })
+          : FakeReply(200, {
+              'items': [_dto('3')],
+              'total': 3,
+            }),
+    );
+    expect((await repo.list(MaintenanceIndicator.sgs)).map((o) => o.id), [
+      '1',
+      '2',
+      '3',
+    ]);
   });
 
   test('el avance se envia con su clave y devuelve la orden', () async {
-    api.on('POST /api/preventive-maintenance/1/progress', const FakeReply(201, {'id': 'p1'}));
+    api.on(
+      'POST /api/preventive-maintenance/1/progress',
+      const FakeReply(201, {'id': 'p1'}),
+    );
     api.on('GET /api/preventive-maintenance/1', FakeReply(200, _dto('1')));
     final order = await repo.addProgress(
       '1',
@@ -111,7 +163,9 @@ void main() {
       clientId: 'c0a80101-0000-4000-8000-000000000009',
     );
     expect(order.id, '1');
-    final body = api.to('POST /api/preventive-maintenance/1/progress').single.data as Map;
+    final body =
+        api.to('POST /api/preventive-maintenance/1/progress').single.data
+            as Map;
     expect(body['progressPercent'], 100);
     expect(body['executedVolume'], 60);
     expect(body['notes'], 'Se limpio el tramo');
@@ -120,21 +174,42 @@ void main() {
 
   test('un avance sin permiso o sin red lo dice', () async {
     api.on('POST /api/preventive-maintenance/1/progress', const FakeReply(403));
-    await expectLater(repo.addProgress('1', percent: 10), _fails(MaintenanceError.permissionDenied));
+    await expectLater(
+      repo.addProgress('1', percent: 10),
+      _fails(MaintenanceError.permissionDenied),
+    );
     api.offline = true;
-    await expectLater(repo.addProgress('1', percent: 10), _fails(MaintenanceError.network));
+    await expectLater(
+      repo.addProgress('1', percent: 10),
+      _fails(MaintenanceError.network),
+    );
   });
 
   test('traduce los errores del servidor', () async {
     api.on('GET /api/preventive-maintenance', const FakeReply(403));
-    await expectLater(repo.list(MaintenanceIndicator.sgs), _fails(MaintenanceError.permissionDenied));
+    await expectLater(
+      repo.list(MaintenanceIndicator.sgs),
+      _fails(MaintenanceError.permissionDenied),
+    );
     api.on('GET /api/preventive-maintenance', const FakeReply(404));
-    await expectLater(repo.list(MaintenanceIndicator.sgs), _fails(MaintenanceError.notAvailable));
-    api.on('GET /api/preventive-maintenance', const FakeReply(200, {'total': 1}));
-    await expectLater(repo.list(MaintenanceIndicator.sgs), _fails(MaintenanceError.server));
+    await expectLater(
+      repo.list(MaintenanceIndicator.sgs),
+      _fails(MaintenanceError.notAvailable),
+    );
+    api.on(
+      'GET /api/preventive-maintenance',
+      const FakeReply(200, {'total': 1}),
+    );
+    await expectLater(
+      repo.list(MaintenanceIndicator.sgs),
+      _fails(MaintenanceError.server),
+    );
     api.on('GET /api/preventive-maintenance/x', const FakeReply(404));
     await expectLater(repo.get('x'), _fails(MaintenanceError.notFound));
     api.offline = true;
-    await expectLater(repo.list(MaintenanceIndicator.sgs), _fails(MaintenanceError.network));
+    await expectLater(
+      repo.list(MaintenanceIndicator.sgs),
+      _fails(MaintenanceError.network),
+    );
   });
 }

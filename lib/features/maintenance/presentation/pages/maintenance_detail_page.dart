@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/theme/status_colors.dart';
@@ -61,6 +63,16 @@ class _Detail extends StatelessWidget {
   const _Detail({required this.order});
 
   final MaintenanceOrder order;
+
+  /// Abre el formulario de avance y, si se guardo, vuelve a cargar la ficha.
+  Future<void> _addProgress(BuildContext context) async {
+    final cubit = context.read<MaintenanceDetailCubit>();
+    final saved = await context.push<bool>(
+      '/maintenance/${order.indicator.name}/${Uri.encodeComponent(order.id)}/progress',
+      extra: order,
+    );
+    if (saved == true && !cubit.isClosed) await cubit.load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,8 +306,8 @@ class _Detail extends StatelessWidget {
               ModuleActionButton(
                 key: const Key('maintenance-action-add'),
                 icon: Icons.add,
-                tooltip: l10n.ticketActionFollowUp,
-                onTap: () => showActionSoon(context),
+                tooltip: l10n.maintProgressTitle,
+                onTap: () => _addProgress(context),
               ),
             ],
           ),

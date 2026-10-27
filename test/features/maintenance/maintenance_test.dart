@@ -10,10 +10,39 @@ import 'package:sigaco_movil/features/maintenance/domain/entities/maintenance.da
 import 'package:sigaco_movil/features/maintenance/domain/repositories/maintenance_repository.dart';
 import 'package:sigaco_movil/features/maintenance/presentation/bloc/maintenance_cubit.dart';
 import 'package:sigaco_movil/features/maintenance/presentation/bloc/maintenance_detail_cubit.dart';
+import 'package:sigaco_movil/features/maintenance/presentation/bloc/maintenance_progress_cubit.dart';
 
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+
+/// Guarda los avances que recibe y, si se le pide, falla.
+class _ProgressRepo extends SampleMaintenanceRepository {
+  _ProgressRepo({this.fail});
+
+  final MaintenanceError? fail;
+  final calls = <Map<String, Object?>>[];
+
+  @override
+  Future<MaintenanceOrder> addProgress(
+    String id, {
+    required double percent,
+    double? executedVolume,
+    String? notes,
+    String? clientId,
+  }) async {
+    final error = fail;
+    if (error != null) throw MaintenanceException(error);
+    calls.add({
+      'id': id,
+      'percent': percent,
+      'volume': executedVolume,
+      'notes': notes,
+      'clientId': clientId,
+    });
+    return get(id);
+  }
+}
 
 void main() {
   final now = DateTime.utc(2026, 10, 15, 12);
@@ -122,6 +151,74 @@ void main() {
       await cubit.load();
       expect(cubit.state.status, MaintenanceListStatus.failure);
       expect(cubit.state.error, MaintenanceError.notAvailable);
+    });
+
+    test(
+      'el avance se valida y se manda con su clave de idempotencia',
+      () async {
+        final repo = _ProgressRepo();
+        final cubit = MaintenanceProgressCubit(
+          repo,
+          'M-210',
+          currentProgress: 0.64,
+          clientIdGenerator: () => 'uuid-1',
+        );
+        expect(cubit.state.percent, '64');
+
+        cubit.setPercent('120');
+        await cubit.save();
+        expect(cubit.state.showIssues, isTrue);
+        expect(cubit.state.issues, [ProgressIssue.percent]);
+        cubit.setPercent('70,5');
+        cubit.setVolume('abc');
+        expect(cubit.state.issues, [ProgressIssue.volume]);
+        await cubit.save();
+        expect(repo.calls, isEmpty);
+
+        cubit.setVolume('12,5');
+        cubit.setNotes('  Se coloco la mitad  ');
+        await cubit.save();
+        expect(cubit.state.saved, isTrue);
+        expect(repo.calls, hasLength(1));
+        expect(repo.calls.single, {
+          'id': 'M-210',
+          'percent': 70.5,
+          'volume': 12.5,
+          'notes': '  Se coloco la mitad  ',
+          'clientId': 'uuid-1',
+        });
+      },
+    );
+
+    test('un avance sin volumen ni notas manda solo el porcentaje', () async {
+      final repo = _ProgressRepo();
+      final cubit = MaintenanceProgressCubit(repo, 'M-210');
+      expect(cubit.state.percent, isEmpty);
+      await cubit.save();
+      expect(cubit.state.issues, [ProgressIssue.percent]);
+      cubit.setPercent('100');
+      await cubit.save();
+      expect(repo.calls.single['volume'], isNull);
+      expect(repo.calls.single['percent'], 100);
+    });
+
+    test('si falla, dice por que y deja reintentar', () async {
+      for (final e in [
+        MaintenanceError.network,
+        MaintenanceError.permissionDenied,
+      ]) {
+        final cubit = MaintenanceProgressCubit(
+          _ProgressRepo(fail: e),
+          'M-210',
+          currentProgress: 0.5,
+        );
+        await cubit.save();
+        expect(cubit.state.saved, isFalse);
+        expect(cubit.state.saving, isFalse);
+        expect(cubit.state.error, e);
+        cubit.setPercent('60');
+        expect(cubit.state.error, isNull, reason: 'al corregir se limpia');
+      }
     });
 
     test('la ficha carga o falla con notFound', () async {
@@ -341,6 +438,63 @@ void main() {
       await tester.tap(find.byKey(const Key('maintenance-detail-back')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('maintenance-list')), findsOneWidget);
+    });
+
+    testWidgets('el + de la ficha registra un avance y vuelve a la ficha', (
+      tester,
+    ) async {
+      final repo = _ProgressRepo();
+      await launch(tester, maintenance: repo);
+      await openIndicator(tester, 'sgs');
+      await tester.tap(card('M-210'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('maintenance-action-add')));
+      await tester.pumpAndSettle();
+      expect(find.text('Registrar avance'), findsWidgets);
+      expect(find.text('Volumen ejecutado (PZA)'), findsOneWidget);
+      final percentField = find.byKey(
+        const Key('maintenance-progress-percent'),
+      );
+      expect(
+        tester.widget<TextFormField>(percentField).initialValue,
+        '64',
+        reason: 'parte del avance actual',
+      );
+
+      await tester.enterText(percentField, '150');
+      await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
+      await tester.pumpAndSettle();
+      expect(find.text('Escribe un avance entre 0 y 100.'), findsOneWidget);
+      expect(repo.calls, isEmpty);
+
+      await tester.enterText(percentField, '75');
+      await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
+      await tester.pumpAndSettle();
+      expect(repo.calls.single['percent'], 75);
+      expect(find.byKey(const Key('maintenance-detail')), findsOneWidget);
+      expect(find.text('Avance guardado.'), findsOneWidget);
+    });
+
+    testWidgets('si no hay red el avance avisa y no cierra', (tester) async {
+      await launch(
+        tester,
+        maintenance: _ProgressRepo(fail: MaintenanceError.network),
+      );
+      await openIndicator(tester, 'sgs');
+      await tester.tap(card('M-210'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('maintenance-action-add')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Sin conexión. Revisa tu red e inténtalo de nuevo.'),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('maintenance-progress-percent')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('sin endpoints dice que no esta disponible', (tester) async {

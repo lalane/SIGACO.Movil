@@ -1930,6 +1930,50 @@ class AppLocalizationsEs extends AppLocalizations {
   String get maintRetry => 'Reintentar';
 
   @override
+  String get maintProgressTitle => 'Registrar avance';
+
+  @override
+  String get maintProgressPercent => 'Avance del proyecto (%)';
+
+  @override
+  String get maintProgressVolume => 'Volumen ejecutado';
+
+  @override
+  String maintProgressVolumeUnit(String unit) {
+    return 'Volumen ejecutado ($unit)';
+  }
+
+  @override
+  String get maintProgressNotes => 'Notas';
+
+  @override
+  String get maintProgressOptional => 'Opcional';
+
+  @override
+  String get maintProgressSave => 'Guardar avance';
+
+  @override
+  String get maintProgressSaved => 'Avance guardado.';
+
+  @override
+  String get maintProgressErrorPercent => 'Escribe un avance entre 0 y 100.';
+
+  @override
+  String get maintProgressErrorVolume => 'Escribe un volumen válido.';
+
+  @override
+  String get maintProgressNetwork =>
+      'Sin conexión. Revisa tu red e inténtalo de nuevo.';
+
+  @override
+  String get maintProgressNoPermission =>
+      'Tu perfil no puede registrar avances.';
+
+  @override
+  String get maintProgressFailed =>
+      'No se pudo guardar el avance. Inténtalo de nuevo.';
+
+  @override
   String get maintSampleBanner =>
       'Datos de ejemplo: no son mantenimientos reales.';
 

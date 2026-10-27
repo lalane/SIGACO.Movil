@@ -904,6 +904,26 @@
   "maintNoPermissionTitle": "Sin acceso a mantenimiento",
   "maintNoPermissionBody": "Tu perfil no puede ver este indicador.",
   "maintRetry": "Reintentar",
+  "maintProgressTitle": "Registrar avance",
+  "maintProgressPercent": "Avance del proyecto (%)",
+  "maintProgressVolume": "Volumen ejecutado",
+  "maintProgressVolumeUnit": "Volumen ejecutado ({unit})",
+  "@maintProgressVolumeUnit": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgressNotes": "Notas",
+  "maintProgressOptional": "Opcional",
+  "maintProgressSave": "Guardar avance",
+  "maintProgressSaved": "Avance guardado.",
+  "maintProgressErrorPercent": "Escribe un avance entre 0 y 100.",
+  "maintProgressErrorVolume": "Escribe un volumen válido.",
+  "maintProgressNetwork": "Sin conexión. Revisa tu red e inténtalo de nuevo.",
+  "maintProgressNoPermission": "Tu perfil no puede registrar avances.",
+  "maintProgressFailed": "No se pudo guardar el avance. Inténtalo de nuevo.",
   "maintSampleBanner": "Datos de ejemplo: no son mantenimientos reales.",
   "maintTotalVolume": "Volumen Total: {value}",
   "@maintTotalVolume": {
