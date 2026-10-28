@@ -33,6 +33,20 @@
   "errInvalidCredentials": "E-mail ou senha incorretos. Após várias tentativas falhas consecutivas, a conta é bloqueada.",
   "errAccountBlocked": "Seu acesso foi bloqueado por tentativas falhas. Entre em contato com o administrador do sistema para solicitar a reativação da sua conta.",
   "errNetwork": "Sem conexão com o servidor. Verifique sua rede e tente novamente.",
+  "errValidation": "Não foi possível salvar. Revise os dados e tente novamente.",
+  "passwordRulesTitle": "A senha deve ter:",
+  "passwordRuleLength": "Pelo menos {min} caracteres",
+  "@passwordRuleLength": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordRuleUppercase": "Uma letra maiúscula",
+  "passwordRuleLowercase": "Uma letra minúscula",
+  "passwordRuleDigit": "Um número",
+  "passwordRuleSpecial": "Um caractere especial (por exemplo ! # $ %)",
   "errServer": "Ocorreu um erro no servidor. Tente mais tarde.",
   "errSessionExpired": "Sua sessão terminou. Faça login novamente.",
   "mfaTitle": "Verificação em duas etapas",

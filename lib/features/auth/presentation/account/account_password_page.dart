@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../auth_error_text.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import '../widgets/password_rules_list.dart';
 import 'change_password_cubit.dart';
 
 /// Cambio voluntario de la propia contrasena (HU-M01-03-02).
@@ -59,6 +60,7 @@ class _AccountPasswordPageState extends State<AccountPasswordPage> {
             hint: l10n.newPassword,
             obscure: true,
           ),
+          PasswordRulesList(controller: _next),
           const SizedBox(height: 14),
           AppTextField(
             controller: _confirm,
@@ -67,7 +69,7 @@ class _AccountPasswordPageState extends State<AccountPasswordPage> {
           ),
           if (state.error != null) ...[
             const SizedBox(height: 14),
-            ErrorBanner(authErrorText(l10n, state.error!)),
+            ErrorBanner(authErrorMessage(l10n, state.error!, state.details)),
           ],
           const SizedBox(height: 18),
           PrimaryButton(

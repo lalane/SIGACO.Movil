@@ -9,15 +9,19 @@ class ChangePasswordState extends Equatable {
   const ChangePasswordState({
     this.busy = false,
     this.error,
+    this.details = const [],
     this.success = false,
   });
 
   final bool busy;
   final AuthError? error;
+
+  /// Los motivos que dio el servidor para rechazar la contrasena nueva.
+  final List<String> details;
   final bool success;
 
   @override
-  List<Object?> get props => [busy, error, success];
+  List<Object?> get props => [busy, error, details, success];
 
   /// Sin secretos: se registra en la trazabilidad.
   @override
@@ -53,7 +57,7 @@ class ChangePasswordCubit extends Cubit<ChangePasswordState> {
       await _store.refreshStoredPassword(next);
       emit(const ChangePasswordState(success: true));
     } on AuthException catch (e) {
-      emit(ChangePasswordState(error: e.error));
+      emit(ChangePasswordState(error: e.error, details: e.details));
     }
   }
 }

@@ -720,7 +720,7 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     final r = context.responsive;
-    final color = entry.selected ? p.accentOnDark : const Color(0xFF94A3B8);
+    final color = entry.selected ? p.navSelected : const Color(0xFF94A3B8);
     // Con poca altura (telefono en horizontal) el riel se compacta.
     final short = MediaQuery.sizeOf(context).height < 480;
     return InkWell(

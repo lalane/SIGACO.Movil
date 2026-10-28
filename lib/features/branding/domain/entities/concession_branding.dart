@@ -12,6 +12,9 @@ class ConcessionBranding extends Equatable {
     this.secondary,
     this.headerStart,
     this.headerEnd,
+    this.accent,
+    this.secondaryAccent,
+    this.primaryText,
     this.background,
     this.logoLightUrl,
     this.logoDarkUrl,
@@ -28,6 +31,16 @@ class ConcessionBranding extends Equatable {
   final String? secondary;
   final String? headerStart;
   final String? headerEnd;
+
+  /// Color principal de la concesion para enlaces, iconos y acentos, si es
+  /// distinto del de los botones (`primaryColor` del servidor).
+  final String? accent;
+
+  /// Color secundario: la opcion activa de la navegacion (`secondaryColor`).
+  final String? secondaryAccent;
+
+  /// Texto sobre el color principal (`primaryTextColor`).
+  final String? primaryText;
 
   /// Fondo de la app en el portal web. La app movil no lo usa: el fondo lo
   /// resuelven los modos original, dia y noche del usuario.
@@ -53,6 +66,9 @@ class ConcessionBranding extends Equatable {
     secondary,
     headerStart,
     headerEnd,
+    accent,
+    secondaryAccent,
+    primaryText,
     background,
     logoLightUrl,
     logoDarkUrl,

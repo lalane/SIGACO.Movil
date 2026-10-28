@@ -145,6 +145,9 @@ class BrandingCubit extends Cubit<BrandingState> {
       secondary: b.secondary,
       headerStart: b.headerStart,
       headerEnd: b.headerEnd,
+      accent: b.accent,
+      navActive: b.secondaryAccent,
+      onPrimary: b.primaryText,
     );
     final accepted = seed == null ? null : BrandRules.sanitize(seed);
     if (kDebugMode && seed != null) {

@@ -5,14 +5,19 @@ class ConcessionSummary extends Equatable {
     required this.id,
     required this.code,
     required this.name,
+    this.logoUrl,
   });
 
   final String id;
   final String code;
   final String name;
 
+  /// Ruta del logo de la concesion en el servidor (se baja con la sesion). Null
+  /// si no tiene ni usa el de SIGACO.
+  final String? logoUrl;
+
   @override
-  List<Object?> get props => [id, code, name];
+  List<Object?> get props => [id, code, name, logoUrl];
 }
 
 class CurrentUser extends Equatable {
@@ -261,10 +266,71 @@ enum AuthError {
 }
 
 class AuthException implements Exception {
-  const AuthException(this.error);
+  const AuthException(this.error, {this.details = const []});
 
   final AuthError error;
 
+  /// Lo que el servidor dijo que esta mal (por ejemplo por que rechazo una
+  /// contrasena nueva). Texto para la persona, nunca datos tecnicos.
+  final List<String> details;
+
   @override
   String toString() => 'AuthException(${error.name})';
+}
+
+/// Cada regla que puede exigir la contrasena nueva.
+enum PasswordRuleKind { length, uppercase, lowercase, digit, special }
+
+/// Lo que se exige al elegir contrasena (Configuracion > Seguridad). El servidor
+/// es quien valida: esto solo permite mostrarlo antes de escribir y marcar lo que
+/// ya se cumple.
+class PasswordRules extends Equatable {
+  const PasswordRules({
+    this.minLength = 8,
+    this.requireUppercase = true,
+    this.requireLowercase = true,
+    this.requireDigit = true,
+    this.requireSpecial = true,
+  });
+
+  final int minLength;
+  final bool requireUppercase;
+  final bool requireLowercase;
+  final bool requireDigit;
+  final bool requireSpecial;
+
+  static final _upper = RegExp(r'\p{Lu}', unicode: true);
+  static final _lower = RegExp(r'\p{Ll}', unicode: true);
+  static final _digit = RegExp(r'\p{Nd}', unicode: true);
+  // Como el servidor: lo que no es letra, digito ni espacio.
+  static final _special = RegExp(r'[^\p{L}\p{Nd}\s]', unicode: true);
+
+  /// Las que se exigen, en el orden en que se muestran.
+  List<PasswordRuleKind> get required => [
+    PasswordRuleKind.length,
+    if (requireUppercase) PasswordRuleKind.uppercase,
+    if (requireLowercase) PasswordRuleKind.lowercase,
+    if (requireDigit) PasswordRuleKind.digit,
+    if (requireSpecial) PasswordRuleKind.special,
+  ];
+
+  bool isMet(PasswordRuleKind kind, String password) => switch (kind) {
+    PasswordRuleKind.length => password.length >= minLength,
+    PasswordRuleKind.uppercase => _upper.hasMatch(password),
+    PasswordRuleKind.lowercase => _lower.hasMatch(password),
+    PasswordRuleKind.digit => _digit.hasMatch(password),
+    PasswordRuleKind.special => _special.hasMatch(password),
+  };
+
+  bool isSatisfiedBy(String password) =>
+      required.every((k) => isMet(k, password));
+
+  @override
+  List<Object?> get props => [
+    minLength,
+    requireUppercase,
+    requireLowercase,
+    requireDigit,
+    requireSpecial,
+  ];
 }

@@ -165,6 +165,41 @@ class ApiClient {
     required String fileName,
     required String contentType,
     Map<String, Object?> fields = const {},
+  }) => _multipart(
+    'POST',
+    path,
+    fileField: fileField,
+    filePath: filePath,
+    fileName: fileName,
+    contentType: contentType,
+    fields: fields,
+  );
+
+  /// PUT `multipart/form-data` con un archivo (la foto de perfil, que reemplaza
+  /// a la anterior).
+  Future<Map<String, dynamic>?> putMultipart(
+    String path, {
+    required String fileField,
+    required String filePath,
+    required String fileName,
+    required String contentType,
+  }) => _multipart(
+    'PUT',
+    path,
+    fileField: fileField,
+    filePath: filePath,
+    fileName: fileName,
+    contentType: contentType,
+  );
+
+  Future<Map<String, dynamic>?> _multipart(
+    String method,
+    String path, {
+    required String fileField,
+    required String filePath,
+    required String fileName,
+    required String contentType,
+    Map<String, Object?> fields = const {},
   }) async {
     try {
       final form = FormData.fromMap({
@@ -176,10 +211,11 @@ class ApiClient {
           contentType: DioMediaType.parse(contentType),
         ),
       });
-      final r = await _dio.post<dynamic>(
+      final r = await _dio.request<dynamic>(
         path,
         data: form,
         options: Options(
+          method: method,
           sendTimeout: const Duration(seconds: 60),
           receiveTimeout: const Duration(seconds: 60),
         ),

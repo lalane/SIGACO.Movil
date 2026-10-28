@@ -54,9 +54,9 @@ class NoProfilePhotoPicker implements ProfilePhotoPicker {
 
 /// Donde queda la foto de perfil de cada persona.
 ///
-/// Hoy vive solo en el telefono: el servidor todavia no publica el endpoint de
-/// la foto de perfil (MOB-001). Cuando exista, se sustituye esta clase por una
-/// que la suba y la baje sin tocar el resto.
+/// Puede vivir solo en el telefono ([LocalProfilePhotoStore]) o en el servidor con
+/// una copia local (`ServerProfilePhotoStore`, MOB-001): el resto de la app solo
+/// ve rutas de archivo.
 abstract interface class ProfilePhotoStore {
   /// La ruta de la foto de [userId], o null si no tiene.
   Future<String?> read(String userId);

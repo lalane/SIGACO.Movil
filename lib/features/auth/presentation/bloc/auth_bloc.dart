@@ -190,7 +190,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (e.error == AuthError.sessionExpired) {
         emit(await _signedOut(expired: true));
       } else {
-        emit(state.copyWith(busy: false, error: e.error));
+        emit(
+          state.copyWith(busy: false, error: e.error, errorDetails: e.details),
+        );
       }
     }
   }

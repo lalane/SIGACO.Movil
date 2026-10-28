@@ -52,6 +52,10 @@ abstract interface class AuthRepository {
     required String confirm,
   });
 
+  /// Las reglas de contrasena vigentes, o null si no se pudieron leer: la pantalla
+  /// sigue funcionando y el servidor valida igual.
+  Future<PasswordRules?> passwordRules();
+
   Future<void> selectConcession(String concessionId);
 
   /// El servidor responde igual exista o no la cuenta; los fallos no se propagan.

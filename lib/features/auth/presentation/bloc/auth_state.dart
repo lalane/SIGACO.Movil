@@ -24,6 +24,7 @@ class AuthState extends Equatable {
     this.passwordChangeRequired = false,
     this.busy = false,
     this.error,
+    this.errorDetails = const [],
     this.sessionExpired = false,
     this.offerBiometric = false,
     this.mfaEnrollment,
@@ -48,6 +49,10 @@ class AuthState extends Equatable {
   /// Hay una operacion en curso.
   final bool busy;
   final AuthError? error;
+
+  /// Los motivos que dio el servidor para `error` (por ejemplo, por que no
+  /// acepto la contrasena nueva); vacio si no dio ninguno.
+  final List<String> errorDetails;
 
   /// La sesion termino por el servidor; el login lo muestra.
   final bool sessionExpired;
@@ -108,6 +113,7 @@ class AuthState extends Equatable {
     bool? passwordChangeRequired,
     bool? busy,
     AuthError? error,
+    List<String>? errorDetails,
     bool clearError = false,
     bool? sessionExpired,
     bool? offerBiometric,
@@ -134,6 +140,9 @@ class AuthState extends Equatable {
         passwordChangeRequired ?? this.passwordChangeRequired,
     busy: busy ?? this.busy,
     error: clearError ? null : (error ?? this.error),
+    errorDetails: clearError
+        ? const []
+        : (errorDetails ?? (error != null ? const [] : this.errorDetails)),
     sessionExpired: sessionExpired ?? this.sessionExpired,
     offerBiometric: offerBiometric ?? this.offerBiometric,
     mfaEnrollment: mfaEnrollment ?? this.mfaEnrollment,
@@ -160,6 +169,7 @@ class AuthState extends Equatable {
     passwordChangeRequired,
     busy,
     error,
+    errorDetails,
     sessionExpired,
     offerBiometric,
     mfaEnrollment,

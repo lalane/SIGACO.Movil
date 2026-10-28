@@ -40,6 +40,20 @@
   "errInvalidCredentials": "Correo o contraseña incorrectos. Tras varios intentos fallidos consecutivos la cuenta se bloquea.",
   "errAccountBlocked": "Tu acceso ha sido bloqueado por intentos fallidos. Contacta al administrador del sistema para solicitar la reactivación de tu cuenta.",
   "errNetwork": "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.",
+  "errValidation": "No se pudo guardar. Revisa los datos e inténtalo de nuevo.",
+  "passwordRulesTitle": "La contraseña debe tener:",
+  "passwordRuleLength": "Al menos {min} caracteres",
+  "@passwordRuleLength": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordRuleUppercase": "Una letra mayúscula",
+  "passwordRuleLowercase": "Una letra minúscula",
+  "passwordRuleDigit": "Un número",
+  "passwordRuleSpecial": "Un carácter especial (por ejemplo ! # $ %)",
   "errServer": "Ocurrió un error en el servidor. Inténtalo más tarde.",
   "errSessionExpired": "Tu sesión terminó. Inicia sesión de nuevo.",
   "mfaTitle": "Verificación en dos pasos",

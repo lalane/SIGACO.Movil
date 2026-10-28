@@ -25,6 +25,7 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
     required this.hint,
     required this.error,
     required this.menuBottom,
+    this.navActive,
   });
 
   final Color gradientTop;
@@ -57,6 +58,13 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
 
   /// Color final del degradado del menu principal (diseno v2).
   final Color menuBottom;
+
+  /// Color de la opcion activa de la navegacion que puso la concesion (su color
+  /// secundario); null usa [accentOnDark].
+  final Color? navActive;
+
+  /// El icono y la etiqueta de la opcion activa de la navegacion.
+  Color get navSelected => navActive ?? accentOnDark;
 
   /// El fondo inferior del tema es claro (Dia).
   bool get lightBottom => gradientBottom.computeLuminance() > 0.5;
@@ -136,17 +144,28 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
   /// Aplica los colores de la concesion. Los colores de estatus, error y las
   /// superficies neutras no cambian; lo derivado (texto sobre el color de
   /// accion y las variantes para fondo claro y oscuro) se recalcula (capa 3).
-  SigacoPalette withBrand(BrandSeed seed) => copyWith(
-    gradientTop: seed.headerStart,
-    // En los temas claros el fondo inferior es del sistema.
-    gradientBottom: lightBottom ? null : seed.headerEnd,
-    accent: seed.primary,
-    onAccent: _readable(seed.primary),
-    accentOnDark: BrandRules.accentOnDark(seed.primary),
-    accentOnLight: BrandRules.accentOnLight(seed.primary),
-    accentIconOnLight: BrandRules.accentIconOnLight(seed.primary),
-    navBackground: seed.secondary,
-  );
+  SigacoPalette withBrand(BrandSeed seed) {
+    // Los acentos (enlaces, iconos, seleccion) usan el color principal de la
+    // concesion si lo puso distinto del de los botones.
+    final accent = seed.accent ?? seed.primary;
+    // El texto sobre el principal vale para los botones solo si el boton es del
+    // color principal; si no, se calcula sobre el color del boton.
+    final onPrimaryApplies = seed.accent == null || seed.accent == seed.primary;
+    return copyWith(
+      gradientTop: seed.headerStart,
+      // En los temas claros el fondo inferior es del sistema.
+      gradientBottom: lightBottom ? null : seed.headerEnd,
+      accent: seed.primary,
+      onAccent: onPrimaryApplies && seed.onPrimary != null
+          ? seed.onPrimary
+          : _readable(seed.primary),
+      accentOnDark: BrandRules.accentOnDark(accent),
+      accentOnLight: BrandRules.accentOnLight(accent),
+      accentIconOnLight: BrandRules.accentIconOnLight(accent),
+      navBackground: seed.secondary,
+      navActive: seed.navActive,
+    );
+  }
 
   @override
   SigacoPalette copyWith({
@@ -166,6 +185,7 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
     Color? hint,
     Color? error,
     Color? menuBottom,
+    Color? navActive,
   }) => SigacoPalette(
     gradientTop: gradientTop ?? this.gradientTop,
     gradientBottom: gradientBottom ?? this.gradientBottom,
@@ -183,6 +203,7 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
     hint: hint ?? this.hint,
     error: error ?? this.error,
     menuBottom: menuBottom ?? this.menuBottom,
+    navActive: navActive ?? this.navActive,
   );
 
   @override
@@ -206,6 +227,7 @@ class SigacoPalette extends ThemeExtension<SigacoPalette> {
       hint: mix(hint, other.hint),
       error: mix(error, other.error),
       menuBottom: mix(menuBottom, other.menuBottom),
+      navActive: Color.lerp(navActive, other.navActive, t),
     );
   }
 }

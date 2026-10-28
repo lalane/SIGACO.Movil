@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../../../core/branding/concession_logo_tile.dart';
 import '../../../../core/branding/sigaco_wordmark.dart';
 import '../../../../core/connectivity/connectivity_cubit.dart';
 import '../../../../core/demo/demo_mode.dart';
@@ -86,6 +87,9 @@ class _AccountPageState extends State<AccountPage> {
             ),
             for (final c in others)
               ListTile(
+                leading: c.logoUrl == null
+                    ? null
+                    : ConcessionLogoTile(url: c.logoUrl, name: c.name),
                 title: Text(c.name),
                 subtitle: Text(c.code),
                 trailing: const Icon(Icons.chevron_right),

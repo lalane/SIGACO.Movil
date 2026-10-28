@@ -69,10 +69,29 @@ class AuthRepositoryImpl implements AuthRepository {
         return const AuthException(AuthError.accountBlocked);
     }
     if (f.status == 400 || f.status == 422) {
-      return const AuthException(AuthError.validation);
+      return AuthException(AuthError.validation, details: _reasons(f));
     }
     if (f.status == 401) return const AuthException(AuthError.sessionExpired);
     return const AuthException(AuthError.server);
+  }
+
+  /// Los motivos que el servidor dio por campo, sin repetir.
+  static List<String> _reasons(ApiFailure f) => [
+    ...{
+      for (final messages in f.fieldErrors.values)
+        for (final m in messages)
+          if (m.trim().isNotEmpty) m.trim(),
+    },
+  ];
+
+  @override
+  Future<PasswordRules?> passwordRules() async {
+    try {
+      final json = await _api.get('/api/auth/password-policy');
+      return json == null ? null : passwordRulesFromJson(json);
+    } on ApiFailure {
+      return null;
+    }
   }
 
   Future<T> _guard<T>(Future<T> Function() call) async {

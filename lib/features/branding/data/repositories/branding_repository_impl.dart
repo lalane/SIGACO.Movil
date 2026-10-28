@@ -130,6 +130,12 @@ ConcessionBranding? brandingFromConfiguration(
   final primary = own('buttonColor') ?? own('primaryColor');
   final menu = own('menuBackgroundColor');
   final header = own('headerColor');
+  final accent = own('primaryColor');
+  final secondaryAccent = own('secondaryColor');
+  // El blanco es el texto de SIGACO cuando la concesion no elige uno: no cuenta
+  // como suyo (si se lee sobre su color, el calculado ya es blanco).
+  final chosenText = own('primaryTextColor');
+  final primaryText = chosenText == '#FFFFFF' ? null : chosenText;
   if (primary == null &&
       menu == null &&
       header == null &&
@@ -143,6 +149,9 @@ ConcessionBranding? brandingFromConfiguration(
     primary: primary,
     secondary: menu,
     headerStart: header,
+    accent: accent,
+    secondaryAccent: secondaryAccent,
+    primaryText: primaryText,
     logoLightUrl: principal,
     logoDarkUrl: principal,
     logoReducedUrl: reduced,
@@ -184,6 +193,9 @@ ConcessionBranding? brandingFromJson(Map<String, dynamic>? raw) {
     secondary: text('secondary'),
     headerStart: text('headerStart'),
     headerEnd: text('headerEnd'),
+    accent: text('accent'),
+    secondaryAccent: text('secondaryAccent'),
+    primaryText: text('primaryText'),
     background: text('background'),
     logoLightUrl: text('logoLightUrl'),
     logoDarkUrl: text('logoDarkUrl'),
@@ -198,6 +210,9 @@ Map<String, dynamic> brandingToJson(ConcessionBranding b) => {
   'secondary': b.secondary,
   'headerStart': b.headerStart,
   'headerEnd': b.headerEnd,
+  'accent': b.accent,
+  'secondaryAccent': b.secondaryAccent,
+  'primaryText': b.primaryText,
   'background': b.background,
   'logoLightUrl': b.logoLightUrl,
   'logoDarkUrl': b.logoDarkUrl,

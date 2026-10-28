@@ -89,7 +89,7 @@ class SigacoModuleNav extends StatelessWidget {
                             tab.icon,
                             size: r.s(24),
                             color: tab == current
-                                ? p.accentOnDark
+                                ? p.navSelected
                                 : const Color(0xFF94A3B8),
                           ),
                           SizedBox(height: r.s(2)),
@@ -104,7 +104,7 @@ class SigacoModuleNav extends StatelessWidget {
                                     ? FontWeight.w700
                                     : FontWeight.w500,
                                 color: tab == current
-                                    ? p.accentOnDark
+                                    ? p.navSelected
                                     : const Color(0xFF94A3B8),
                               ),
                             ),

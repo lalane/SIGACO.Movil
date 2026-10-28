@@ -12,6 +12,7 @@ import '../features/auth/presentation/account/account_mfa_page.dart';
 import '../features/auth/presentation/account/account_password_page.dart';
 import '../features/auth/presentation/account/mfa_setup_cubit.dart';
 import '../features/auth/presentation/account/change_password_cubit.dart';
+import '../features/auth/presentation/account/password_rules_cubit.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_state.dart';
 import '../features/auth/presentation/pages/change_password_page.dart';
@@ -232,7 +233,11 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/change-password',
-        builder: (_, _) => const ChangePasswordPage(),
+        builder: (context, _) => BlocProvider(
+          create: (_) =>
+              PasswordRulesCubit(context.read<AuthRepository>())..load(),
+          child: const ChangePasswordPage(),
+        ),
       ),
       GoRoute(path: '/concession', builder: (_, _) => const ConcessionPage()),
       GoRoute(path: '/home', builder: (_, _) => const HomePage()),
@@ -634,11 +639,20 @@ GoRouter createRouter(
         routes: [
           GoRoute(
             path: 'password',
-            builder: (context, _) => BlocProvider(
-              create: (_) => ChangePasswordCubit(
-                context.read<AuthRepository>(),
-                context.read<CredentialStore>(),
-              ),
+            builder: (context, _) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => ChangePasswordCubit(
+                    context.read<AuthRepository>(),
+                    context.read<CredentialStore>(),
+                  ),
+                ),
+                BlocProvider(
+                  create: (_) =>
+                      PasswordRulesCubit(context.read<AuthRepository>())
+                        ..load(),
+                ),
+              ],
               child: const AccountPasswordPage(),
             ),
           ),

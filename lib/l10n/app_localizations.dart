@@ -296,6 +296,48 @@ abstract class AppLocalizations {
   /// **'No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.'**
   String get errNetwork;
 
+  /// No description provided for @errValidation.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo guardar. Revisa los datos e inténtalo de nuevo.'**
+  String get errValidation;
+
+  /// No description provided for @passwordRulesTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña debe tener:'**
+  String get passwordRulesTitle;
+
+  /// No description provided for @passwordRuleLength.
+  ///
+  /// In es, this message translates to:
+  /// **'Al menos {min} caracteres'**
+  String passwordRuleLength(int min);
+
+  /// No description provided for @passwordRuleUppercase.
+  ///
+  /// In es, this message translates to:
+  /// **'Una letra mayúscula'**
+  String get passwordRuleUppercase;
+
+  /// No description provided for @passwordRuleLowercase.
+  ///
+  /// In es, this message translates to:
+  /// **'Una letra minúscula'**
+  String get passwordRuleLowercase;
+
+  /// No description provided for @passwordRuleDigit.
+  ///
+  /// In es, this message translates to:
+  /// **'Un número'**
+  String get passwordRuleDigit;
+
+  /// No description provided for @passwordRuleSpecial.
+  ///
+  /// In es, this message translates to:
+  /// **'Un carácter especial (por ejemplo ! # \$ %)'**
+  String get passwordRuleSpecial;
+
   /// No description provided for @errServer.
   ///
   /// In es, this message translates to:

@@ -20,6 +20,12 @@ enum BrandIssue {
 
   /// Las etiquetas o el elemento seleccionado no se leen sobre la navegacion.
   navigationUnreadable,
+
+  /// El texto que eligio la concesion no se lee sobre su color principal.
+  primaryTextUnreadable,
+
+  /// El color secundario no se distingue como opcion activa sobre la navegacion.
+  activeNavigationUnreadable,
 }
 
 /// Superficies de la app sobre las que se dibujan los colores de marca.
@@ -29,6 +35,9 @@ abstract final class BrandSurfaces {
 
   /// Fondo claro del tema Dia.
   static const light = Color(0xFFF8FAFC);
+
+  /// Fondo de la navegacion cuando la concesion no pone el suyo.
+  static const navigation = Color(0xFF111827);
 
   static const navigationLabel = Color(0xFF94A3B8);
   static const textOnBottom = Color(0xFFE2E8F0);
@@ -89,6 +98,16 @@ abstract final class BrandRules {
         contrastRatio(BrandSurfaces.textOnBottom, end) < minimumContrast) {
       issues.add(BrandIssue.headerEndUnreadable);
     }
+    final onPrimary = seed.onPrimary;
+    if (onPrimary != null && contrastRatio(onPrimary, p) < minimumContrast) {
+      issues.add(BrandIssue.primaryTextUnreadable);
+    }
+    final active = seed.navActive;
+    if (active != null &&
+        contrastRatio(active, seed.secondary ?? BrandSurfaces.navigation) <
+            minimumIconContrast) {
+      issues.add(BrandIssue.activeNavigationUnreadable);
+    }
     final nav = seed.secondary;
     if (nav != null &&
         (contrastRatio(BrandSurfaces.navigationLabel, nav) < minimumContrast ||
@@ -117,6 +136,13 @@ abstract final class BrandRules {
       headerEnd: issues.contains(BrandIssue.headerEndUnreadable)
           ? null
           : seed.headerEnd,
+      accent: seed.accent,
+      navActive: issues.contains(BrandIssue.activeNavigationUnreadable)
+          ? null
+          : seed.navActive,
+      onPrimary: issues.contains(BrandIssue.primaryTextUnreadable)
+          ? null
+          : seed.onPrimary,
     );
   }
 }

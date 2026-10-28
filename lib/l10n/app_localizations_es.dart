@@ -117,6 +117,31 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.';
 
   @override
+  String get errValidation =>
+      'No se pudo guardar. Revisa los datos e inténtalo de nuevo.';
+
+  @override
+  String get passwordRulesTitle => 'La contraseña debe tener:';
+
+  @override
+  String passwordRuleLength(int min) {
+    return 'Al menos $min caracteres';
+  }
+
+  @override
+  String get passwordRuleUppercase => 'Una letra mayúscula';
+
+  @override
+  String get passwordRuleLowercase => 'Una letra minúscula';
+
+  @override
+  String get passwordRuleDigit => 'Un número';
+
+  @override
+  String get passwordRuleSpecial =>
+      'Un carácter especial (por ejemplo ! # \$ %)';
+
+  @override
   String get errServer =>
       'Ocurrió un error en el servidor. Inténtalo más tarde.';
 

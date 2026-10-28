@@ -7,6 +7,7 @@ import '../auth_error_text.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../widgets/password_rules_list.dart';
 
 /// Cambio obligatorio de contrasena. Provisional: aspecto pendiente de diseno.
 class ChangePasswordPage extends StatefulWidget {
@@ -48,6 +49,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             hint: l10n.newPassword,
             obscure: true,
           ),
+          PasswordRulesList(controller: _next),
           const SizedBox(height: 14),
           AppTextField(
             controller: _confirm,
@@ -56,7 +58,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           ),
           if (state.error != null) ...[
             const SizedBox(height: 14),
-            ErrorBanner(authErrorText(l10n, state.error!)),
+            ErrorBanner(
+              authErrorMessage(l10n, state.error!, state.errorDetails),
+            ),
           ],
           const SizedBox(height: 18),
           PrimaryButton(

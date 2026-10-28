@@ -8,7 +8,17 @@ String authErrorText(AppLocalizations l10n, AuthError e) => switch (e) {
   AuthError.server => l10n.errServer,
   AuthError.sessionExpired => l10n.errSessionExpired,
   AuthError.mfaInvalid => l10n.mfaCodeInvalid,
-  AuthError.validation => l10n.errServer,
+  AuthError.validation => l10n.errValidation,
   AuthError.passwordMismatch => l10n.passwordMismatch,
   AuthError.biometricNotConfigured => l10n.biometricNoCredentials,
 };
+
+/// El mensaje a mostrar: si el servidor explico el motivo (por ejemplo por que no
+/// acepto la contrasena nueva), se muestra eso; si no, el texto general.
+String authErrorMessage(
+  AppLocalizations l10n,
+  AuthError e, [
+  List<String> details = const [],
+]) => e == AuthError.validation && details.isNotEmpty
+    ? details.join('\n')
+    : authErrorText(l10n, e);

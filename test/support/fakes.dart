@@ -58,11 +58,17 @@ LoginOutcome outcome({
   String? active,
   int concessions = 1,
   int idleMinutes = 10,
+  List<String?> logoUrls = const [],
 }) => LoginOutcome(
   user: testUser,
   concessions: [
     for (var i = 0; i < concessions; i++)
-      ConcessionSummary(id: 'c$i', code: 'C$i', name: 'Concesion $i'),
+      ConcessionSummary(
+        id: 'c$i',
+        code: 'C$i',
+        name: 'Concesion $i',
+        logoUrl: i < logoUrls.length ? logoUrls[i] : null,
+      ),
   ],
   activeConcessionId: active,
   idleTimeoutMinutes: idleMinutes,
@@ -279,12 +285,26 @@ class FakeAuthRepository implements AuthRepository {
     return recoveryCodes;
   }
 
+  /// Si se define, el cambio de contrasena falla con esto (por ejemplo, el
+  /// servidor no acepta la nueva).
+  AuthException? changePasswordError;
+
   @override
   Future<void> changePassword({
     required String current,
     required String next,
     required String confirm,
-  }) async => calls.add('changePassword');
+  }) async {
+    calls.add('changePassword');
+    final error = changePasswordError;
+    if (error != null) throw error;
+  }
+
+  /// Las reglas que devuelve el servidor de prueba; null = no las dio.
+  PasswordRules? rules = const PasswordRules();
+
+  @override
+  Future<PasswordRules?> passwordRules() async => rules;
 
   @override
   Future<void> selectConcession(String concessionId) async =>

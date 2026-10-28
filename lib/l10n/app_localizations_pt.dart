@@ -118,6 +118,31 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem conexão com o servidor. Verifique sua rede e tente novamente.';
 
   @override
+  String get errValidation =>
+      'Não foi possível salvar. Revise os dados e tente novamente.';
+
+  @override
+  String get passwordRulesTitle => 'A senha deve ter:';
+
+  @override
+  String passwordRuleLength(int min) {
+    return 'Pelo menos $min caracteres';
+  }
+
+  @override
+  String get passwordRuleUppercase => 'Uma letra maiúscula';
+
+  @override
+  String get passwordRuleLowercase => 'Uma letra minúscula';
+
+  @override
+  String get passwordRuleDigit => 'Um número';
+
+  @override
+  String get passwordRuleSpecial =>
+      'Um caractere especial (por exemplo ! # \$ %)';
+
+  @override
   String get errServer => 'Ocorreu um erro no servidor. Tente mais tarde.';
 
   @override

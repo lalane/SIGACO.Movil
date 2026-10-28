@@ -110,6 +110,7 @@ import '../features/map/presentation/tiles/map_tile_source.dart';
 import '../features/navigation/data/repositories/navigation_repository_impl.dart';
 import '../core/api/response_cache.dart';
 import '../core/profile/profile_photo.dart';
+import '../core/profile/server_profile_photo_store.dart';
 import '../core/profile/profile_photo_cubit.dart';
 import '../core/offline/routed_sync_remote.dart';
 import 'composition/tickets_summary_source.dart';
@@ -871,17 +872,22 @@ class AppDependencies {
       connectivity: ConnectivityPlusSource(),
       serverReachable: api.reachability,
       deviceInfo: DeviceInfoPlusSource(),
-      // Hasta que el servidor publique la foto de perfil (MOB-001), vive solo en
-      // el telefono.
+      // La foto de perfil vive en el servidor (MOB-001) y se copia al telefono
+      // para verla sin conexion.
       profilePhoto: ProfilePhotoCubit(
-        store: LocalProfilePhotoStore(),
+        store: ServerProfilePhotoStore(
+          api: api,
+          local: LocalProfilePhotoStore(),
+          prefs: prefs,
+        ),
         picker: PlatformProfilePhotoPicker(),
       ),
       deviceUnlock: LocalAuthDeviceUnlock(LocalAuthentication()),
       // Los logos de la propia API piden sesion; los de otro servidor (marca de
       // prueba) se bajan tal cual.
       logoStore: DiskLogoStore(
-        download: (url) => url.startsWith(api.baseUrl)
+        // Las rutas relativas (/api/...) son del propio servidor: llevan la sesion.
+        download: (url) => url.startsWith(api.baseUrl) || url.startsWith('/')
             ? api.downloadFile(url)
             : downloadCapped(url),
       ),

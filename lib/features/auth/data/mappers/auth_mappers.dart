@@ -5,6 +5,10 @@ ConcessionSummary concessionFromJson(Map<String, dynamic> j) =>
       id: j['id'] as String,
       code: (j['code'] ?? '') as String,
       name: (j['name'] ?? '') as String,
+      logoUrl: switch (j['logoUrl']) {
+        final String u when u.trim().isNotEmpty => u.trim(),
+        _ => null,
+      },
     );
 
 CurrentUser userFromJson(Map<String, dynamic> j) => CurrentUser(
@@ -129,4 +133,12 @@ List<String> recoveryCodesFromJson(Map<String, dynamic>? j) => [
 MfaEnrollment mfaEnrollmentFromJson(Map<String, dynamic> j) => MfaEnrollment(
   secret: j['secret'] as String,
   otpAuthUri: (j['otpAuthUri'] ?? '') as String,
+);
+
+PasswordRules passwordRulesFromJson(Map<String, dynamic> j) => PasswordRules(
+  minLength: (j['minLength'] as num?)?.toInt() ?? 8,
+  requireUppercase: j['requireUppercase'] as bool? ?? true,
+  requireLowercase: j['requireLowercase'] as bool? ?? true,
+  requireDigit: j['requireDigit'] as bool? ?? true,
+  requireSpecial: j['requireSpecial'] as bool? ?? true,
 );

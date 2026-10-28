@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/ui/widgets.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/branding/concession_logo_tile.dart';
 import '../auth_error_text.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -33,6 +34,9 @@ class ConcessionPage extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  leading: c.logoUrl == null
+                      ? null
+                      : ConcessionLogoTile(url: c.logoUrl, name: c.name),
                   title: Text(
                     c.name,
                     style: const TextStyle(fontWeight: FontWeight.w700),

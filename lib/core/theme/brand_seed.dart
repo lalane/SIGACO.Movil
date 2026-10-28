@@ -9,10 +9,23 @@ class BrandSeed extends Equatable {
     this.secondary,
     this.headerStart,
     this.headerEnd,
+    this.accent,
+    this.navActive,
+    this.onPrimary,
   });
 
   /// Color de accion: botones, seleccion, avatar.
   final Color primary;
+
+  /// Color principal de la concesion para enlaces, iconos y acentos, cuando es
+  /// distinto del de los botones. Sin el, los acentos usan [primary].
+  final Color? accent;
+
+  /// Color secundario: la opcion activa de la navegacion.
+  final Color? navActive;
+
+  /// Texto sobre el color principal que eligio la concesion.
+  final Color? onPrimary;
 
   /// Fondo de la barra o riel de navegacion.
   final Color? secondary;
@@ -37,6 +50,9 @@ class BrandSeed extends Equatable {
     String? secondary,
     String? headerStart,
     String? headerEnd,
+    String? accent,
+    String? navActive,
+    String? onPrimary,
   }) {
     final p = parseHex(primary);
     if (p == null) return null;
@@ -45,9 +61,20 @@ class BrandSeed extends Equatable {
       secondary: parseHex(secondary),
       headerStart: parseHex(headerStart),
       headerEnd: parseHex(headerEnd),
+      accent: parseHex(accent),
+      navActive: parseHex(navActive),
+      onPrimary: parseHex(onPrimary),
     );
   }
 
   @override
-  List<Object?> get props => [primary, secondary, headerStart, headerEnd];
+  List<Object?> get props => [
+    primary,
+    secondary,
+    headerStart,
+    headerEnd,
+    accent,
+    navActive,
+    onPrimary,
+  ];
 }
