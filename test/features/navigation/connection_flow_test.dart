@@ -12,6 +12,7 @@ import 'package:sigaco_movil/core/device/device_info_source.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 class _Network implements ConnectivitySource {
   final controller = StreamController<bool>.broadcast();
@@ -178,8 +179,7 @@ void main() {
     final (_, server, _) = await launch(tester);
     server.add(true);
     await tester.pump();
-    await tester.tap(find.text('JP'));
-    await tester.pumpAndSettle();
+    await openAccountSettings(tester);
     await tester.scrollUntilVisible(
       find.text('Última conexión'),
       200,

@@ -70,12 +70,14 @@ void main() {
   }
 
   Future<void> openTickets(WidgetTester tester) async {
-    await tester.tap(
-      find.descendant(
-        of: find.byType(GridView),
-        matching: find.text('Registros'),
-      ),
+    final card = find.descendant(
+      of: find.byType(GridView),
+      matching: find.text('Registros'),
     );
+    // Las tarjetas de resumen empujan los modulos: en pantallas chicas se baja.
+    await tester.ensureVisible(card);
+    await tester.pumpAndSettle();
+    await tester.tap(card);
     await tester.pumpAndSettle();
   }
 
@@ -213,6 +215,46 @@ void main() {
       expect(find.textContaining("18°50'45.96"), findsOneWidget);
     });
 
+    testWidgets('los seguimientos van del mas reciente al mas antiguo', (
+      tester,
+    ) async {
+      await launch(tester, tickets: _WithFollowUps());
+      await openTickets(tester);
+      await search(tester, '0035');
+      await tester.tap(card('T-0035'));
+      await tester.pumpAndSettle();
+      final newer = find.text('Segundo seguimiento', skipOffstage: false);
+      final older = find.text('Primer seguimiento', skipOffstage: false);
+      await tester.drag(
+        find.byKey(const Key('ticket-detail')),
+        const Offset(0, -500),
+      );
+      await tester.pumpAndSettle();
+      expect(newer, findsOneWidget);
+      expect(
+        tester.getTopLeft(newer).dy,
+        lessThan(tester.getTopLeft(older).dy),
+      );
+    });
+
+    testWidgets('tocar la foto la abre a pantalla completa y se cierra', (
+      tester,
+    ) async {
+      await launch(tester, tickets: _WithFollowUps());
+      await openTickets(tester);
+      await search(tester, '0035');
+      await tester.tap(card('T-0035'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('hero-photo-0')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('photo-viewer')), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('photo-viewer-close')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('photo-viewer')), findsNothing);
+      expect(find.byKey(const Key('ticket-detail')), findsOneWidget);
+    });
+
     testWidgets('descargar y editar avisan que llegan despues', (tester) async {
       await launch(tester);
       await openTickets(tester);
@@ -313,6 +355,23 @@ void main() {
       expect(find.text('Elige el tipo de registro.'), findsOneWidget);
     });
 
+    testWidgets('la prioridad empieza en Media y se puede cambiar', (
+      tester,
+    ) async {
+      await launch(tester);
+      await openTickets(tester);
+      await tester.tap(find.byKey(const Key('tickets-new')));
+      await tester.pumpAndSettle();
+      final field = find.byKey(const Key('new-ticket-priority'));
+      await tester.ensureVisible(field);
+      expect(find.text('Media'), findsOneWidget);
+      await tester.tap(field);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Crítica').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Crítica'), findsOneWidget);
+    });
+
     testWidgets('crea el ticket y el historial lo cuenta', (tester) async {
       await launch(tester);
       await openTickets(tester);
@@ -403,4 +462,30 @@ class _Failing implements TicketsRepository {
 
   @override
   Future<List<String>> categories() => _run(_ok.categories);
+}
+
+/// Una ficha con fotos y seguimientos guardados del mas antiguo al mas nuevo,
+/// como los entrega el servidor.
+class _WithFollowUps extends SampleTicketsRepository {
+  @override
+  Future<Ticket> get(String id) async {
+    final base = await super.get(id);
+    return base.copyWith(
+      photoPaths: const ['/no/existe/a.jpg', '/no/existe/b.jpg'],
+      followUps: [
+        TicketFollowUp(
+          id: 'f1',
+          at: DateTime.utc(2026, 10, 1, 10),
+          status: TicketStatus.open,
+          description: 'Primer seguimiento',
+        ),
+        TicketFollowUp(
+          id: 'f2',
+          at: DateTime.utc(2026, 10, 2, 10),
+          status: TicketStatus.open,
+          description: 'Segundo seguimiento',
+        ),
+      ],
+    );
+  }
 }

@@ -231,7 +231,7 @@ class ApiInspectionsRepository implements InspectionsRepository {
               fileName: photo.split(RegExp(r'[\\/]')).last,
               contentType: _imageType(photo),
               fields: {
-                'kind': 'PHOTO',
+                'kind': 'FOTO',
                 'capturedAt': finding.capturedAt.toUtc().toIso8601String(),
                 'latitude': position?.latitude,
                 'longitude': position?.longitude,

@@ -14,6 +14,7 @@ import 'package:sigaco_movil/features/navigation/domain/entities/mobile_module.d
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 class _Network implements ConnectivitySource {
   final controller = StreamController<bool>.broadcast();
@@ -179,8 +180,7 @@ void main() {
 
   group('zona horaria de la concesion en la cuenta', () {
     Future<void> openAccount(WidgetTester tester) async {
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
     }
 
     testWidgets('la cuenta muestra la zona y su desfase', (tester) async {

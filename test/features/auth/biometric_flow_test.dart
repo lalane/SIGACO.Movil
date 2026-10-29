@@ -10,6 +10,7 @@ import 'package:sigaco_movil/features/auth/presentation/bloc/auth_event.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 /// Acceso con biometria: tras entrar con correo y contrasena la app ofrece
 /// activarla; una vez activa, el boton de huella entra sin escribir nada.
@@ -122,8 +123,7 @@ void main() {
 
   group('desde la cuenta', () {
     Future<void> openAccountBiometricTile(WidgetTester tester) async {
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       await tester.scrollUntilVisible(
         find.text('Acceso con biometría'),
         200,

@@ -15,11 +15,14 @@ import '../../features/alerts/presentation/bloc/alerts_cubit.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_event.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
+import '../../features/auth/presentation/account/account_panel.dart';
 import '../../features/branding/presentation/widgets/concession_logo.dart';
 import '../../features/navigation/domain/entities/mobile_module.dart';
 import '../../features/navigation/domain/entities/navigation_entities.dart';
 import '../../features/navigation/presentation/bloc/navigation_bloc.dart';
+import '../../features/maintenance/presentation/widgets/indicators_panel.dart';
 import '../feature_flags.dart';
+import 'home_summary.dart';
 import '../../l10n/app_localizations.dart';
 
 /// Menu principal (diseno v2). Los modulos salen de `/api/context/navigation`:
@@ -109,6 +112,7 @@ class _HomePageState extends State<HomePage> {
       ],
       child: Scaffold(
         extendBody: r.isCompact,
+        drawer: context.select(_hasIndicators) ? const IndicatorsPanel() : null,
         body: Row(
           // El riel y el contenido ocupan toda la altura.
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -154,6 +158,10 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+/// El menu trae mantenimiento: hay indicadores que abrir desde el panel lateral.
+bool _hasIndicators(NavigationBloc b) =>
+    MobileModule.availableIn(b.state.menu).contains(MobileModule.maintenance);
+
 class _Header extends StatelessWidget {
   const _Header();
 
@@ -164,9 +172,21 @@ class _Header extends StatelessWidget {
     final r = context.responsive;
     final name = context.select((AuthBloc b) => b.state.user?.fullName ?? '');
     return Padding(
-      padding: EdgeInsets.fromLTRB(r.s(20), r.s(8), r.s(12), 0),
+      padding: EdgeInsets.fromLTRB(r.s(8), r.s(8), r.s(12), 0),
       child: Row(
         children: [
+          if (context.select(_hasIndicators))
+            Builder(
+              builder: (context) => IconButton(
+                key: const Key('home-menu-button'),
+                tooltip: l10n.homeOpenMenu,
+                icon: const Icon(Icons.menu),
+                color: p.textOnTop,
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            )
+          else
+            SizedBox(width: r.s(12)),
           // Ocupa el espacio sobrante; si el texto del sistema es grande, el
           // lema se reduce para no empujar los botones fuera de la pantalla.
           Expanded(
@@ -208,7 +228,7 @@ class _Header extends StatelessWidget {
           SizedBox(width: r.s(4)),
           InkWell(
             customBorder: const CircleBorder(),
-            onTap: () => context.push('/account'),
+            onTap: () => showAccountPanel(context),
             child: ProfileAvatar(
               initials: _initials(name),
               radius: r.s(20),
@@ -441,6 +461,7 @@ class _Content extends StatelessWidget {
               ),
             ),
           ),
+          if (state.status == NavigationStatus.ready) const HomeSummary(),
           Center(
             child: Text(
               l10n.modulesTitle,
@@ -685,7 +706,6 @@ List<_NavEntry> _navEntries(BuildContext context) {
   final menu = context.select((NavigationBloc b) => b.state.menu);
   final unreadAlerts = context.select((AlertsCubit c) => c.state.unread);
   return [
-    _NavEntry(Icons.person, l10n.navProfile, () => context.push('/account')),
     if (MobileModule.tickets.isAvailableIn(menu))
       _NavEntry(
         Icons.receipt_long,

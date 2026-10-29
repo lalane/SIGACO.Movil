@@ -22,6 +22,7 @@ class FollowUpState extends Equatable {
     this.saved = false,
     this.showIssues = false,
     this.failed = false,
+    this.warning,
   });
 
   /// Dia elegido (solo la fecha cuenta).
@@ -42,6 +43,9 @@ class FollowUpState extends Equatable {
   final bool showIssues;
   final bool failed;
 
+  /// Se guardo, pero faltó parte (por ejemplo las fotos); lo que dijo el servidor.
+  final String? warning;
+
   List<FollowUpIssue> get issues => [
     if (status == null) FollowUpIssue.status,
     if (description.trim().isEmpty) FollowUpIssue.description,
@@ -57,6 +61,7 @@ class FollowUpState extends Equatable {
     bool? saved,
     bool? showIssues,
     bool? failed,
+    String? warning,
   }) => FollowUpState(
     date: date ?? this.date,
     minutes: minutes ?? this.minutes,
@@ -67,6 +72,7 @@ class FollowUpState extends Equatable {
     saved: saved ?? this.saved,
     showIssues: showIssues ?? this.showIssues,
     failed: failed ?? this.failed,
+    warning: warning ?? this.warning,
   );
 
   @override
@@ -80,6 +86,7 @@ class FollowUpState extends Equatable {
     saved,
     showIssues,
     failed,
+    warning,
   ];
 }
 
@@ -145,6 +152,9 @@ class FollowUpCubit extends Cubit<FollowUpState> {
       );
       if (isClosed) return;
       emit(state.copyWith(saving: false, saved: true));
+    } on TicketPartiallySavedException catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(saving: false, saved: true, warning: e.reason));
     } catch (_) {
       if (isClosed) return;
       emit(state.copyWith(saving: false, failed: true));

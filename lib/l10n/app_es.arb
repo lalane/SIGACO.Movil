@@ -144,7 +144,6 @@
   "moduleAlerts": "Alertas",
   "moduleAlertsSub": "Eventos operativos",
   "moduleComingSoon": "Este módulo está en desarrollo.",
-  "navProfile": "Perfil",
   "navTickets": "Registros",
   "navHome": "Inicio",
   "navAlerts": "Alertas",
@@ -815,7 +814,20 @@
   "followUpSaved": "Seguimiento guardado.",
   "followUpErrorStatus": "Elige el estado del registro.",
   "followUpErrorDescription": "Escribe una descripción.",
+  "ticketSavedPartly": "El registro se guardó, pero faltó una parte: {reason}",
+  "@ticketSavedPartly": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "ticketSaveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+  "newTicketPriority": "Prioridad",
+  "ticketPriorityLow": "Baja",
+  "ticketPriorityMedium": "Media",
+  "ticketPriorityHigh": "Alta",
+  "ticketPriorityCritical": "Crítica",
   "newTicketTitle": "Nuevo registro",
   "newTicketName": "Título",
   "newTicketCategory": "Tipo de registro",
@@ -875,6 +887,47 @@
   "newAccidentErrorType": "Elige el tipo de accidente.",
   "newAccidentErrorSeverity": "Elige la gravedad.",
   "maintIndicatorsTitle": "Seleccione un indicador",
+  "fieldTeam": "Equipo",
+  "profilePhotoChange": "Cambiar foto",
+  "accountPanelTitle": "Configuraciones de la cuenta",
+  "accountMyAccount": "Mi cuenta",
+  "accountSettingsTitle": "Configuración",
+  "accountSettingsSub": "Seguridad, preferencias y dispositivo",
+  "accountDeviceSection": "Acerca del dispositivo",
+  "indicatorsPanelTitle": "Indicadores",
+  "indicatorsPanelSubtitle": "Mantenimiento y conservación",
+  "indicatorsSearchHint": "Buscar indicador",
+  "indicatorsNoMatch": "Ningún indicador coincide.",
+  "homeOpenMenu": "Abrir menú",
+  "homeSummaryTickets": "Registros abiertos",
+  "homeSummaryOverdue": "{count} vencidos",
+  "@homeSummaryOverdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryOnTime": "Al día",
+  "homeSummaryAssets": "Activos",
+  "homeSummaryAccidents": "Accidentes",
+  "homeSummaryAlerts": "Alertas",
+  "homeSummaryUnread": "{count} sin leer",
+  "@homeSummaryUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryInProgress": "{count} en proceso",
+  "@homeSummaryInProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "maintIndSgp": "Pavimentos",
   "maintIndSgs": "Señalización",
   "maintIndSgoae": "OAEs",

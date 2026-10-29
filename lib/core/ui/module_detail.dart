@@ -5,6 +5,7 @@ import '../responsive/responsive.dart';
 import '../theme/sigaco_palette.dart';
 import 'module_style.dart';
 import 'module_widgets.dart';
+import 'photo_viewer.dart';
 
 /// Un dato de la ficha: icono, nombre y valor.
 class ModuleInfo {
@@ -282,9 +283,15 @@ class _ModuleDetailHeroState extends State<ModuleDetailHero> {
                 controller: _pages,
                 itemCount: count,
                 onPageChanged: (i) => setState(() => _page = i),
-                itemBuilder: (_, i) => ModulePhoto(
-                  path: photos.isEmpty ? null : photos[i],
-                  fallbackIcon: widget.fallbackIcon,
+                itemBuilder: (_, i) => GestureDetector(
+                  key: Key('hero-photo-$i'),
+                  onTap: photos.isEmpty
+                      ? null
+                      : () => showPhotoViewer(context, photos, initial: i),
+                  child: ModulePhoto(
+                    path: photos.isEmpty ? null : photos[i],
+                    fallbackIcon: widget.fallbackIcon,
+                  ),
                 ),
               ),
               IgnorePointer(

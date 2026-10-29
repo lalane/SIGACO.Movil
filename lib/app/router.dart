@@ -8,6 +8,7 @@ import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/auth/presentation/account/account_cubit.dart';
 import '../features/auth/presentation/account/account_page.dart';
+import '../features/auth/presentation/account/account_settings_page.dart';
 import '../features/auth/presentation/account/account_mfa_page.dart';
 import '../features/auth/presentation/account/account_password_page.dart';
 import '../features/auth/presentation/account/mfa_setup_cubit.dart';
@@ -167,7 +168,9 @@ MapRecordActions _mapActions(BuildContext context) {
         has(MobileModule.maintenance) ? '/maintenance' : null,
     },
     onCreate: has(MobileModule.tickets)
-        ? (target) => context.push(ticketNewRoute(target))
+        ? (target) async {
+            await context.push<Object?>(ticketNewRoute(target));
+          }
         : null,
   );
 }
@@ -637,6 +640,14 @@ GoRouter createRouter(
           child: const AccountPage(),
         ),
         routes: [
+          GoRoute(
+            path: 'settings',
+            builder: (context, _) => BlocProvider(
+              create: (_) =>
+                  AccountCubit(context.read<AuthRepository>())..load(),
+              child: const AccountSettingsPage(),
+            ),
+          ),
           GoRoute(
             path: 'password',
             builder: (context, _) => MultiBlocProvider(

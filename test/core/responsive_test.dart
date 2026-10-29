@@ -10,6 +10,7 @@ import 'package:sigaco_movil/features/navigation/domain/entities/navigation_enti
 import '../support/fakes.dart';
 import '../support/fonts.dart';
 import '../support/surface.dart';
+import '../support/account_nav.dart';
 
 const _allModules = NavigationMenu(
   modules: [
@@ -257,12 +258,18 @@ void main() {
         // Se recorre la lista para construir todas las tarjetas de modulos.
         await tester.drag(find.byType(ListView).first, const Offset(0, -3000));
         await tester.pumpAndSettle();
-        expect(find.text('Accidentes'), findsOneWidget);
+        // La tarjeta del modulo (el carrusel de resumen tambien dice Accidentes).
+        expect(
+          find.descendant(
+            of: find.byType(GridView),
+            matching: find.text('Accidentes'),
+          ),
+          findsOneWidget,
+        );
         _noErrors(tester, 'menu');
 
         // Cuenta.
-        await tester.tap(find.text('JP'));
-        await tester.pumpAndSettle();
+        await openMyAccount(tester);
         expect(find.text('Información de la cuenta'), findsOneWidget);
         _noErrors(tester, 'cuenta');
 

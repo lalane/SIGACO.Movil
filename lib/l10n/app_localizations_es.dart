@@ -409,9 +409,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get moduleComingSoon => 'Este módulo está en desarrollo.';
 
   @override
-  String get navProfile => 'Perfil';
-
-  @override
   String get navTickets => 'Registros';
 
   @override
@@ -1698,7 +1695,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get followUpErrorDescription => 'Escribe una descripción.';
 
   @override
+  String ticketSavedPartly(String reason) {
+    return 'El registro se guardó, pero faltó una parte: $reason';
+  }
+
+  @override
   String get ticketSaveFailed => 'No se pudo guardar. Inténtalo de nuevo.';
+
+  @override
+  String get newTicketPriority => 'Prioridad';
+
+  @override
+  String get ticketPriorityLow => 'Baja';
+
+  @override
+  String get ticketPriorityMedium => 'Media';
+
+  @override
+  String get ticketPriorityHigh => 'Alta';
+
+  @override
+  String get ticketPriorityCritical => 'Crítica';
 
   @override
   String get newTicketTitle => 'Nuevo registro';
@@ -1841,6 +1858,72 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get maintIndicatorsTitle => 'Seleccione un indicador';
+
+  @override
+  String get fieldTeam => 'Equipo';
+
+  @override
+  String get profilePhotoChange => 'Cambiar foto';
+
+  @override
+  String get accountPanelTitle => 'Configuraciones de la cuenta';
+
+  @override
+  String get accountMyAccount => 'Mi cuenta';
+
+  @override
+  String get accountSettingsTitle => 'Configuración';
+
+  @override
+  String get accountSettingsSub => 'Seguridad, preferencias y dispositivo';
+
+  @override
+  String get accountDeviceSection => 'Acerca del dispositivo';
+
+  @override
+  String get indicatorsPanelTitle => 'Indicadores';
+
+  @override
+  String get indicatorsPanelSubtitle => 'Mantenimiento y conservación';
+
+  @override
+  String get indicatorsSearchHint => 'Buscar indicador';
+
+  @override
+  String get indicatorsNoMatch => 'Ningún indicador coincide.';
+
+  @override
+  String get homeOpenMenu => 'Abrir menú';
+
+  @override
+  String get homeSummaryTickets => 'Registros abiertos';
+
+  @override
+  String homeSummaryOverdue(int count) {
+    return '$count vencidos';
+  }
+
+  @override
+  String get homeSummaryOnTime => 'Al día';
+
+  @override
+  String get homeSummaryAssets => 'Activos';
+
+  @override
+  String get homeSummaryAccidents => 'Accidentes';
+
+  @override
+  String get homeSummaryAlerts => 'Alertas';
+
+  @override
+  String homeSummaryUnread(int count) {
+    return '$count sin leer';
+  }
+
+  @override
+  String homeSummaryInProgress(int count) {
+    return '$count en proceso';
+  }
 
   @override
   String get maintIndSgp => 'Pavimentos';

@@ -56,7 +56,18 @@ class FollowUpPage extends StatelessWidget {
         if (state.saved) {
           messenger
             ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l10n.followUpSaved)));
+            ..showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.warning == null
+                      ? l10n.followUpSaved
+                      : l10n.ticketSavedPartly(state.warning!),
+                ),
+                duration: state.warning == null
+                    ? const Duration(seconds: 4)
+                    : const Duration(seconds: 10),
+              ),
+            );
           context.pop();
         } else if (state.failed) {
           messenger

@@ -65,3 +65,11 @@ String dms(double value, {required bool latitude}) {
   final seconds = (minutesFull - minutes) * 60;
   return '$degrees°$minutes\'${seconds.toStringAsFixed(2)}"$hemisphere';
 }
+
+String ticketPriorityLabel(AppLocalizations l10n, TicketPriority p) =>
+    switch (p) {
+      TicketPriority.low => l10n.ticketPriorityLow,
+      TicketPriority.medium => l10n.ticketPriorityMedium,
+      TicketPriority.high => l10n.ticketPriorityHigh,
+      TicketPriority.critical => l10n.ticketPriorityCritical,
+    };

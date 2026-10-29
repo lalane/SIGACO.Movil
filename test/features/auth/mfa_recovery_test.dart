@@ -14,6 +14,7 @@ import 'package:sigaco_movil/features/auth/presentation/bloc/auth_state.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 /// Verificacion en dos pasos: estado que informa el servidor y codigos de
 /// recuperacion (DEV-BACK-132, DEV-MOB-052).
@@ -308,8 +309,7 @@ void main() {
       await tester.tap(find.byType(FilledButton).first);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       await tester.scrollUntilVisible(
         find.text('Verificación en dos pasos'),
         200,
@@ -356,8 +356,7 @@ void main() {
         );
       await launch(tester, repo);
 
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       await tester.scrollUntilVisible(
         find.text('Verificación en dos pasos'),
         200,

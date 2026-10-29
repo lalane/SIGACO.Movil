@@ -11,6 +11,7 @@ import 'package:sigaco_movil/features/branding/domain/entities/concession_brandi
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 const _blue = ConcessionBranding(
   version: 1,
@@ -81,8 +82,7 @@ void main() {
 
   /// Las preferencias (idioma, apariencia y colores) estan en el perfil.
   Future<void> openPreferences(WidgetTester tester) async {
-    await tester.tap(find.text('JP'));
-    await tester.pumpAndSettle();
+    await openAccountSettings(tester);
     await tester.scrollUntilVisible(
       find.text('Preferencias'),
       200,
@@ -228,11 +228,6 @@ void main() {
 
     await tester.tap(find.text('JP'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Cerrar sesión'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
     await tester.tap(find.text('Cerrar sesión'));
     await tester.pumpAndSettle();
 
@@ -260,11 +255,6 @@ void main() {
     // Cambiar a la concesion sin marca: se descarta la anterior.
     await tester.tap(find.text('JP'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Cambiar de concesión'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
     await tester.tap(find.text('Cambiar de concesión'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Concesion 1'));

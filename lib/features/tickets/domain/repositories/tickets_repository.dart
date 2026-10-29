@@ -27,6 +27,18 @@ class TicketsException implements Exception {
   String toString() => 'TicketsException($error)';
 }
 
+/// El registro (o el seguimiento) ya quedo guardado en el servidor, pero faltó
+/// una parte: por ejemplo las fotos no se pudieron subir. [reason] es lo que dijo
+/// el servidor. No es un fallo del guardado: la persona no debe repetirlo.
+class TicketPartiallySavedException implements Exception {
+  const TicketPartiallySavedException(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'TicketPartiallySavedException($reason)';
+}
+
 /// Los tickets de la concesion activa. Lanza [TicketsException].
 abstract interface class TicketsRepository {
   Future<List<Ticket>> list();

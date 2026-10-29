@@ -836,12 +836,6 @@ abstract class AppLocalizations {
   /// **'Este módulo está en desarrollo.'**
   String get moduleComingSoon;
 
-  /// No description provided for @navProfile.
-  ///
-  /// In es, this message translates to:
-  /// **'Perfil'**
-  String get navProfile;
-
   /// No description provided for @navTickets.
   ///
   /// In es, this message translates to:
@@ -3080,11 +3074,47 @@ abstract class AppLocalizations {
   /// **'Escribe una descripción.'**
   String get followUpErrorDescription;
 
+  /// No description provided for @ticketSavedPartly.
+  ///
+  /// In es, this message translates to:
+  /// **'El registro se guardó, pero faltó una parte: {reason}'**
+  String ticketSavedPartly(String reason);
+
   /// No description provided for @ticketSaveFailed.
   ///
   /// In es, this message translates to:
   /// **'No se pudo guardar. Inténtalo de nuevo.'**
   String get ticketSaveFailed;
+
+  /// No description provided for @newTicketPriority.
+  ///
+  /// In es, this message translates to:
+  /// **'Prioridad'**
+  String get newTicketPriority;
+
+  /// No description provided for @ticketPriorityLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja'**
+  String get ticketPriorityLow;
+
+  /// No description provided for @ticketPriorityMedium.
+  ///
+  /// In es, this message translates to:
+  /// **'Media'**
+  String get ticketPriorityMedium;
+
+  /// No description provided for @ticketPriorityHigh.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta'**
+  String get ticketPriorityHigh;
+
+  /// No description provided for @ticketPriorityCritical.
+  ///
+  /// In es, this message translates to:
+  /// **'Crítica'**
+  String get ticketPriorityCritical;
 
   /// No description provided for @newTicketTitle.
   ///
@@ -3355,6 +3385,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Seleccione un indicador'**
   String get maintIndicatorsTitle;
+
+  /// No description provided for @fieldTeam.
+  ///
+  /// In es, this message translates to:
+  /// **'Equipo'**
+  String get fieldTeam;
+
+  /// No description provided for @profilePhotoChange.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar foto'**
+  String get profilePhotoChange;
+
+  /// No description provided for @accountPanelTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuraciones de la cuenta'**
+  String get accountPanelTitle;
+
+  /// No description provided for @accountMyAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi cuenta'**
+  String get accountMyAccount;
+
+  /// No description provided for @accountSettingsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración'**
+  String get accountSettingsTitle;
+
+  /// No description provided for @accountSettingsSub.
+  ///
+  /// In es, this message translates to:
+  /// **'Seguridad, preferencias y dispositivo'**
+  String get accountSettingsSub;
+
+  /// No description provided for @accountDeviceSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Acerca del dispositivo'**
+  String get accountDeviceSection;
+
+  /// No description provided for @indicatorsPanelTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicadores'**
+  String get indicatorsPanelTitle;
+
+  /// No description provided for @indicatorsPanelSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento y conservación'**
+  String get indicatorsPanelSubtitle;
+
+  /// No description provided for @indicatorsSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar indicador'**
+  String get indicatorsSearchHint;
+
+  /// No description provided for @indicatorsNoMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún indicador coincide.'**
+  String get indicatorsNoMatch;
+
+  /// No description provided for @homeOpenMenu.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir menú'**
+  String get homeOpenMenu;
+
+  /// No description provided for @homeSummaryTickets.
+  ///
+  /// In es, this message translates to:
+  /// **'Registros abiertos'**
+  String get homeSummaryTickets;
+
+  /// No description provided for @homeSummaryOverdue.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} vencidos'**
+  String homeSummaryOverdue(int count);
+
+  /// No description provided for @homeSummaryOnTime.
+  ///
+  /// In es, this message translates to:
+  /// **'Al día'**
+  String get homeSummaryOnTime;
+
+  /// No description provided for @homeSummaryAssets.
+  ///
+  /// In es, this message translates to:
+  /// **'Activos'**
+  String get homeSummaryAssets;
+
+  /// No description provided for @homeSummaryAccidents.
+  ///
+  /// In es, this message translates to:
+  /// **'Accidentes'**
+  String get homeSummaryAccidents;
+
+  /// No description provided for @homeSummaryAlerts.
+  ///
+  /// In es, this message translates to:
+  /// **'Alertas'**
+  String get homeSummaryAlerts;
+
+  /// No description provided for @homeSummaryUnread.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} sin leer'**
+  String homeSummaryUnread(int count);
+
+  /// No description provided for @homeSummaryInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} en proceso'**
+  String homeSummaryInProgress(int count);
 
   /// No description provided for @maintIndSgp.
   ///

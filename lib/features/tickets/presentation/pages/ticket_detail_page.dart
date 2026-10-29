@@ -10,6 +10,7 @@ import '../../../../core/ui/module_detail.dart';
 import '../../../../core/ui/module_header.dart';
 import '../../../../core/ui/module_style.dart';
 import '../../../../core/ui/module_widgets.dart';
+import '../../../../core/ui/photo_viewer.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/tickets_repository.dart';
@@ -173,7 +174,9 @@ class _Detail extends StatelessWidget {
                                 ModuleInfo(
                                   Icons.fact_check,
                                   l10n.ticketInfoConcession,
-                                  ticket.concessionName ?? none,
+                                  ticket.concessionName ??
+                                      activeConcessionOf(context) ??
+                                      none,
                                 ),
                                 ModuleInfo(
                                   Icons.apartment,
@@ -243,7 +246,9 @@ class _Detail extends StatelessWidget {
                               ),
                             )
                           else
-                            for (final f in ticket.followUps)
+                            for (final f in [
+                              ...ticket.followUps,
+                            ]..sort((a, b) => b.at.compareTo(a.at)))
                               _FollowUpTile(followUp: f, zone: zone),
                           SizedBox(height: r.s(24)),
                         ],
@@ -330,15 +335,23 @@ class _FollowUpTile extends StatelessWidget {
             SizedBox(height: r.s(10)),
             Row(
               children: [
-                for (final path in followUp.photoPaths)
+                for (final (i, path) in followUp.photoPaths.indexed)
                   Padding(
                     padding: EdgeInsets.only(right: r.s(8)),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(r.s(10)),
-                      child: SizedBox(
-                        width: r.s(56),
-                        height: r.s(56),
-                        child: ModulePhoto(path: path),
+                    child: GestureDetector(
+                      key: Key('follow-up-photo-$i'),
+                      onTap: () => showPhotoViewer(
+                        context,
+                        followUp.photoPaths,
+                        initial: i,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(r.s(10)),
+                        child: SizedBox(
+                          width: r.s(56),
+                          height: r.s(56),
+                          child: ModulePhoto(path: path),
+                        ),
                       ),
                     ),
                   ),

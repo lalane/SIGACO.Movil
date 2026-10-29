@@ -12,6 +12,7 @@ import 'package:sigaco_movil/features/auth/presentation/bloc/auth_event.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 /// El idioma, la apariencia y la verificacion en dos pasos se manejan desde el
 /// perfil; el resto de las pantallas no tiene esos selectores.
@@ -55,8 +56,7 @@ void main() {
   }
 
   Future<void> openAccount(WidgetTester tester) async {
-    await tester.tap(find.text('JP'));
-    await tester.pumpAndSettle();
+    await openAccountSettings(tester);
   }
 
   Future<void> scrollTo(WidgetTester tester, String text) async {
@@ -228,8 +228,8 @@ void main() {
         find.text('Verificación en dos pasos actualizada.'),
         findsOneWidget,
       );
-      // Vuelve al perfil.
-      expect(find.text('Configuración de usuario'), findsOneWidget);
+      // Vuelve a la configuracion.
+      expect(find.byKey(const Key('account-settings')), findsOneWidget);
     });
 
     testWidgets('un codigo incorrecto lo informa y permite reintentar', (
@@ -258,7 +258,7 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('recovery-saved')));
       await tester.pumpAndSettle();
-      expect(find.text('Configuración de usuario'), findsOneWidget);
+      expect(find.byKey(const Key('account-settings')), findsOneWidget);
     });
 
     testWidgets('sin conexion al generar la clave lo informa', (tester) async {

@@ -14,6 +14,7 @@ class NewTicketState extends Equatable {
     this.categoriesLoaded = false,
     this.title = '',
     this.category,
+    this.priority = TicketPriority.medium,
     this.kmLabel = '',
     this.description = '',
     this.photos = const [null, null, null],
@@ -21,12 +22,14 @@ class NewTicketState extends Equatable {
     this.saved = false,
     this.showIssues = false,
     this.failed = false,
+    this.warning,
   });
 
   final List<String> categories;
   final bool categoriesLoaded;
   final String title;
   final String? category;
+  final TicketPriority priority;
   final String kmLabel;
   final String description;
   final List<String?> photos;
@@ -34,6 +37,9 @@ class NewTicketState extends Equatable {
   final bool saved;
   final bool showIssues;
   final bool failed;
+
+  /// Se guardo, pero faltó parte (por ejemplo las fotos); lo que dijo el servidor.
+  final String? warning;
 
   List<NewTicketIssue> get issues => [
     if (title.trim().isEmpty) NewTicketIssue.title,
@@ -45,6 +51,7 @@ class NewTicketState extends Equatable {
     bool? categoriesLoaded,
     String? title,
     String? category,
+    TicketPriority? priority,
     String? kmLabel,
     String? description,
     List<String?>? photos,
@@ -52,11 +59,13 @@ class NewTicketState extends Equatable {
     bool? saved,
     bool? showIssues,
     bool? failed,
+    String? warning,
   }) => NewTicketState(
     categories: categories ?? this.categories,
     categoriesLoaded: categoriesLoaded ?? this.categoriesLoaded,
     title: title ?? this.title,
     category: category ?? this.category,
+    priority: priority ?? this.priority,
     kmLabel: kmLabel ?? this.kmLabel,
     description: description ?? this.description,
     photos: photos ?? this.photos,
@@ -64,6 +73,7 @@ class NewTicketState extends Equatable {
     saved: saved ?? this.saved,
     showIssues: showIssues ?? this.showIssues,
     failed: failed ?? this.failed,
+    warning: warning ?? this.warning,
   );
 
   @override
@@ -72,6 +82,7 @@ class NewTicketState extends Equatable {
     categoriesLoaded,
     title,
     category,
+    priority,
     kmLabel,
     description,
     photos,
@@ -79,6 +90,7 @@ class NewTicketState extends Equatable {
     saved,
     showIssues,
     failed,
+    warning,
   ];
 }
 
@@ -130,6 +142,8 @@ class NewTicketCubit extends Cubit<NewTicketState> {
 
   void setCategory(String v) => emit(state.copyWith(category: v));
 
+  void setPriority(TicketPriority v) => emit(state.copyWith(priority: v));
+
   void setKm(String v) => emit(state.copyWith(kmLabel: v));
 
   void setDescription(String v) => emit(state.copyWith(description: v));
@@ -152,6 +166,7 @@ class NewTicketCubit extends Cubit<NewTicketState> {
         NewTicket(
           title: state.title.trim(),
           category: state.category!,
+          priority: state.priority,
           kmLabel: state.kmLabel.trim().isEmpty ? null : state.kmLabel.trim(),
           description: state.description.trim().isEmpty
               ? null
@@ -165,6 +180,9 @@ class NewTicketCubit extends Cubit<NewTicketState> {
       );
       if (isClosed) return;
       emit(state.copyWith(saving: false, saved: true));
+    } on TicketPartiallySavedException catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(saving: false, saved: true, warning: e.reason));
     } catch (_) {
       if (isClosed) return;
       emit(state.copyWith(saving: false, failed: true));

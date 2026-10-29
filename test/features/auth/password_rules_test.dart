@@ -17,6 +17,7 @@ import '../../support/fake_api.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 /// Las reglas de contrasena que se ven antes de escribirla y el motivo cuando el
 /// servidor no la acepta (APP-MOB-01, DEV-MOB-042).
@@ -251,8 +252,7 @@ void main() {
       await tester.enterText(find.byType(EditableText).at(1), 'S3creto!x');
       await tester.tap(find.byType(FilledButton).first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       await tester.scrollUntilVisible(
         find.text('Cambiar contraseña'),
         200,

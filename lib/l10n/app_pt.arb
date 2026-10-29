@@ -130,7 +130,6 @@
   "moduleAlerts": "Alertas",
   "moduleAlertsSub": "Eventos operacionais",
   "moduleComingSoon": "Este módulo está em desenvolvimento.",
-  "navProfile": "Perfil",
   "navTickets": "Registros",
   "navHome": "Início",
   "navAlerts": "Alertas",
@@ -704,7 +703,20 @@
   "followUpSaved": "Acompanhamento salvo.",
   "followUpErrorStatus": "Escolha o status do registro.",
   "followUpErrorDescription": "Escreva uma descrição.",
+  "ticketSavedPartly": "O registro foi salvo, mas faltou uma parte: {reason}",
+  "@ticketSavedPartly": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "ticketSaveFailed": "Não foi possível salvar. Tente novamente.",
+  "newTicketPriority": "Prioridade",
+  "ticketPriorityLow": "Baixa",
+  "ticketPriorityMedium": "Média",
+  "ticketPriorityHigh": "Alta",
+  "ticketPriorityCritical": "Crítica",
   "newTicketTitle": "Novo registro",
   "newTicketName": "Título",
   "newTicketCategory": "Tipo de registro",
@@ -764,6 +776,47 @@
   "newAccidentErrorType": "Escolha o tipo de acidente.",
   "newAccidentErrorSeverity": "Escolha a gravidade.",
   "maintIndicatorsTitle": "Selecione um indicador",
+  "fieldTeam": "Equipe",
+  "profilePhotoChange": "Alterar foto",
+  "accountPanelTitle": "Configurações da conta",
+  "accountMyAccount": "Minha conta",
+  "accountSettingsTitle": "Configuração",
+  "accountSettingsSub": "Segurança, preferências e dispositivo",
+  "accountDeviceSection": "Sobre o dispositivo",
+  "indicatorsPanelTitle": "Indicadores",
+  "indicatorsPanelSubtitle": "Manutenção e conservação",
+  "indicatorsSearchHint": "Buscar indicador",
+  "indicatorsNoMatch": "Nenhum indicador corresponde.",
+  "homeOpenMenu": "Abrir menu",
+  "homeSummaryTickets": "Registros abertos",
+  "homeSummaryOverdue": "{count} vencidos",
+  "@homeSummaryOverdue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryOnTime": "Em dia",
+  "homeSummaryAssets": "Ativos",
+  "homeSummaryAccidents": "Acidentes",
+  "homeSummaryAlerts": "Alertas",
+  "homeSummaryUnread": "{count} não lidos",
+  "@homeSummaryUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSummaryInProgress": "{count} em andamento",
+  "@homeSummaryInProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "maintIndSgp": "Pavimentos",
   "maintIndSgs": "Sinalização",
   "maintIndSgoae": "OAEs",

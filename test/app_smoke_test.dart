@@ -9,6 +9,7 @@ import 'package:sigaco_movil/features/navigation/domain/entities/navigation_enti
 import 'support/fakes.dart';
 import 'support/fonts.dart';
 import 'support/surface.dart';
+import 'support/account_nav.dart';
 
 void main() {
   setUp(
@@ -101,14 +102,13 @@ void main() {
     await tester.tap(find.text('Iniciar sesión'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('JP'));
-    await tester.pumpAndSettle();
+    await openMyAccount(tester);
 
     expect(find.text('Información de la cuenta'), findsOneWidget);
     expect(find.text('jperez'), findsOneWidget);
     expect(find.text('Concesion 0'), findsOneWidget);
-    expect(find.text('Cambiar de concesión'), findsOneWidget);
-    expect(find.text('Cambiar contraseña'), findsOneWidget);
+    // La configuracion (contrasena, seguridad) esta un paso mas adentro.
+    expect(find.byKey(const Key('account-settings-entry')), findsOneWidget);
   });
 
   testWidgets('tras la inactividad se bloquea y se abre con el telefono', (

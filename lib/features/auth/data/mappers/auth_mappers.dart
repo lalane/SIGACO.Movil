@@ -19,6 +19,7 @@ CurrentUser userFromJson(Map<String, dynamic> j) => CurrentUser(
   organizationArea: j['organizationArea'] as String?,
   jobTitle: _text(j['jobTitle']),
   companyName: _text(j['companyName']),
+  teamName: _text(j['teamName']),
 );
 
 /// Un texto vacio o de espacios cuenta como ausente.

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/ui/module_style.dart';
 import '../../../../core/ui/module_widgets.dart';
 import '../../../../core/time/concession_zone.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ticket.dart';
 import '../ticket_labels.dart';
 
@@ -25,6 +27,15 @@ class TicketStatusPill extends StatelessWidget {
 
 /// La tarjeta del historial: estado, vencimiento, foto con el titulo encima y
 /// quien lo levanto.
+/// La concesion activa de la sesion, o null si no hay sesion en el arbol.
+String? activeConcessionOf(BuildContext context) {
+  try {
+    return context.watch<AuthBloc>().state.activeConcessionName;
+  } on ProviderNotFoundException {
+    return null;
+  }
+}
+
 class TicketCard extends StatelessWidget {
   const TicketCard({
     super.key,
@@ -209,9 +220,12 @@ class TicketCard extends StatelessWidget {
                                     fontSize: r.s(15),
                                   ),
                                 ),
-                              if (ticket.concessionName != null)
+                              if ((ticket.concessionName ??
+                                      activeConcessionOf(context)) !=
+                                  null)
                                 Text(
-                                  ticket.concessionName!,
+                                  ticket.concessionName ??
+                                      activeConcessionOf(context)!,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(

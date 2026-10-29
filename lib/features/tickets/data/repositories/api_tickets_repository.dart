@@ -20,7 +20,6 @@ class ApiTicketsRepository implements TicketsRepository {
     this._api, {
     required this.roadId,
     this.language = _spanish,
-    this.defaultPriority = 'MEDIA',
     Future<Directory> Function()? cacheDir,
   }) : _cacheDir = cacheDir ?? getTemporaryDirectory;
 
@@ -38,9 +37,6 @@ class ApiTicketsRepository implements TicketsRepository {
 
   /// `es` o `pt`: el idioma de los tipos de ticket.
   final String Function() language;
-
-  /// El servidor exige prioridad y el formulario movil no la pregunta.
-  final String defaultPriority;
 
   static String _spanish() => 'es';
 
@@ -70,8 +66,75 @@ class ApiTicketsRepository implements TicketsRepository {
       }
       page++;
     } while (result.length < total && page <= _maxPages);
-    return result;
+    return _withCovers(result);
   }, listing: true);
+
+  /// Cuantos tickets del historial traen su primera foto: los mas recientes, que
+  /// son los que se ven al abrir.
+  static const _coverLimit = 30;
+  static const _coverBatch = 6;
+
+  /// Le pone a cada ticket reciente su primera foto, para la tarjeta del
+  /// historial. Una foto que no baja deja la tarjeta como estaba.
+  Future<List<Ticket>> _withCovers(List<Ticket> tickets) async {
+    final newest = [...tickets]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final covers = <String, String>{};
+    final wanted = newest.take(_coverLimit).toList();
+    for (var i = 0; i < wanted.length; i += _coverBatch) {
+      final batch = wanted.skip(i).take(_coverBatch);
+      await Future.wait([
+        for (final t in batch)
+          _cover(t.id).then((path) {
+            if (path != null) covers[t.id] = path;
+          }),
+      ]);
+    }
+    if (covers.isEmpty) return tickets;
+    return [
+      for (final t in tickets)
+        covers.containsKey(t.id) ? t.copyWith(photoPaths: [covers[t.id]!]) : t,
+    ];
+  }
+
+  /// La primera foto del ticket (la suya, no la de un seguimiento) bajada al
+  /// telefono; null si no tiene o no se pudo bajar.
+  Future<String?> _cover(String id) async {
+    try {
+      final key = Uri.encodeComponent(id);
+      final raw = await _api.getJson('/api/tickets/$key/attachments');
+      final items = raw is List
+          ? raw
+          : (raw is Map ? raw['items'] : null) as List? ?? const [];
+      final images = [
+        for (final a in items)
+          if (a is Map<String, dynamic> &&
+              (_text(a['contentType']) ?? '').startsWith('image/'))
+            a,
+      ];
+      if (images.isEmpty) return null;
+      final own = images.where((a) => _text(a['followUpId']) == null);
+      final a = (own.isEmpty ? images : own).first;
+      final photoId = _text(a['id']);
+      if (photoId == null) return null;
+      final dir = Directory(p.join((await _cacheDir()).path, 'ticket_photos'));
+      final file = File(
+        p.join(dir.path, '$photoId${_extension(_text(a['contentType'])!)}'),
+      );
+      if (!file.existsSync()) {
+        final bytes = await _api.downloadFile(
+          '/api/tickets/$key/attachments/${Uri.encodeComponent(photoId)}/content',
+          maxBytes: _maxPhotoBytes,
+        );
+        if (bytes == null) return null;
+        await dir.create(recursive: true);
+        await file.writeAsBytes(bytes, flush: true);
+      }
+      return file.path;
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<Ticket> get(String id) => _guard(() => _load(id));
@@ -194,7 +257,7 @@ class ApiTicketsRepository implements TicketsRepository {
     final km = parseKm(draft.kmLabel ?? location?.kmLabel);
     return <String, Object?>{
       'ticketTypeCode': code,
-      'priority': defaultPriority,
+      'priority': draft.priority.code,
       'description': composeDescription(draft.title, draft.description),
       'assetId': ?assetId,
       'roadId': ?road,
@@ -216,12 +279,19 @@ class ApiTicketsRepository implements TicketsRepository {
     final dto = (await _api.post('/api/tickets', data: body)) ?? const {};
     final id = _text(dto['id']);
     if (id == null) throw const FormatException('sin id');
-    await attachPhotos(
-      id,
-      draft.photoPaths,
-      capturedAt: draft.capturedAt,
-      location: draft.location,
-    );
+    try {
+      await attachPhotos(
+        id,
+        draft.photoPaths,
+        capturedAt: draft.capturedAt,
+        location: draft.location,
+      );
+    } on ApiFailure catch (e) {
+      // Sin red se encola entero (el servidor reconoce el registro por su clave);
+      // con otro fallo, el registro ya existe y solo faltan las fotos.
+      if (e.isNetwork) rethrow;
+      throw TicketPartiallySavedException(_reason(e));
+    }
     return ticketFromDto(dto);
   });
 
@@ -244,7 +314,7 @@ class ApiTicketsRepository implements TicketsRepository {
   Map<String, Object?> followUpBody(NewFollowUp followUp) {
     final text = followUp.description.trim();
     return {
-      'kind': 'PROGRESS',
+      'kind': 'AVANCE',
       'description': text.isEmpty ? _fallbackNote : text,
     };
   }
@@ -286,10 +356,23 @@ class ApiTicketsRepository implements TicketsRepository {
           '/api/tickets/$key/follow-ups',
           data: followUpBody(followUp),
         );
+        final followUpId = _text(created?['id']);
+        try {
+          await attachPhotos(
+            ticketId,
+            followUp.photoPaths,
+            capturedAt: followUp.at,
+            followUpId: followUpId,
+          );
+        } on ApiFailure catch (e) {
+          if (e.isNetwork) rethrow;
+          throw TicketPartiallySavedException(_reason(e));
+        }
+        // Las fotos ya subieron: queda, si se marco como atendido, el estado.
         await finishFollowUp(
           ticketId,
-          _text(created?['id']),
-          photos: followUp.photoPaths,
+          followUpId,
+          photos: const [],
           at: followUp.at,
           attended: followUp.status == TicketStatus.attended,
         );
@@ -318,7 +401,7 @@ class ApiTicketsRepository implements TicketsRepository {
         fileName: photo.split(RegExp(r'[\\/]')).last,
         contentType: imageType(photo),
         fields: {
-          'kind': 'PHOTO',
+          'kind': 'FOTO',
           'capturedAt': capturedAt?.toUtc().toIso8601String(),
           'latitude': location?.latitude,
           'longitude': location?.longitude,
@@ -433,9 +516,19 @@ class ApiTicketsRepository implements TicketsRepository {
 
   /// [listing]: un 404 al listar es que el servidor aun no publica los tickets;
   /// al pedir uno es que ya no existe.
+  /// El motivo que dio el servidor, con su codigo, para mostrarlo a la persona.
+  static String _reason(ApiFailure e) {
+    final field = e.fieldErrors.values.expand((m) => m).firstOrNull;
+    final text = (field ?? e.message)?.trim();
+    final tag = e.code ?? '${e.status}';
+    return text == null || text.isEmpty ? tag : '$text ($tag)';
+  }
+
   Future<T> _guard<T>(Future<T> Function() body, {bool listing = false}) async {
     try {
       return await body();
+    } on TicketPartiallySavedException {
+      rethrow;
     } on ApiFailure catch (e) {
       throw TicketsException(
         e.isNetwork

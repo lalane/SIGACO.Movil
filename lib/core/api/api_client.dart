@@ -53,7 +53,12 @@ class ApiClient {
         },
         onError: (e, handler) {
           final status = e.response?.statusCode;
-          _trace(e.requestOptions, status, error: e.type.name);
+          _trace(
+            e.requestOptions,
+            status,
+            error: e.type.name,
+            detail: _serverReason(e.response?.data),
+          );
           // Cualquier respuesta del servidor (aunque sea un error) prueba que hay
           // conexion; solo un fallo de red sin respuesta marca que no la hay.
           if (status != null) {
@@ -134,14 +139,28 @@ class ApiClient {
   /// PASSWORD_CHANGE_REQUIRED), para que la sesion reaccione globalmente.
   void Function(String code)? onForbiddenCode;
 
-  /// Solo metodo, ruta, estado y correlation id: nunca cuerpos ni cabeceras.
-  void _trace(RequestOptions o, int? status, {String? error}) {
+  /// El codigo y el titulo que da el servidor en un error (no los datos de la
+  /// peticion): lo que hace falta para saber por que fallo.
+  static String? _serverReason(Object? data) {
+    if (data is! Map) return null;
+    final parts = [
+      data['code'],
+      data['title'] ?? data['detail'],
+    ].whereType<String>().where((p) => p.trim().isNotEmpty);
+    return parts.isEmpty ? null : parts.join(': ');
+  }
+
+  /// Solo metodo, ruta, estado, motivo del servidor y correlation id: nunca
+  /// cuerpos ni cabeceras. En depuracion tambien sale por la consola del telefono
+  /// (`adb logcat`), no solo por la de VS Code.
+  void _trace(RequestOptions o, int? status, {String? error, String? detail}) {
     if (kReleaseMode) return;
-    developer.log(
-      '${o.method} ${o.path} -> ${status ?? error} '
-      '[${o.headers['X-Correlation-Id']}]',
-      name: 'sigaco.api',
-    );
+    final line =
+        '${o.method} ${o.path} -> ${status ?? error}'
+        '${detail == null ? '' : ' ($detail)'} '
+        '[${o.headers['X-Correlation-Id']}]';
+    developer.log(line, name: 'sigaco.api');
+    debugPrint('sigaco.api $line');
   }
 
   Future<Map<String, dynamic>?> post(String path, {Object? data}) async {

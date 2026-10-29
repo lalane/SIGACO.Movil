@@ -15,6 +15,7 @@ import 'package:sigaco_movil/features/branding/domain/entities/concession_brandi
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 class _Network implements ConnectivitySource {
   final controller = StreamController<bool>.broadcast();
@@ -94,8 +95,7 @@ void main() {
     ) async {
       await launch(tester, state: const SyncState(enabled: false));
       expect(strip, findsNothing);
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       expect(find.byKey(const Key('account-sync')), findsNothing);
     });
 
@@ -139,8 +139,7 @@ void main() {
   group('perfil: ultima sincronizacion (041)', () {
     Future<void> openAccount(WidgetTester tester, SyncState state) async {
       await launch(tester, state: state);
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
     }
 
     testWidgets('dice cuando termino la ultima sincronizacion', (tester) async {
@@ -200,8 +199,7 @@ void main() {
       final (cubit, _) = await launch(tester, state: state, brands: brands);
       if (state.items.isEmpty) {
         // Sin aviso en el inicio: se llega por la cuenta.
-        await tester.tap(find.text('JP'));
-        await tester.pumpAndSettle();
+        await openAccountSettings(tester);
         await tester.scrollUntilVisible(
           find.byKey(const Key('account-sync')),
           200,
@@ -397,8 +395,7 @@ void main() {
           fakeOperation('b', status: OperationStatus.rejected, error: 'no'),
         ]),
       );
-      await tester.tap(find.text('JP'));
-      await tester.pumpAndSettle();
+      await openAccountSettings(tester);
       await tester.scrollUntilVisible(
         find.byKey(const Key('account-sync')),
         200,
@@ -567,11 +564,6 @@ void main() {
       final (cubit, _) = await launch(tester);
       await tester.tap(find.text('JP'));
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('Cerrar sesión'),
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
       await tester.tap(find.text('Cerrar sesión'));
       await tester.pumpAndSettle();
       expect(cubit.calls.last, 'scope:null/null');

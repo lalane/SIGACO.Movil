@@ -9,6 +9,7 @@ import 'package:sigaco_movil/core/device/device_info_source.dart';
 import '../../support/fakes.dart';
 import '../../support/fonts.dart';
 import '../../support/surface.dart';
+import '../../support/account_nav.dart';
 
 class _Device implements DeviceInfoSource {
   const _Device(this.text);
@@ -32,7 +33,12 @@ void main() {
     ),
   );
 
-  Future<void> openAccount(WidgetTester tester, {String device = ''}) async {
+  /// [settings]: la pantalla de configuracion; si no, Mi cuenta (el perfil).
+  Future<void> openAccount(
+    WidgetTester tester, {
+    String device = '',
+    bool settings = true,
+  }) async {
     await tester.runAsync(loadAppFonts);
     useSurface(tester, TestSurface.largePhone);
     SharedPreferences.setMockInitialValues({});
@@ -50,8 +56,11 @@ void main() {
     await tester.enterText(find.byType(EditableText).at(1), 'S3creto!x');
     await tester.tap(find.byType(FilledButton).first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('JP'));
-    await tester.pumpAndSettle();
+    if (settings) {
+      await openAccountSettings(tester);
+    } else {
+      await openMyAccount(tester);
+    }
   }
 
   testWidgets('muestra la version de la app y el telefono', (tester) async {
@@ -81,7 +90,7 @@ void main() {
   testWidgets('la hoja de la foto ofrece camara y galeria, sin quitar', (
     tester,
   ) async {
-    await openAccount(tester);
+    await openAccount(tester, settings: false);
     await tester.tap(find.byKey(const Key('account-photo')));
     await tester.pumpAndSettle();
     expect(find.text('Foto de perfil'), findsOneWidget);

@@ -322,7 +322,7 @@ void main() {
       final uploads = api.to('POST /api/inspections/1/findings/f1/attachments').toList();
       expect(uploads, hasLength(1));
       final form = uploads.single.data as FormData;
-      expect({for (final f in form.fields) f.key: f.value}['kind'], 'PHOTO');
+      expect({for (final f in form.fields) f.key: f.value}['kind'], 'FOTO');
       expect(form.files.single.value.contentType?.mimeType, 'image/jpeg');
     });
   });

@@ -8,6 +8,7 @@ import '../../../../core/ui/module_header.dart';
 import '../../domain/entities/ticket.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/new_ticket_cubit.dart';
+import '../ticket_labels.dart';
 import '../../../../core/ui/module_form.dart';
 
 /// Levantar un ticket nuevo. El mockup no trae esta pantalla: usa el mismo
@@ -75,7 +76,19 @@ class NewTicketPage extends StatelessWidget {
         if (state.saved) {
           messenger
             ..hideCurrentSnackBar()
-            ..showSnackBar(SnackBar(content: Text(l10n.newTicketCreated)));
+            ..showSnackBar(
+              SnackBar(
+                key: const Key('new-ticket-saved'),
+                content: Text(
+                  state.warning == null
+                      ? l10n.newTicketCreated
+                      : l10n.ticketSavedPartly(state.warning!),
+                ),
+                duration: state.warning == null
+                    ? const Duration(seconds: 4)
+                    : const Duration(seconds: 10),
+              ),
+            );
           context.pop();
         } else if (state.failed) {
           messenger
@@ -147,6 +160,28 @@ class NewTicketPage extends StatelessWidget {
                 ],
                 onChanged: (c) {
                   if (c != null) cubit.setCategory(c);
+                },
+              ),
+            ),
+            ModuleField(
+              label: l10n.newTicketPriority,
+              child: DropdownButtonFormField<TicketPriority>(
+                key: const Key('new-ticket-priority'),
+                initialValue: state.priority,
+                isExpanded: true,
+                style: moduleInkStyle,
+                dropdownColor: Colors.white,
+                icon: const Icon(Icons.keyboard_arrow_down),
+                decoration: moduleInput(context),
+                items: [
+                  for (final p in TicketPriority.values)
+                    DropdownMenuItem(
+                      value: p,
+                      child: Text(ticketPriorityLabel(l10n, p)),
+                    ),
+                ],
+                onChanged: (p) {
+                  if (p != null) cubit.setPriority(p);
                 },
               ),
             ),

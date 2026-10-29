@@ -11,8 +11,9 @@ class MapRecordActions {
   /// usuario no puede verla.
   final String? Function(MapPin pin)? openRoute;
 
-  /// Levanta un registro en [target].
-  final void Function(MapRecordTarget target)? onCreate;
+  /// Levanta un registro en [target]; termina cuando el usuario vuelve del
+  /// formulario, para que el mapa se ponga al dia con lo recien creado.
+  final Future<void> Function(MapRecordTarget target)? onCreate;
 
   static const none = MapRecordActions();
 }

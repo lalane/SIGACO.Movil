@@ -391,7 +391,8 @@ class _MapArea extends StatelessWidget {
     }
     final fresh =
         DateTime.now().toUtc().difference(here.capturedAt) <= _staleAfter;
-    actions.onCreate?.call(
+    _create(
+      context,
       MapRecordTarget(
         latitude: here.position.latitude,
         longitude: here.position.longitude,
@@ -402,8 +403,17 @@ class _MapArea extends StatelessWidget {
     );
   }
 
+  /// Abre el formulario del registro y, al volver, vuelve a consultar la capa:
+  /// lo recien creado ya debe verse en el mapa y en su lista.
+  Future<void> _create(BuildContext context, MapRecordTarget target) async {
+    final cubit = context.read<MapCubit>();
+    await actions.onCreate?.call(target);
+    if (context.mounted && !cubit.isClosed) await cubit.refresh();
+  }
+
   /// Levanta un registro sobre el elemento: conserva el activo y su ubicacion.
-  void _createFromPin(MapPin pin) => actions.onCreate?.call(
+  Future<void> _createFromPin(BuildContext context, MapPin pin) => _create(
+    context,
     MapRecordTarget(
       latitude: pin.position.latitude,
       longitude: pin.position.longitude,
@@ -413,13 +423,15 @@ class _MapArea extends StatelessWidget {
     ),
   );
 
-  void _createFromPoint(GeoPoint point) => actions.onCreate?.call(
-    MapRecordTarget(
-      latitude: point.latitude,
-      longitude: point.longitude,
-      origin: MapTargetOrigin.mapPoint,
-    ),
-  );
+  Future<void> _createFromPoint(BuildContext context, GeoPoint point) =>
+      _create(
+        context,
+        MapRecordTarget(
+          latitude: point.latitude,
+          longitude: point.longitude,
+          origin: MapTargetOrigin.mapPoint,
+        ),
+      );
 
   /// Entrega el punto a la app de navegacion del telefono.
   Future<void> _navigate(
@@ -860,7 +872,7 @@ class _MapArea extends StatelessWidget {
                     onNavigate: () => _navigate(context, state.pickedPoint!),
                     onCreate: actions.onCreate == null
                         ? null
-                        : () => _createFromPoint(state.pickedPoint!),
+                        : () => _createFromPoint(context, state.pickedPoint!),
                   ),
                 )
               else if (selected != null)
@@ -877,7 +889,7 @@ class _MapArea extends StatelessWidget {
                         : () => context.push(actions.openRoute!(selected)!),
                     onCreate: actions.onCreate == null
                         ? null
-                        : () => _createFromPin(selected),
+                        : () => _createFromPin(context, selected),
                     onNavigate: () => _navigate(
                       context,
                       selected.position,

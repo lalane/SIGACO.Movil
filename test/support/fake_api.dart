@@ -25,6 +25,10 @@ class FakeApi implements HttpClientAdapter {
   /// Sin red: toda peticion falla como si no hubiera conexion.
   bool offline = false;
 
+  /// Rutas (`METODO /ruta`) que fallan como si no hubiera conexion, mientras el
+  /// resto responde: un corte justo en un paso.
+  final failingRoutes = <String>{};
+
   void reply(String route, FakeReply Function(RequestOptions) handler) =>
       routes[route] = handler;
 
@@ -46,7 +50,8 @@ class FakeApi implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    if (offline) {
+    if (offline ||
+        failingRoutes.contains('${options.method} ${options.path}')) {
       throw DioException(
         requestOptions: options,
         type: DioExceptionType.connectionError,

@@ -44,8 +44,20 @@ Map<String, Object?> _page(List<Map<String, Object?>> items, {int? total}) => {
 const _config = {
   'operationalCatalogs': {
     'ticketTypes': [
-      {'code': 'BACHE', 'labelEs': 'Bache', 'labelPt': 'Buraco', 'sortOrder': 2, 'active': true},
-      {'code': 'FUGA', 'labelEs': 'Fuga de agua', 'labelPt': null, 'sortOrder': 1, 'active': true},
+      {
+        'code': 'BACHE',
+        'labelEs': 'Bache',
+        'labelPt': 'Buraco',
+        'sortOrder': 2,
+        'active': true,
+      },
+      {
+        'code': 'FUGA',
+        'labelEs': 'Fuga de agua',
+        'labelPt': null,
+        'sortOrder': 1,
+        'active': true,
+      },
       {'code': 'VIEJO', 'labelEs': 'Obsoleto', 'sortOrder': 3, 'active': false},
     ],
   },
@@ -105,10 +117,18 @@ void main() {
 
     test('abierto es lo que nadie ha atendido; lo demas, atendido', () {
       for (final s in ['NUEVO', 'ASIGNADO', 'REABIERTO']) {
-        expect(ApiTicketsRepository.statusFromCode(s), TicketStatus.open, reason: s);
+        expect(
+          ApiTicketsRepository.statusFromCode(s),
+          TicketStatus.open,
+          reason: s,
+        );
       }
       for (final s in ['EN_PROCESO', 'EN_ESPERA', 'RESUELTO', 'CERRADO']) {
-        expect(ApiTicketsRepository.statusFromCode(s), TicketStatus.attended, reason: s);
+        expect(
+          ApiTicketsRepository.statusFromCode(s),
+          TicketStatus.attended,
+          reason: s,
+        );
       }
     });
 
@@ -119,9 +139,14 @@ void main() {
     });
 
     test('titulo y descripcion viajan en una sola descripcion', () {
-      expect(ApiTicketsRepository.composeDescription('Bache', 'Junto al puente'), 'Bache\n\nJunto al puente');
+      expect(
+        ApiTicketsRepository.composeDescription('Bache', 'Junto al puente'),
+        'Bache\n\nJunto al puente',
+      );
       expect(ApiTicketsRepository.composeDescription(' Bache ', null), 'Bache');
-      final (title, body) = ApiTicketsRepository.splitDescription('Bache\n\nJunto al puente');
+      final (title, body) = ApiTicketsRepository.splitDescription(
+        'Bache\n\nJunto al puente',
+      );
       expect(title, 'Bache');
       expect(body, 'Junto al puente');
     });
@@ -165,18 +190,29 @@ void main() {
     });
 
     test('la ficha trae el seguimiento', () async {
-      api.on('GET /api/tickets/1', FakeReply(200, _dto('1', status: 'EN_PROCESO')));
-      api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, [
-        {
-          'id': 'f1',
-          'kind': 'PROGRESS',
-          'description': 'Se tapo el bache',
-          'previousStatus': 'NUEVO',
-          'newStatus': 'EN_PROCESO',
-          'createdAt': '2026-10-23T18:00:00Z',
-        },
-        {'id': 'f2', 'kind': 'COMMENT', 'description': 'Falta senalizar', 'createdAt': '2026-10-23T19:00:00Z'},
-      ]));
+      api.on(
+        'GET /api/tickets/1',
+        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+      );
+      api.on(
+        'GET /api/tickets/1/follow-ups',
+        const FakeReply(200, [
+          {
+            'id': 'f1',
+            'kind': 'AVANCE',
+            'description': 'Se tapo el bache',
+            'previousStatus': 'NUEVO',
+            'newStatus': 'EN_PROCESO',
+            'createdAt': '2026-10-23T18:00:00Z',
+          },
+          {
+            'id': 'f2',
+            'kind': 'COMMENT',
+            'description': 'Falta senalizar',
+            'createdAt': '2026-10-23T19:00:00Z',
+          },
+        ]),
+      );
       final t = await repo.get('1');
       expect(t.status, TicketStatus.attended);
       expect(t.followUps.map((f) => f.id), ['f1', 'f2']);
@@ -194,23 +230,58 @@ void main() {
         cacheDir: () async => dir,
       );
       api.on('GET /api/tickets/1', FakeReply(200, _dto('1')));
-      api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, [
-        {'id': 'f1', 'kind': 'PROGRESS', 'description': 'Listo', 'createdAt': '2026-10-23T18:00:00Z'},
-      ]));
-      api.on('GET /api/tickets/1/attachments', const FakeReply(200, [
-        {'id': 'a1', 'kind': 'PHOTO', 'contentType': 'image/jpeg', 'followUpId': null},
-        {'id': 'a2', 'kind': 'PHOTO', 'contentType': 'image/png', 'followUpId': 'f1'},
-        {'id': 'a3', 'kind': 'DOCUMENT', 'contentType': 'application/pdf', 'followUpId': null},
-      ]));
-      api.on('GET /api/tickets/1/attachments/a1/content', FakeReply.bytes(200, Uint8List.fromList([1, 2, 3])));
-      api.on('GET /api/tickets/1/attachments/a2/content', FakeReply.bytes(200, Uint8List.fromList([4, 5])));
+      api.on(
+        'GET /api/tickets/1/follow-ups',
+        const FakeReply(200, [
+          {
+            'id': 'f1',
+            'kind': 'AVANCE',
+            'description': 'Listo',
+            'createdAt': '2026-10-23T18:00:00Z',
+          },
+        ]),
+      );
+      api.on(
+        'GET /api/tickets/1/attachments',
+        const FakeReply(200, [
+          {
+            'id': 'a1',
+            'kind': 'FOTO',
+            'contentType': 'image/jpeg',
+            'followUpId': null,
+          },
+          {
+            'id': 'a2',
+            'kind': 'FOTO',
+            'contentType': 'image/png',
+            'followUpId': 'f1',
+          },
+          {
+            'id': 'a3',
+            'kind': 'DOCUMENT',
+            'contentType': 'application/pdf',
+            'followUpId': null,
+          },
+        ]),
+      );
+      api.on(
+        'GET /api/tickets/1/attachments/a1/content',
+        FakeReply.bytes(200, Uint8List.fromList([1, 2, 3])),
+      );
+      api.on(
+        'GET /api/tickets/1/attachments/a2/content',
+        FakeReply.bytes(200, Uint8List.fromList([4, 5])),
+      );
 
       final t = await withPhotos.get('1');
       expect(t.photoPaths, hasLength(1));
       expect(File(t.photoPaths.single).readAsBytesSync(), [1, 2, 3]);
       expect(t.photoPaths.single, endsWith('.jpg'));
       expect(t.followUps.single.photoPaths, hasLength(1));
-      expect(File(t.followUps.single.photoPaths.single).readAsBytesSync(), [4, 5]);
+      expect(File(t.followUps.single.photoPaths.single).readAsBytesSync(), [
+        4,
+        5,
+      ]);
       // El documento no es una foto: no se baja.
       expect(api.to('GET /api/tickets/1/attachments/a3/content'), isEmpty);
 
@@ -291,6 +362,18 @@ void main() {
       expect(body.containsKey('geometry'), isFalse);
     });
 
+    test('manda la prioridad que se eligio en el formulario', () async {
+      await repo.create(
+        const NewTicket(
+          title: 'Hundimiento',
+          category: 'Bache',
+          priority: TicketPriority.critical,
+        ),
+      );
+      final body = api.to('POST /api/tickets').single.data as Map;
+      expect(body['priority'], 'CRITICA');
+    });
+
     test('desde un activo no manda carretera: sale del activo', () async {
       await repo.create(
         const NewTicket(
@@ -339,7 +422,10 @@ void main() {
     test('sin carretera conocida no la inventa', () async {
       road = null;
       await repo.create(const NewTicket(title: 'x', category: 'Bache'));
-      expect((api.to('POST /api/tickets').single.data as Map).containsKey('roadId'), isFalse);
+      expect(
+        (api.to('POST /api/tickets').single.data as Map).containsKey('roadId'),
+        isFalse,
+      );
     });
 
     test('un tipo que el catalogo no tiene es un error', () async {
@@ -351,7 +437,10 @@ void main() {
     });
 
     test('sube las fotos como imagen, con hora y ubicacion', () async {
-      api.on('POST /api/tickets/7/attachments', const FakeReply(200, {'id': 'a1'}));
+      api.on(
+        'POST /api/tickets/7/attachments',
+        const FakeReply(200, {'id': 'a1'}),
+      );
       final dir = _tempDir();
       final photo = File('${dir.path}/foto.png')..writeAsBytesSync([1, 2, 3]);
       final missing = '${dir.path}/no_existe.jpg';
@@ -375,7 +464,7 @@ void main() {
       expect(uploads, hasLength(1));
       final form = uploads.single.data as FormData;
       final fields = {for (final f in form.fields) f.key: f.value};
-      expect(fields['kind'], 'PHOTO');
+      expect(fields['kind'], 'FOTO');
       expect(fields['latitude'], '-18.5');
       expect(fields['longitude'], '-42.1');
       expect(fields['capturedAt'], '2026-10-23T15:00:00.000Z');
@@ -387,33 +476,48 @@ void main() {
       expect(file.value.contentType?.mimeType, 'image/png');
     });
 
-    test('una foto que no sube deja ver el error', () async {
+    test('una foto que no sube deja el registro guardado y lo dice', () async {
       api.on('POST /api/tickets/7/attachments', const FakeReply(500));
       final dir = _tempDir();
       final photo = File('${dir.path}/foto.jpg')..writeAsBytesSync([1]);
       await expectLater(
-        repo.create(NewTicket(title: 'x', category: 'Bache', photoPaths: [photo.path])),
-        _fails(TicketsError.server),
+        repo.create(
+          NewTicket(title: 'x', category: 'Bache', photoPaths: [photo.path]),
+        ),
+        throwsA(isA<TicketPartiallySavedException>()),
       );
     });
   });
 
   group('seguimiento', () {
     NewFollowUp followUp(TicketStatus s, {String text = 'Se reviso'}) =>
-        NewFollowUp(at: DateTime.utc(2026, 10, 23, 18), status: s, description: text);
+        NewFollowUp(
+          at: DateTime.utc(2026, 10, 23, 18),
+          status: s,
+          description: text,
+        );
 
     void server({required String status}) {
-      api.on('POST /api/tickets/1/follow-ups', const FakeReply(200, {'id': 'f9'}));
-      api.on('GET /api/tickets/1', FakeReply(200, _dto('1', status: status, rowVersion: 5)));
+      api.on(
+        'POST /api/tickets/1/follow-ups',
+        const FakeReply(200, {'id': 'f9'}),
+      );
+      api.on(
+        'GET /api/tickets/1',
+        FakeReply(200, _dto('1', status: status, rowVersion: 5)),
+      );
       api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, <Object>[]));
-      api.on('POST /api/tickets/1/status', FakeReply(200, _dto('1', status: 'EN_PROCESO')));
+      api.on(
+        'POST /api/tickets/1/status',
+        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+      );
     }
 
     test('un comentario no cambia el estado', () async {
       server(status: 'NUEVO');
       await repo.addFollowUp('1', followUp(TicketStatus.open));
       final body = api.to('POST /api/tickets/1/follow-ups').single.data as Map;
-      expect(body, {'kind': 'PROGRESS', 'description': 'Se reviso'});
+      expect(body, {'kind': 'AVANCE', 'description': 'Se reviso'});
       expect(api.to('POST /api/tickets/1/status'), isEmpty);
     });
 
@@ -439,7 +543,10 @@ void main() {
 
     test('un cambio de estado que el servidor niega es un error', () async {
       server(status: 'NUEVO');
-      api.on('POST /api/tickets/1/status', const FakeReply(409, {'code': 'TRANSITION_NOT_ALLOWED'}));
+      api.on(
+        'POST /api/tickets/1/status',
+        const FakeReply(409, {'code': 'TRANSITION_NOT_ALLOWED'}),
+      );
       await expectLater(
         repo.addFollowUp('1', followUp(TicketStatus.attended)),
         _fails(TicketsError.server),
@@ -448,7 +555,10 @@ void main() {
 
     test('las fotos del seguimiento van ligadas a el', () async {
       server(status: 'EN_PROCESO');
-      api.on('POST /api/tickets/1/attachments', const FakeReply(200, {'id': 'a1'}));
+      api.on(
+        'POST /api/tickets/1/attachments',
+        const FakeReply(200, {'id': 'a1'}),
+      );
       final dir = _tempDir();
       final photo = File('${dir.path}/f.jpg')..writeAsBytesSync([1]);
       await repo.addFollowUp(
@@ -460,7 +570,8 @@ void main() {
           photoPaths: [photo.path],
         ),
       );
-      final form = api.to('POST /api/tickets/1/attachments').single.data as FormData;
+      final form =
+          api.to('POST /api/tickets/1/attachments').single.data as FormData;
       expect({for (final f in form.fields) f.key: f.value}['followUpId'], 'f9');
     });
   });

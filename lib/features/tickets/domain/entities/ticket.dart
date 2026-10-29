@@ -5,6 +5,19 @@ import 'package:equatable/equatable.dart';
 /// colores de estatus son del sistema (COL-05).
 enum TicketStatus { open, attended }
 
+/// La prioridad con la que se levanta un ticket; `code` es el del catalogo
+/// PRIORIDAD del servidor.
+enum TicketPriority {
+  low('BAJA'),
+  medium('MEDIA'),
+  high('ALTA'),
+  critical('CRITICA');
+
+  const TicketPriority(this.code);
+
+  final String code;
+}
+
 /// Una anotacion de seguimiento: lo que se hizo, en que estado quedo el ticket
 /// y las fotos de evidencia.
 class TicketFollowUp extends Equatable {
@@ -253,6 +266,7 @@ class NewTicket extends Equatable {
   const NewTicket({
     required this.title,
     required this.category,
+    this.priority = TicketPriority.medium,
     this.kmLabel,
     this.description,
     this.photoPaths = const [],
@@ -264,6 +278,7 @@ class NewTicket extends Equatable {
 
   final String title;
   final String category;
+  final TicketPriority priority;
   final String? kmLabel;
   final String? description;
   final List<String> photoPaths;
@@ -287,6 +302,7 @@ class NewTicket extends Equatable {
   List<Object?> get props => [
     title,
     category,
+    priority,
     kmLabel,
     description,
     photoPaths,

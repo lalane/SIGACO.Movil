@@ -29,6 +29,7 @@ class CurrentUser extends Equatable {
     this.organizationArea,
     this.jobTitle,
     this.companyName,
+    this.teamName,
   });
 
   final String id;
@@ -42,6 +43,9 @@ class CurrentUser extends Equatable {
   final String? jobTitle;
   final String? companyName;
 
+  /// El equipo (team) de la empresa al que pertenece, en la concesion activa.
+  final String? teamName;
+
   @override
   List<Object?> get props => [
     id,
@@ -51,6 +55,7 @@ class CurrentUser extends Equatable {
     organizationArea,
     jobTitle,
     companyName,
+    teamName,
   ];
 }
 

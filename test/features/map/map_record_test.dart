@@ -275,6 +275,7 @@ void main() {
     );
 
     late SampleTicketsRepository tickets;
+    late _CountingMap pinsRepo;
     late List<Uri> navigated;
     late Future<bool> Function(Uri) originalOpener;
 
@@ -309,6 +310,7 @@ void main() {
       useSurface(tester, TestSurface.phone);
       SharedPreferences.setMockInitialValues({});
       tickets = SampleTicketsRepository();
+      pinsRepo = _CountingMap();
       final deps = AppDependencies(
         prefs: await SharedPreferences.getInstance(),
         authRepository: FakeAuthRepository(),
@@ -316,7 +318,7 @@ void main() {
         navigationRepository: FakeNavigationRepository(menu: menuWith(modules)),
         brandingRepository: FakeBrandingRepository(const {}),
         logoStore: FakeLogoStore(),
-        mapRepository: SampleMapRepository(),
+        mapRepository: pinsRepo,
         roadSegmentsRepository: FakeRoadSegmentsRepository(),
         locationSource: FakeLocationSource(
           location: location ?? here(),
@@ -473,6 +475,21 @@ void main() {
       expect(created.kmLabel, 'KM 163+200');
     });
 
+    testWidgets(
+      'al volver de crear un registro el mapa se vuelve a consultar',
+      (tester) async {
+        await launch(tester);
+        await openInventoryPin(tester, 'A-012');
+        final before = pinsRepo.calls;
+        await tester.tap(find.byKey(const Key('map-detail-create')));
+        await tester.pumpAndSettle();
+        await fillAndSave(tester, 'Drenaje obstruido');
+
+        expect(find.text('Registro creado.'), findsOneWidget);
+        expect(pinsRepo.calls, greaterThan(before));
+      },
+    );
+
     testWidgets('sin el modulo de registros no se ofrece crearlos', (
       tester,
     ) async {
@@ -601,6 +618,17 @@ void main() {
 }
 
 /// Anota los borradores que recibe y los guarda en el repositorio de ejemplo.
+/// Cuenta las consultas de pines: el mapa debe ponerse al dia al volver.
+class _CountingMap extends SampleMapRepository {
+  int calls = 0;
+
+  @override
+  Future<List<MapPin>> pins(MapLayer layer) {
+    calls++;
+    return super.pins(layer);
+  }
+}
+
 class _SpyTickets extends SampleTicketsRepository implements TicketsRepository {
   final drafts = <NewTicket>[];
 
