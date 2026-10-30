@@ -86,6 +86,7 @@ import '../features/map/data/packs/map_pack_remote.dart';
 import '../features/map/data/packs/unavailable_map_pack_manager.dart';
 import '../features/map/data/location/unavailable_location_source.dart';
 import '../features/map/data/repositories/api_map_repository.dart';
+import '../features/map/data/repositories/api_road_segments_repository.dart';
 import '../features/map/data/repositories/cached_map_repository.dart';
 import '../features/map/data/repositories/cached_road_segments_repository.dart';
 import '../features/map/data/repositories/near_me_sample_road_segments_repository.dart';
@@ -778,7 +779,7 @@ class AppDependencies {
       ),
       roadSegmentsRepository: DemoAwareRoadSegments(
         real: CachedRoadSegmentsRepository(
-          const UnavailableRoadSegmentsRepository(),
+          ApiRoadSegmentsRepository(api),
           mapPinsCache,
         ),
         sample: AppConfig.sampleMapNearMe
