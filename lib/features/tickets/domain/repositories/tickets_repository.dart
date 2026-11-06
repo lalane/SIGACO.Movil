@@ -46,6 +46,15 @@ abstract interface class TicketFailureSource {
   Future<List<TicketFailure>> failures();
 }
 
+/// Distancia maxima del punto de un ticket a la carretera; la misma que valida
+/// el servidor (RoadLocator.TicketToleranceMeters, decision del 06/11/2026).
+const ticketAxisToleranceMeters = 100;
+
+/// Ubica el punto del ticket sobre la carretera antes de guardar.
+abstract interface class TicketPlacementSource {
+  Future<TicketPlacement> place(double longitude, double latitude);
+}
+
 /// Los tickets de la concesion activa. Lanza [TicketsException].
 abstract interface class TicketsRepository {
   Future<List<Ticket>> list();

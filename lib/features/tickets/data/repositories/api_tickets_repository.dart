@@ -15,7 +15,8 @@ import '../../domain/repositories/tickets_repository.dart';
 /// ambito de la persona y el SLA; la app traduce el ticket del servidor a lo que
 /// muestra (abierto o atendido, APP-MOB-03) y el seguimiento y las fotos que
 /// captura a lo que el servidor guarda.
-class ApiTicketsRepository implements TicketsRepository, TicketFailureSource {
+class ApiTicketsRepository
+    implements TicketsRepository, TicketFailureSource, TicketPlacementSource {
   ApiTicketsRepository(
     this._api, {
     required this.roadId,
@@ -205,6 +206,39 @@ class ApiTicketsRepository implements TicketsRepository, TicketFailureSource {
   /// Las fallas de la Matriz: los tipos de ticket con plazo fijo
   /// (`attentionHours`), con su indicador y su subclasificacion.
   @override
+  @override
+  Future<TicketPlacement> place(double longitude, double latitude) async {
+    try {
+      final m = _asMap(
+        await _api.getJson(
+          '/api/road-network/locate',
+          query: {
+            'lon': longitude,
+            'lat': latitude,
+            'tolerance': ticketAxisToleranceMeters,
+          },
+        ),
+      );
+      final km = _num(m['km']);
+      if (km == null) return const TicketPlacement.unknown();
+      return TicketPlacement(
+        status: TicketPlacementStatus.onRoad,
+        km: km.toDouble(),
+        direction: _text(m['direction']),
+        segmentCode: _text(m['roadSegmentCode']),
+        distanceMeters: _num(m['distanceMeters'])?.toDouble(),
+        directionAmbiguous: m['directionAmbiguous'] == true,
+      );
+    } on ApiFailure catch (e) {
+      return e.code == 'LOCATION_OUT_OF_AXIS'
+          ? const TicketPlacement.offRoad()
+          : const TicketPlacement.unknown();
+    } catch (_) {
+      return const TicketPlacement.unknown();
+    }
+  }
+
+  @override
   Future<List<TicketFailure>> failures() => _guard(() async {
     final json = _asMap(await _api.getJson('/api/app-configuration'));
     final catalogs = json['operationalCatalogs'];
@@ -308,6 +342,7 @@ class ApiTicketsRepository implements TicketsRepository, TicketFailureSource {
       'assetId': ?assetId,
       'roadId': ?road,
       'kmStart': ?km,
+      'direction': ?draft.direction,
       if (location != null)
         'geometry': {
           'type': 'Point',

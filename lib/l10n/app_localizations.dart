@@ -6265,6 +6265,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Elige el indicador, la subclasificación y la falla.'**
   String get newTicketErrorFailure;
+
+  /// No description provided for @ticketPlacementSegment.
+  ///
+  /// In es, this message translates to:
+  /// **'tramo {code}'**
+  String ticketPlacementSegment(String code);
+
+  /// No description provided for @ticketPlacementDistance.
+  ///
+  /// In es, this message translates to:
+  /// **'a {meters} m de la carretera'**
+  String ticketPlacementDistance(int meters);
+
+  /// No description provided for @ticketPlacementOffRoad.
+  ///
+  /// In es, this message translates to:
+  /// **'El punto está a más de {meters} m de la carretera: márquelo sobre la carretera de la concesión.'**
+  String ticketPlacementOffRoad(int meters);
 }
 
 class _AppLocalizationsDelegate

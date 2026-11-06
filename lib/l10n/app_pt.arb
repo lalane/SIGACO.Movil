@@ -1510,5 +1510,8 @@
   "newTicketAttentionImmediate": "Imediato",
   "newTicketAttentionDays": "{days} dias",
   "newTicketAttentionHours": "{hours} horas",
-  "newTicketErrorFailure": "Escolha o indicador, a subclassificação e a falha."
+  "newTicketErrorFailure": "Escolha o indicador, a subclassificação e a falha.",
+  "ticketPlacementSegment": "trecho {code}",
+  "ticketPlacementDistance": "a {meters} m da rodovia",
+  "ticketPlacementOffRoad": "O ponto está a mais de {meters} m da rodovia: marque-o sobre a rodovia da concessão."
 }

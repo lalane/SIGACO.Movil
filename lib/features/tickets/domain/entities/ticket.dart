@@ -327,7 +327,11 @@ class NewTicket extends Equatable {
     this.location,
     this.clientId,
     this.fixedAttention = false,
+    this.direction,
   });
+
+  /// El sentido (CRECIENTE o DECRECIENTE) cuando el punto lo dice; null si no.
+  final String? direction;
 
   /// La categoria es una falla de la Matriz: el plazo es fijo y la prioridad la
   /// calcula el servidor, asi que no se manda.
@@ -368,5 +372,52 @@ class NewTicket extends Equatable {
     location,
     clientId,
     fixedAttention,
+    direction,
+  ];
+}
+
+/// Donde cae el punto del ticket sobre la carretera (`/api/road-network/locate`).
+enum TicketPlacementStatus {
+  /// Dentro de la tolerancia: trae km, sentido y tramo.
+  onRoad,
+
+  /// Lejos de la carretera: el servidor rechaza el ticket.
+  offRoad,
+
+  /// Sin red o sin eje cargado: no se puede saber, el servidor lo revisa.
+  unknown,
+}
+
+class TicketPlacement extends Equatable {
+  const TicketPlacement({
+    required this.status,
+    this.km,
+    this.direction,
+    this.segmentCode,
+    this.distanceMeters,
+    this.directionAmbiguous = false,
+  });
+
+  const TicketPlacement.unknown() : this(status: TicketPlacementStatus.unknown);
+
+  const TicketPlacement.offRoad() : this(status: TicketPlacementStatus.offRoad);
+
+  final TicketPlacementStatus status;
+  final double? km;
+  final String? direction;
+  final String? segmentCode;
+  final double? distanceMeters;
+
+  /// Los dos sentidos comparten trazo: el punto no dice el sentido.
+  final bool directionAmbiguous;
+
+  @override
+  List<Object?> get props => [
+    status,
+    km,
+    direction,
+    segmentCode,
+    distanceMeters,
+    directionAmbiguous,
   ];
 }

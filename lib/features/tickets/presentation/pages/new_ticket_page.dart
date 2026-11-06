@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/files/file_source.dart';
+import '../../../../core/geo/km_label.dart';
 import '../../../../core/ui/module_format.dart';
 import '../../../../core/ui/module_header.dart';
 import '../../domain/entities/ticket.dart';
+import '../../domain/repositories/tickets_repository.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/new_ticket_cubit.dart';
 import '../ticket_labels.dart';
@@ -124,7 +126,13 @@ class NewTicketPage extends StatelessWidget {
             if (cubit.location != null)
               ModuleField(
                 label: l10n.ticketLocationTitle,
-                child: _LocationBlock(location: cubit.location!),
+                error: state.placement?.status == TicketPlacementStatus.offRoad
+                    ? l10n.ticketPlacementOffRoad(ticketAxisToleranceMeters)
+                    : null,
+                child: _LocationBlock(
+                  location: cubit.location!,
+                  placement: state.placement,
+                ),
               ),
             ModuleField(
               label: l10n.newTicketName,
@@ -293,12 +301,16 @@ class NewTicketPage extends StatelessWidget {
               ),
             ModuleField(
               label: l10n.newTicketChainage,
-              child: TextFormField(
-                key: const Key('new-ticket-km'),
-                initialValue: state.kmLabel,
-                onChanged: cubit.setKm,
-                style: moduleInkStyle,
-                decoration: moduleInput(context, hint: 'KM 150+200'),
+              // Cuando el punto se ubica en la carretera, el km llega despues.
+              child: KeyedSubtree(
+                key: ValueKey('new-ticket-km-${state.placement?.km}'),
+                child: TextFormField(
+                  key: const Key('new-ticket-km'),
+                  initialValue: state.kmLabel,
+                  onChanged: cubit.setKm,
+                  style: moduleInkStyle,
+                  decoration: moduleInput(context, hint: 'KM 150+200'),
+                ),
               ),
             ),
             ModuleField(
@@ -331,10 +343,27 @@ String _attention(AppLocalizations l10n, TicketFailure f) {
 
 /// La ubicacion del registro, de solo lectura (FRM-02): donde, que tan precisa
 /// es y de donde salio.
+/// «KM 101+450 · Sentido creciente · tramo 381BMG0100 · a 12 m de la carretera».
+String? _placementLine(AppLocalizations l10n, TicketPlacement? p) {
+  if (p == null || p.status != TicketPlacementStatus.onRoad) return null;
+  final parts = [
+    ?kmLabel(p.km, null),
+    if (!p.directionAmbiguous && p.direction == 'CRECIENTE')
+      l10n.mapDirectionIncreasing,
+    if (!p.directionAmbiguous && p.direction == 'DECRECIENTE')
+      l10n.mapDirectionDecreasing,
+    if (p.segmentCode != null) l10n.ticketPlacementSegment(p.segmentCode!),
+    if (p.distanceMeters != null)
+      l10n.ticketPlacementDistance(p.distanceMeters!.round()),
+  ];
+  return parts.join(' · ');
+}
+
 class _LocationBlock extends StatelessWidget {
-  const _LocationBlock({required this.location});
+  const _LocationBlock({required this.location, this.placement});
 
   final TicketLocation location;
+  final TicketPlacement? placement;
 
   @override
   Widget build(BuildContext context) {
@@ -359,6 +388,7 @@ class _LocationBlock extends StatelessWidget {
           location.accuracyMeters!.round().toString(),
         ),
       if (location.assetId != null) l10n.ticketLocationAsset(location.assetId!),
+      ?_placementLine(l10n, placement),
     ];
     return Container(
       key: const Key('ticket-location'),

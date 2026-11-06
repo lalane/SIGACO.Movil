@@ -1,12 +1,15 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/geo/km_label.dart';
 import '../../../../core/ids/client_id.dart';
 import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/tickets_repository.dart';
 import 'follow_up_cubit.dart';
 
-enum NewTicketIssue { title, category }
+enum NewTicketIssue { title, category, offRoad }
 
 /// Las fallas de la Matriz que la persona puede usar: las de sus indicadores.
 /// Null si no se sabe (todas).
@@ -30,7 +33,11 @@ class NewTicketState extends Equatable {
     this.showIssues = false,
     this.failed = false,
     this.warning,
+    this.placement,
   });
+
+  /// Donde cae el punto sobre la carretera; null si no hay punto o aun no se sabe.
+  final TicketPlacement? placement;
 
   /// Las fallas de la Matriz; vacio, el formulario usa la lista plana.
   final List<TicketFailure> failures;
@@ -80,6 +87,8 @@ class NewTicketState extends Equatable {
   List<NewTicketIssue> get issues => [
     if (title.trim().isEmpty) NewTicketIssue.title,
     if (category == null) NewTicketIssue.category,
+    if (placement?.status == TicketPlacementStatus.offRoad)
+      NewTicketIssue.offRoad,
   ];
 
   NewTicketState copyWith({
@@ -101,6 +110,7 @@ class NewTicketState extends Equatable {
     bool? showIssues,
     bool? failed,
     String? warning,
+    TicketPlacement? placement,
   }) => NewTicketState(
     failures: failures ?? this.failures,
     indicator: clearSelection ? indicator : (indicator ?? this.indicator),
@@ -118,6 +128,7 @@ class NewTicketState extends Equatable {
     showIssues: showIssues ?? this.showIssues,
     failed: failed ?? this.failed,
     warning: warning ?? this.warning,
+    placement: placement ?? this.placement,
   );
 
   @override
@@ -138,6 +149,7 @@ class NewTicketState extends Equatable {
     showIssues,
     failed,
     warning,
+    placement,
   ];
 }
 
@@ -178,7 +190,35 @@ class NewTicketCubit extends Cubit<NewTicketState> {
   /// Cuando se abrio el formulario, en UTC.
   DateTime get capturedAt => _capturedAt;
 
+  /// Un punto del mapa o del GPS (no un activo) tiene que caer sobre la
+  /// carretera: se ubica para llenar el km y avisar antes de guardar.
+  Future<void> _place() async {
+    final at = location;
+    final source = _repository;
+    if (at == null || at.assetId != null || source is! TicketPlacementSource) {
+      return;
+    }
+    final placement = await (source as TicketPlacementSource).place(
+      at.longitude,
+      at.latitude,
+    );
+    if (isClosed) return;
+    final km = placement.status == TicketPlacementStatus.onRoad
+        ? kmLabel(placement.km, null)
+        : null;
+    // El km que ya escribio la persona se respeta.
+    final typed = state.kmLabel.trim();
+    final keep = typed.isNotEmpty && typed != (at.kmLabel ?? '').trim();
+    emit(
+      state.copyWith(
+        placement: placement,
+        kmLabel: km != null && !keep ? km : null,
+      ),
+    );
+  }
+
   Future<void> load() async {
+    unawaited(_place());
     var failures = const <TicketFailure>[];
     final source = _repository;
     if (source is TicketFailureSource) {
@@ -265,6 +305,11 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           location: location,
           clientId: _clientId,
           fixedAttention: state.failure != null,
+          direction:
+              state.placement?.status == TicketPlacementStatus.onRoad &&
+                  !state.placement!.directionAmbiguous
+              ? state.placement!.direction
+              : null,
         ),
       );
       if (isClosed) return;

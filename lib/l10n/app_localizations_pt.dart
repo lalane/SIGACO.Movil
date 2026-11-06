@@ -3430,4 +3430,19 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get newTicketErrorFailure =>
       'Escolha o indicador, a subclassificação e a falha.';
+
+  @override
+  String ticketPlacementSegment(String code) {
+    return 'trecho $code';
+  }
+
+  @override
+  String ticketPlacementDistance(int meters) {
+    return 'a $meters m da rodovia';
+  }
+
+  @override
+  String ticketPlacementOffRoad(int meters) {
+    return 'O ponto está a mais de $meters m da rodovia: marque-o sobre a rodovia da concessão.';
+  }
 }

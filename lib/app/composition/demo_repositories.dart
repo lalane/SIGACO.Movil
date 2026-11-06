@@ -25,7 +25,8 @@ import '../../features/works/domain/repositories/works_repository.dart';
 /// se consulta en cada llamada, asi el interruptor de la cuenta cambia de una a
 /// otra al momento, sin reiniciar la app ni cerrar la sesion.
 
-class DemoAwareTickets implements TicketsRepository, TicketFailureSource {
+class DemoAwareTickets
+    implements TicketsRepository, TicketFailureSource, TicketPlacementSource {
   const DemoAwareTickets({
     required this.real,
     required this.sample,
@@ -60,6 +61,14 @@ class DemoAwareTickets implements TicketsRepository, TicketFailureSource {
     return r is TicketFailureSource
         ? (r as TicketFailureSource).failures()
         : const <TicketFailure>[];
+  }
+
+  @override
+  Future<TicketPlacement> place(double longitude, double latitude) async {
+    final r = _r;
+    return r is TicketPlacementSource
+        ? (r as TicketPlacementSource).place(longitude, latitude)
+        : const TicketPlacement.unknown();
   }
 }
 

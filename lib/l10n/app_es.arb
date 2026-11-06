@@ -1682,5 +1682,29 @@
       }
     }
   },
-  "newTicketErrorFailure": "Elige el indicador, la subclasificación y la falla."
+  "newTicketErrorFailure": "Elige el indicador, la subclasificación y la falla.",
+  "ticketPlacementSegment": "tramo {code}",
+  "@ticketPlacementSegment": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketPlacementDistance": "a {meters} m de la carretera",
+  "@ticketPlacementDistance": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "ticketPlacementOffRoad": "El punto está a más de {meters} m de la carretera: márquelo sobre la carretera de la concesión.",
+  "@ticketPlacementOffRoad": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  }
 }

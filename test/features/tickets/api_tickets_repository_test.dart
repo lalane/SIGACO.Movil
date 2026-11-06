@@ -330,6 +330,44 @@ void main() {
     });
   });
 
+  group('punto sobre la carretera', () {
+    test('trae km, sentido y tramo', () async {
+      api.on(
+        'GET /api/road-network/locate',
+        const FakeReply(200, {
+          'roadId': 'r1',
+          'roadCode': 'BR-381',
+          'direction': 'CRECIENTE',
+          'km': 146.9,
+          'roadSegmentCode': '381BMG0100',
+          'distanceMeters': 12.4,
+          'directionAmbiguous': false,
+        }),
+      );
+      final p = await repo.place(-42.61, -19.53);
+      expect(p.status, TicketPlacementStatus.onRoad);
+      expect(
+        (p.km, p.direction, p.segmentCode),
+        (146.9, 'CRECIENTE', '381BMG0100'),
+      );
+    });
+
+    test('lejos de la carretera o sin eje', () async {
+      api.on(
+        'GET /api/road-network/locate',
+        const FakeReply(404, {'code': 'LOCATION_OUT_OF_AXIS'}),
+      );
+      expect((await repo.place(0, 0)).status, TicketPlacementStatus.offRoad);
+      api.on(
+        'GET /api/road-network/locate',
+        const FakeReply(409, {'code': 'ROAD_AXIS_NOT_LOADED'}),
+      );
+      expect((await repo.place(0, 0)).status, TicketPlacementStatus.unknown);
+      api.offline = true;
+      expect((await repo.place(0, 0)).status, TicketPlacementStatus.unknown);
+    });
+  });
+
   group('matriz de fallas', () {
     test(
       'solo los tipos con plazo, con indicador y subclasificacion',
