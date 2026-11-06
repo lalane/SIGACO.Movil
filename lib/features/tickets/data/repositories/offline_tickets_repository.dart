@@ -15,7 +15,8 @@ import 'api_tickets_repository.dart';
 ///
 /// Para armar un ticket sin red hace falta haber visto antes los tipos de ticket
 /// y la carretera de la concesion: al abrir el formulario se aprenden.
-class OfflineTicketsRepository implements TicketsRepository, ScopeBound {
+class OfflineTicketsRepository
+    implements TicketsRepository, TicketFailureSource, ScopeBound {
   OfflineTicketsRepository(this._online, this._queue, this._files);
 
   final ApiTicketsRepository _online;
@@ -50,6 +51,9 @@ class OfflineTicketsRepository implements TicketsRepository, ScopeBound {
 
   @override
   Future<Ticket> get(String id) => _online.get(id);
+
+  @override
+  Future<List<TicketFailure>> failures() => _online.failures();
 
   @override
   Future<List<String>> categories() async {

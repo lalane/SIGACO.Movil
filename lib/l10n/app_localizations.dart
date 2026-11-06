@@ -3737,19 +3737,19 @@ abstract class AppLocalizations {
   /// No description provided for @maintProgressPercent.
   ///
   /// In es, this message translates to:
-  /// **'Avance del proyecto (%)'**
+  /// **'Avance acumulado (%), si no conoces el volumen'**
   String get maintProgressPercent;
 
   /// No description provided for @maintProgressVolume.
   ///
   /// In es, this message translates to:
-  /// **'Volumen ejecutado'**
+  /// **'Volumen ejecutado en este seguimiento'**
   String get maintProgressVolume;
 
   /// No description provided for @maintProgressVolumeUnit.
   ///
   /// In es, this message translates to:
-  /// **'Volumen ejecutado ({unit})'**
+  /// **'Volumen ejecutado en este seguimiento ({unit})'**
   String maintProgressVolumeUnit(String unit);
 
   /// No description provided for @maintProgressNotes.
@@ -3785,7 +3785,7 @@ abstract class AppLocalizations {
   /// No description provided for @maintProgressErrorVolume.
   ///
   /// In es, this message translates to:
-  /// **'Escribe un volumen válido.'**
+  /// **'Escribe un volumen mayor que 0.'**
   String get maintProgressErrorVolume;
 
   /// No description provided for @maintProgressNetwork.
@@ -6145,6 +6145,126 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Usuarios que más tickets han generado'**
   String get dashTopCreators;
+
+  /// No description provided for @maintProgressStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Llevas {executed} de {total} {unit} ({percent} %). Faltan {remaining}.'**
+  String maintProgressStatus(
+    String executed,
+    String total,
+    String unit,
+    String percent,
+    String remaining,
+  );
+
+  /// No description provided for @maintProgressResult.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedará en {percent} %.'**
+  String maintProgressResult(String percent);
+
+  /// No description provided for @maintProgressVolumeRules.
+  ///
+  /// In es, this message translates to:
+  /// **'Se suma a lo ya ejecutado. Con volumen, el avance se calcula solo.'**
+  String get maintProgressVolumeRules;
+
+  /// No description provided for @maintProgressErrorMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe el volumen ejecutado o el avance acumulado.'**
+  String get maintProgressErrorMissing;
+
+  /// No description provided for @maintProgressErrorVolumeOver.
+  ///
+  /// In es, this message translates to:
+  /// **'Supera lo que falta: quedan {remaining}.'**
+  String maintProgressErrorVolumeOver(String remaining);
+
+  /// No description provided for @maintProgressErrorPercentBelow.
+  ///
+  /// In es, this message translates to:
+  /// **'El avance no puede bajar: ya va en {percent} %.'**
+  String maintProgressErrorPercentBelow(String percent);
+
+  /// No description provided for @maintProgressPhotosFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'El avance se guardó, pero no todas las fotos. Vuelve a intentarlo desde la web.'**
+  String get maintProgressPhotosFailed;
+
+  /// No description provided for @maintIndicatorsNone.
+  ///
+  /// In es, this message translates to:
+  /// **'No tienes indicadores asignados en esta concesión. Pide a tu administrador que te los asigne.'**
+  String get maintIndicatorsNone;
+
+  /// No description provided for @maintIndicatorsFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar tus indicadores.'**
+  String get maintIndicatorsFailed;
+
+  /// No description provided for @newTicketIndicator.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicador'**
+  String get newTicketIndicator;
+
+  /// No description provided for @newTicketGroup.
+  ///
+  /// In es, this message translates to:
+  /// **'Subclasificación'**
+  String get newTicketGroup;
+
+  /// No description provided for @newTicketFailure.
+  ///
+  /// In es, this message translates to:
+  /// **'Falla'**
+  String get newTicketFailure;
+
+  /// No description provided for @newTicketAttention.
+  ///
+  /// In es, this message translates to:
+  /// **'Plazo de atención'**
+  String get newTicketAttention;
+
+  /// No description provided for @newTicketAttentionPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Sale de la falla elegida'**
+  String get newTicketAttentionPending;
+
+  /// No description provided for @newTicketAttentionValue.
+  ///
+  /// In es, this message translates to:
+  /// **'{value} · fijo, corre 24×7'**
+  String newTicketAttentionValue(String value);
+
+  /// No description provided for @newTicketAttentionImmediate.
+  ///
+  /// In es, this message translates to:
+  /// **'Inmediato'**
+  String get newTicketAttentionImmediate;
+
+  /// No description provided for @newTicketAttentionDays.
+  ///
+  /// In es, this message translates to:
+  /// **'{days} días'**
+  String newTicketAttentionDays(int days);
+
+  /// No description provided for @newTicketAttentionHours.
+  ///
+  /// In es, this message translates to:
+  /// **'{hours} horas'**
+  String newTicketAttentionHours(int hours);
+
+  /// No description provided for @newTicketErrorFailure.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el indicador, la subclasificación y la falla.'**
+  String get newTicketErrorFailure;
 }
 
 class _AppLocalizationsDelegate

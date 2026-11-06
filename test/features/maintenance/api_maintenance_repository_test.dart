@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigaco_movil/features/maintenance/data/repositories/api_maintenance_repository.dart';
 import 'package:sigaco_movil/features/maintenance/domain/entities/maintenance.dart';
@@ -149,27 +152,159 @@ void main() {
     ]);
   });
 
-  test('el avance se envia con su clave y devuelve la orden', () async {
+  test(
+    'con volumen se envia solo lo de este seguimiento, con su clave',
+    () async {
+      api.on(
+        'POST /api/preventive-maintenance/1/progress',
+        const FakeReply(201, {'id': 'p1'}),
+      );
+      api.on('GET /api/preventive-maintenance/1', FakeReply(200, _dto('1')));
+      final order = await repo.addProgress(
+        '1',
+        percent: 120,
+        executedVolume: 60,
+        notes: '  Se limpio el tramo  ',
+        at: DateTime(2026, 11, 5, 9),
+        clientId: 'c0a80101-0000-4000-8000-000000000009',
+      );
+      expect(order.id, '1');
+      final body =
+          api.to('POST /api/preventive-maintenance/1/progress').single.data
+              as Map;
+      // Con volumen el servidor ignora el % y suma el volumen: no se manda.
+      expect(body.containsKey('progressPercent'), isFalse);
+      expect(body['executedVolume'], 60);
+      expect(body['reportedOn'], '2026-11-05');
+      expect(body['notes'], 'Se limpio el tramo');
+      expect(body['clientUuid'], 'c0a80101-0000-4000-8000-000000000009');
+    },
+  );
+
+  test('sin volumen se envia el avance acumulado', () async {
     api.on(
       'POST /api/preventive-maintenance/1/progress',
       const FakeReply(201, {'id': 'p1'}),
     );
     api.on('GET /api/preventive-maintenance/1', FakeReply(200, _dto('1')));
-    final order = await repo.addProgress(
-      '1',
-      percent: 120,
-      executedVolume: 60,
-      notes: '  Se limpio el tramo  ',
-      clientId: 'c0a80101-0000-4000-8000-000000000009',
-    );
-    expect(order.id, '1');
+    await repo.addProgress('1', percent: 120);
     final body =
         api.to('POST /api/preventive-maintenance/1/progress').single.data
             as Map;
     expect(body['progressPercent'], 100);
-    expect(body['executedVolume'], 60);
-    expect(body['notes'], 'Se limpio el tramo');
-    expect(body['clientUuid'], 'c0a80101-0000-4000-8000-000000000009');
+    expect(body.containsKey('executedVolume'), isFalse);
+  });
+
+  test('las fotos suben ligadas al seguimiento que creo el servidor', () async {
+    api.on(
+      'POST /api/preventive-maintenance/1/progress',
+      const FakeReply(201, {'id': 'p1'}),
+    );
+    api.on(
+      'POST /api/preventive-maintenance/1/attachments',
+      const FakeReply(201, {'id': 'a1'}),
+    );
+    api.on('GET /api/preventive-maintenance/1', FakeReply(200, _dto('1')));
+    final dir = Directory.systemTemp.createTempSync('maint_photos');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows puede tener la foto abierta todavia: lo recoge el sistema.
+      }
+    });
+    final photo = File('${dir.path}/foto.png')..writeAsBytesSync([1, 2, 3]);
+
+    await repo.addProgress(
+      '1',
+      executedVolume: 5,
+      photoPaths: [photo.path, '${dir.path}/no_existe.jpg'],
+      at: DateTime.utc(2026, 11, 5, 15),
+    );
+
+    final uploads = api
+        .to('POST /api/preventive-maintenance/1/attachments')
+        .toList();
+    expect(uploads, hasLength(1), reason: 'la que no existe se omite');
+    final form = uploads.single.data as FormData;
+    final fields = {for (final f in form.fields) f.key: f.value};
+    expect(fields['kind'], 'FOTO');
+    expect(fields['progressId'], 'p1');
+    expect(fields['capturedAt'], '2026-11-05T15:00:00.000Z');
+    expect(form.files.single.value.contentType.toString(), 'image/png');
+  });
+
+  test('si solo fallan las fotos, el avance ya cuenta', () async {
+    api.on(
+      'POST /api/preventive-maintenance/1/progress',
+      const FakeReply(201, {'id': 'p1'}),
+    );
+    api.on(
+      'POST /api/preventive-maintenance/1/attachments',
+      const FakeReply(413),
+    );
+    final dir = Directory.systemTemp.createTempSync('maint_photos');
+    addTearDown(() {
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // Windows puede tener la foto abierta todavia: lo recoge el sistema.
+      }
+    });
+    final photo = File('${dir.path}/foto.jpg')..writeAsBytesSync([1]);
+    await expectLater(
+      repo.addProgress('1', executedVolume: 5, photoPaths: [photo.path]),
+      _fails(MaintenanceError.photosNotSaved),
+    );
+  });
+
+  test('un avance rechazado trae el motivo del servidor', () async {
+    api.on(
+      'POST /api/preventive-maintenance/1/progress',
+      const FakeReply(400, {
+        'errors': {
+          'executedVolume': ['Supera el volumen total: quedan 3 m2.'],
+        },
+      }),
+    );
+    await expectLater(
+      repo.addProgress('1', executedVolume: 50),
+      throwsA(
+        isA<MaintenanceException>()
+            .having((e) => e.error, 'error', MaintenanceError.invalid)
+            .having(
+              (e) => e.message,
+              'message',
+              'Supera el volumen total: quedan 3 m2.',
+            ),
+      ),
+    );
+  });
+
+  test('los indicadores visibles salen de la navegacion', () async {
+    api.on(
+      'GET /api/maintenance/navigation',
+      const FakeReply(200, {
+        'restricted': true,
+        'subsystems': [
+          {'code': 'SGS'},
+          {'code': 'sgp'},
+          {'code': 'OTRO'},
+        ],
+        'sections': [],
+      }),
+    );
+    expect(await repo.visibleIndicators(), [
+      MaintenanceIndicator.sgp,
+      MaintenanceIndicator.sgs,
+    ]);
+  });
+
+  test('un servidor sin navegacion o sin red deja ver todos', () async {
+    api.on('GET /api/maintenance/navigation', const FakeReply(404));
+    expect(await repo.visibleIndicators(), MaintenanceIndicator.values);
+    api.offline = true;
+    expect(await repo.visibleIndicators(), MaintenanceIndicator.values);
   });
 
   test('un avance sin permiso o sin red lo dice', () async {

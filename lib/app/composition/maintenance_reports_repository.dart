@@ -38,7 +38,9 @@ class MaintenanceReportsRepository implements ReportsRepository {
         MaintenanceError.permissionDenied => ReportError.permissionDenied,
         MaintenanceError.notAvailable => ReportError.notAvailable,
         MaintenanceError.server ||
-        MaintenanceError.notFound => ReportError.server,
+        MaintenanceError.notFound ||
+        MaintenanceError.invalid ||
+        MaintenanceError.photosNotSaved => ReportError.server,
       });
     }
     final lines = [

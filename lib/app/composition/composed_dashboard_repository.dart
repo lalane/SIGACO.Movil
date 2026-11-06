@@ -185,7 +185,9 @@ class ComposedDashboardRepository implements DashboardRepository {
     MaintenanceError.permissionDenied => DashboardError.permissionDenied,
     MaintenanceError.notAvailable => DashboardError.notAvailable,
     MaintenanceError.server ||
-    MaintenanceError.notFound => DashboardError.server,
+    MaintenanceError.notFound ||
+    MaintenanceError.invalid ||
+    MaintenanceError.photosNotSaved => DashboardError.server,
   };
 
   static DashboardError _fromInventory(InventoryError e) => switch (e) {

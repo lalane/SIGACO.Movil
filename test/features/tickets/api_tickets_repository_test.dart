@@ -58,6 +58,17 @@ const _config = {
         'sortOrder': 1,
         'active': true,
       },
+      {
+        'code': 'SGP_ABCD1234',
+        'labelEs': 'Buraco',
+        'labelPt': 'Buraco',
+        'subsystemCode': 'SGP',
+        'classification': 'Buracos, desagregações e perda de material',
+        'attentionHours': 720,
+        'attentionLabel': '30 dias',
+        'sortOrder': 101,
+        'active': true,
+      },
       {'code': 'VIEJO', 'labelEs': 'Obsoleto', 'sortOrder': 3, 'active': false},
     ],
   },
@@ -316,6 +327,42 @@ void main() {
       await expectLater(repo.get('9'), _fails(TicketsError.notFound));
       api.offline = true;
       await expectLater(repo.list(), _fails(TicketsError.network));
+    });
+  });
+
+  group('matriz de fallas', () {
+    test(
+      'solo los tipos con plazo, con indicador y subclasificacion',
+      () async {
+        api.on('GET /api/app-configuration', const FakeReply(200, _config));
+        final failures = await repo.failures();
+        expect(failures, hasLength(1));
+        final f = failures.single;
+        expect(f.code, 'SGP_ABCD1234');
+        expect(f.subsystemCode, 'SGP');
+        expect(f.group, 'Buracos, desagregações e perda de material');
+        expect(f.days, 30);
+        expect(f.immediate, isFalse);
+      },
+    );
+
+    test('con una falla no se manda la prioridad', () async {
+      api
+        ..on('GET /api/app-configuration', const FakeReply(200, _config))
+        ..on('POST /api/tickets', FakeReply(200, _dto('7')));
+      // Como el formulario: primero las fallas y luego la lista plana.
+      await repo.failures();
+      await repo.categories();
+      await repo.create(
+        const NewTicket(
+          title: 'Buraco',
+          category: 'SGP_ABCD1234',
+          fixedAttention: true,
+        ),
+      );
+      final body = api.to('POST /api/tickets').single.data as Map;
+      expect(body['ticketTypeCode'], 'SGP_ABCD1234');
+      expect(body.containsKey('priority'), isFalse);
     });
   });
 

@@ -8,8 +8,15 @@ import 'follow_up_cubit.dart';
 
 enum NewTicketIssue { title, category }
 
+/// Las fallas de la Matriz que la persona puede usar: las de sus indicadores.
+/// Null si no se sabe (todas).
+typedef AllowedIndicators = Future<Set<String>?> Function();
+
 class NewTicketState extends Equatable {
   const NewTicketState({
+    this.failures = const [],
+    this.indicator,
+    this.group,
     this.categories = const [],
     this.categoriesLoaded = false,
     this.title = '',
@@ -24,6 +31,11 @@ class NewTicketState extends Equatable {
     this.failed = false,
     this.warning,
   });
+
+  /// Las fallas de la Matriz; vacio, el formulario usa la lista plana.
+  final List<TicketFailure> failures;
+  final String? indicator;
+  final String? group;
 
   final List<String> categories;
   final bool categoriesLoaded;
@@ -41,12 +53,41 @@ class NewTicketState extends Equatable {
   /// Se guardo, pero faltó parte (por ejemplo las fotos); lo que dijo el servidor.
   final String? warning;
 
+  bool get usesMatrix => failures.isNotEmpty;
+
+  /// Los indicadores con fallas, en el orden de la Matriz.
+  List<String> get indicators =>
+      {for (final f in failures) f.subsystemCode}.toList();
+
+  List<String> get groups => {
+    for (final f in failures)
+      if (f.subsystemCode == indicator) f.group,
+  }.toList();
+
+  List<TicketFailure> get groupFailures => [
+    for (final f in failures)
+      if (f.subsystemCode == indicator && f.group == group) f,
+  ];
+
+  /// La falla elegida (la categoria es su codigo).
+  TicketFailure? get failure {
+    for (final f in failures) {
+      if (f.code == category) return f;
+    }
+    return null;
+  }
+
   List<NewTicketIssue> get issues => [
     if (title.trim().isEmpty) NewTicketIssue.title,
     if (category == null) NewTicketIssue.category,
   ];
 
   NewTicketState copyWith({
+    List<TicketFailure>? failures,
+    String? indicator,
+    String? group,
+    bool clearSelection = false,
+    bool clearCategory = false,
     List<String>? categories,
     bool? categoriesLoaded,
     String? title,
@@ -61,10 +102,13 @@ class NewTicketState extends Equatable {
     bool? failed,
     String? warning,
   }) => NewTicketState(
+    failures: failures ?? this.failures,
+    indicator: clearSelection ? indicator : (indicator ?? this.indicator),
+    group: clearSelection ? group : (group ?? this.group),
     categories: categories ?? this.categories,
     categoriesLoaded: categoriesLoaded ?? this.categoriesLoaded,
     title: title ?? this.title,
-    category: category ?? this.category,
+    category: clearCategory ? category : (category ?? this.category),
     priority: priority ?? this.priority,
     kmLabel: kmLabel ?? this.kmLabel,
     description: description ?? this.description,
@@ -78,6 +122,9 @@ class NewTicketState extends Equatable {
 
   @override
   List<Object?> get props => [
+    failures,
+    indicator,
+    group,
     categories,
     categoriesLoaded,
     title,
@@ -101,6 +148,7 @@ class NewTicketCubit extends Cubit<NewTicketState> {
     DateTime Function()? clock,
     this.location,
     String Function()? clientIdGenerator,
+    this.allowedIndicators,
   }) : _clock = clock ?? DateTime.now,
        super(
          NewTicketState(
@@ -115,6 +163,9 @@ class NewTicketCubit extends Cubit<NewTicketState> {
 
   final TicketsRepository _repository;
   final DateTime Function() _clock;
+
+  /// Los indicadores asignados: solo sus fallas se ofrecen.
+  final AllowedIndicators? allowedIndicators;
   late final DateTime _capturedAt;
   late final String _clientId;
 
@@ -128,15 +179,52 @@ class NewTicketCubit extends Cubit<NewTicketState> {
   DateTime get capturedAt => _capturedAt;
 
   Future<void> load() async {
+    var failures = const <TicketFailure>[];
+    final source = _repository;
+    if (source is TicketFailureSource) {
+      try {
+        failures = await (source as TicketFailureSource).failures();
+        final allowed = await allowedIndicators?.call();
+        if (allowed != null) {
+          failures = [
+            for (final f in failures)
+              if (allowed.contains(f.subsystemCode)) f,
+          ];
+        }
+      } catch (_) {
+        // Sin el catalogo de fallas queda la lista plana.
+        failures = const [];
+      }
+    }
     try {
       final categories = await _repository.categories();
       if (isClosed) return;
-      emit(state.copyWith(categories: categories, categoriesLoaded: true));
+      emit(
+        state.copyWith(
+          failures: failures,
+          categories: categories,
+          categoriesLoaded: true,
+        ),
+      );
     } catch (_) {
       if (isClosed) return;
-      emit(state.copyWith(categoriesLoaded: true));
+      emit(state.copyWith(failures: failures, categoriesLoaded: true));
     }
   }
+
+  /// Al cambiar de indicador se vuelve a elegir subclasificacion y falla.
+  void setIndicator(String v) => emit(
+    state.copyWith(indicator: v, clearSelection: true, clearCategory: true),
+  );
+
+  void setGroup(String v) => emit(
+    state.copyWith(
+      indicator: state.indicator,
+      group: v,
+      clearSelection: true,
+      clearCategory: true,
+    ),
+  );
 
   void setTitle(String v) => emit(state.copyWith(title: v));
 
@@ -176,6 +264,7 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           deviceClockAt: _clock().toUtc(),
           location: location,
           clientId: _clientId,
+          fixedAttention: state.failure != null,
         ),
       );
       if (isClosed) return;

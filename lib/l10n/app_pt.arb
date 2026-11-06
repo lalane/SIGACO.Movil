@@ -862,9 +862,9 @@
   "maintNoPermissionBody": "Seu perfil não pode ver este indicador.",
   "maintRetry": "Tentar novamente",
   "maintProgressTitle": "Registrar avanço",
-  "maintProgressPercent": "Avanço do projeto (%)",
-  "maintProgressVolume": "Volume executado",
-  "maintProgressVolumeUnit": "Volume executado ({unit})",
+  "maintProgressPercent": "Avanço acumulado (%), se não souber o volume",
+  "maintProgressVolume": "Volume executado neste acompanhamento",
+  "maintProgressVolumeUnit": "Volume executado neste acompanhamento ({unit})",
   "@maintProgressVolumeUnit": {
     "placeholders": {
       "unit": {
@@ -877,7 +877,7 @@
   "maintProgressSave": "Salvar avanço",
   "maintProgressSaved": "Avanço salvo.",
   "maintProgressErrorPercent": "Digite um avanço entre 0 e 100.",
-  "maintProgressErrorVolume": "Digite um volume válido.",
+  "maintProgressErrorVolume": "Digite um volume maior que 0.",
   "maintProgressNetwork": "Sem conexão. Verifique sua rede e tente novamente.",
   "maintProgressNoPermission": "Seu perfil não pode registrar avanços.",
   "maintProgressFailed": "Não foi possível salvar o avanço. Tente novamente.",
@@ -1491,5 +1491,24 @@
         "type": "int"
       }
     }
-  }
+  },
+  "maintProgressStatus": "Executado {executed} de {total} {unit} ({percent} %). Faltam {remaining}.",
+  "maintProgressResult": "Ficará em {percent} %.",
+  "maintProgressVolumeRules": "É somado ao já executado. Com volume, o avanço é calculado automaticamente.",
+  "maintProgressErrorMissing": "Digite o volume executado ou o avanço acumulado.",
+  "maintProgressErrorVolumeOver": "Excede o que falta: restam {remaining}.",
+  "maintProgressErrorPercentBelow": "O avanço não pode diminuir: já está em {percent} %.",
+  "maintProgressPhotosFailed": "O avanço foi salvo, mas nem todas as fotos. Tente novamente pela web.",
+  "maintIndicatorsNone": "Você não tem indicadores atribuídos nesta concessão. Peça ao seu administrador.",
+  "maintIndicatorsFailed": "Não foi possível carregar seus indicadores.",
+  "newTicketIndicator": "Indicador",
+  "newTicketGroup": "Subclassificação",
+  "newTicketFailure": "Falha",
+  "newTicketAttention": "Prazo de atendimento",
+  "newTicketAttentionPending": "Vem da falha escolhida",
+  "newTicketAttentionValue": "{value} · fixo, corre 24×7",
+  "newTicketAttentionImmediate": "Imediato",
+  "newTicketAttentionDays": "{days} dias",
+  "newTicketAttentionHours": "{hours} horas",
+  "newTicketErrorFailure": "Escolha o indicador, a subclassificação e a falha."
 }

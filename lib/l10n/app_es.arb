@@ -973,9 +973,9 @@
   "maintNoPermissionBody": "Tu perfil no puede ver este indicador.",
   "maintRetry": "Reintentar",
   "maintProgressTitle": "Registrar avance",
-  "maintProgressPercent": "Avance del proyecto (%)",
-  "maintProgressVolume": "Volumen ejecutado",
-  "maintProgressVolumeUnit": "Volumen ejecutado ({unit})",
+  "maintProgressPercent": "Avance acumulado (%), si no conoces el volumen",
+  "maintProgressVolume": "Volumen ejecutado en este seguimiento",
+  "maintProgressVolumeUnit": "Volumen ejecutado en este seguimiento ({unit})",
   "@maintProgressVolumeUnit": {
     "placeholders": {
       "unit": {
@@ -988,7 +988,7 @@
   "maintProgressSave": "Guardar avance",
   "maintProgressSaved": "Avance guardado.",
   "maintProgressErrorPercent": "Escribe un avance entre 0 y 100.",
-  "maintProgressErrorVolume": "Escribe un volumen válido.",
+  "maintProgressErrorVolume": "Escribe un volumen mayor que 0.",
   "maintProgressNetwork": "Sin conexión. Revisa tu red e inténtalo de nuevo.",
   "maintProgressNoPermission": "Tu perfil no puede registrar avances.",
   "maintProgressFailed": "No se pudo guardar el avance. Inténtalo de nuevo.",
@@ -1602,5 +1602,85 @@
         "type": "int"
       }
     }
-  }
+  },
+  "maintProgressStatus": "Llevas {executed} de {total} {unit} ({percent} %). Faltan {remaining}.",
+  "@maintProgressStatus": {
+    "placeholders": {
+      "executed": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgressResult": "Quedará en {percent} %.",
+  "@maintProgressResult": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgressVolumeRules": "Se suma a lo ya ejecutado. Con volumen, el avance se calcula solo.",
+  "maintProgressErrorMissing": "Escribe el volumen ejecutado o el avance acumulado.",
+  "maintProgressErrorVolumeOver": "Supera lo que falta: quedan {remaining}.",
+  "@maintProgressErrorVolumeOver": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgressErrorPercentBelow": "El avance no puede bajar: ya va en {percent} %.",
+  "@maintProgressErrorPercentBelow": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "maintProgressPhotosFailed": "El avance se guardó, pero no todas las fotos. Vuelve a intentarlo desde la web.",
+  "maintIndicatorsNone": "No tienes indicadores asignados en esta concesión. Pide a tu administrador que te los asigne.",
+  "maintIndicatorsFailed": "No se pudieron cargar tus indicadores.",
+  "newTicketIndicator": "Indicador",
+  "newTicketGroup": "Subclasificación",
+  "newTicketFailure": "Falla",
+  "newTicketAttention": "Plazo de atención",
+  "newTicketAttentionPending": "Sale de la falla elegida",
+  "newTicketAttentionValue": "{value} · fijo, corre 24×7",
+  "@newTicketAttentionValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "newTicketAttentionImmediate": "Inmediato",
+  "newTicketAttentionDays": "{days} días",
+  "@newTicketAttentionDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "newTicketAttentionHours": "{hours} horas",
+  "@newTicketAttentionHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "newTicketErrorFailure": "Elige el indicador, la subclasificación y la falla."
 }

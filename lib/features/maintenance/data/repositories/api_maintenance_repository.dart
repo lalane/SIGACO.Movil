@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/km_label.dart';
+import '../../../../core/ids/client_id.dart';
 import '../../domain/entities/maintenance.dart';
 import '../../domain/repositories/maintenance_repository.dart';
 
@@ -57,28 +60,153 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
   });
 
   @override
+  Future<List<MaintenanceIndicator>> visibleIndicators() async {
+    try {
+      final json = _asMap(await _api.getJson('/api/maintenance/navigation'));
+      final subsystems = json['subsystems'];
+      if (subsystems is! List) return MaintenanceIndicator.values;
+      final codes = {
+        for (final s in subsystems)
+          if (s is Map && s['code'] is String)
+            (s['code'] as String).trim().toUpperCase(),
+      };
+      return [
+        for (final i in MaintenanceIndicator.values)
+          if (codes.contains(subsystemCode(i))) i,
+      ];
+    } on ApiFailure catch (e) {
+      // Un servidor anterior al PR 88 no tiene el endpoint: se ven todos. Sin
+      // red tambien, porque cada lista ya avisa si no puede cargarse.
+      if (e.isNetwork || e.status == 404) return MaintenanceIndicator.values;
+      throw MaintenanceException(
+        e.status == 403
+            ? MaintenanceError.permissionDenied
+            : MaintenanceError.server,
+      );
+    } catch (_) {
+      return MaintenanceIndicator.values;
+    }
+  }
+
+  /// Lo que el servidor recibe para registrar el seguimiento: el volumen de
+  /// este seguimiento o, sin el, el avance acumulado; nunca los dos, porque con
+  /// volumen el servidor ignora el porcentaje y lo suma al acumulado.
+  static Map<String, Object?> progressBody({
+    double? executedVolume,
+    double? percent,
+    String? notes,
+    DateTime? at,
+  }) {
+    final text = notes?.trim();
+    final local = (at ?? DateTime.now()).toLocal();
+    return {
+      if (executedVolume != null)
+        'executedVolume': executedVolume
+      else if (percent != null)
+        'progressPercent': percent.clamp(0, 100),
+      // El dia en que se capturo, no el del envio.
+      'reportedOn':
+          '${local.year.toString().padLeft(4, '0')}-'
+          '${local.month.toString().padLeft(2, '0')}-'
+          '${local.day.toString().padLeft(2, '0')}',
+      if (text != null && text.isNotEmpty) 'notes': text,
+    };
+  }
+
+  @override
   Future<MaintenanceOrder> addProgress(
     String id, {
-    required double percent,
     double? executedVolume,
+    double? percent,
     String? notes,
+    List<String> photoPaths = const [],
+    DateTime? at,
     String? clientId,
   }) => _guard(() async {
+    if (executedVolume == null && percent == null) {
+      throw const MaintenanceException(MaintenanceError.invalid);
+    }
     final key = Uri.encodeComponent(id);
-    final text = notes?.trim();
-    await _api.post(
+    final created = await _api.post(
       '/api/preventive-maintenance/$key/progress',
       data: {
-        'progressPercent': percent.clamp(0, 100),
-        'executedVolume': ?executedVolume,
-        if (text != null && text.isNotEmpty) 'notes': text,
+        ...progressBody(
+          executedVolume: executedVolume,
+          percent: percent,
+          notes: notes,
+          at: at,
+        ),
         'clientUuid': ?clientId,
       },
     );
+    try {
+      await attachPhotos(
+        id,
+        photoPaths,
+        progressId: _text(created?['id']),
+        capturedAt: at,
+      );
+    } on ApiFailure catch (e) {
+      // Sin red se reintenta todo: el servidor reconoce el seguimiento por su
+      // clave y no lo suma dos veces. Con otro fallo, solo faltan las fotos.
+      if (e.isNetwork) rethrow;
+      throw MaintenanceException(
+        MaintenanceError.photosNotSaved,
+        message: _reason(e),
+      );
+    }
     return orderFromDto(
       _asMap(await _api.getJson('/api/preventive-maintenance/$key')),
     );
   });
+
+  /// Sube las fotos de un seguimiento ya registrado (`progressId`). Lanza
+  /// [ApiFailure].
+  Future<void> attachPhotos(
+    String maintenanceId,
+    List<String> photos, {
+    String? progressId,
+    DateTime? capturedAt,
+  }) async {
+    final path =
+        '/api/preventive-maintenance/${Uri.encodeComponent(maintenanceId)}'
+        '/attachments';
+    for (final photo in photos) {
+      if (!File(photo).existsSync()) continue;
+      await _api.postMultipart(
+        path,
+        fileField: 'file',
+        filePath: photo,
+        fileName: photo.split(RegExp(r'[\\/]')).last,
+        contentType: _imageType(photo),
+        fields: {
+          'kind': 'FOTO',
+          'capturedAt': capturedAt?.toUtc().toIso8601String(),
+          'clientUuid': newClientId(),
+          'progressId': progressId,
+        },
+      );
+    }
+  }
+
+  /// El tipo de imagen segun la extension; el servidor exige `image/*`.
+  static String _imageType(String path) {
+    final dot = path.lastIndexOf('.');
+    final ext = dot < 0 ? '' : path.substring(dot + 1).toLowerCase();
+    return switch (ext) {
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'heic' || 'heif' => 'image/heic',
+      _ => 'image/jpeg',
+    };
+  }
+
+  static String? _reason(ApiFailure e) {
+    for (final messages in e.fieldErrors.values) {
+      if (messages.isNotEmpty) return messages.first;
+    }
+    return e.message;
+  }
 
   /// El codigo de subsistema del servidor: el nombre del indicador en mayusculas.
   static String subsystemCode(MaintenanceIndicator i) => i.name.toUpperCase();
@@ -167,8 +295,10 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
                   listing
                       ? MaintenanceError.notAvailable
                       : MaintenanceError.notFound,
+                400 || 409 || 422 => MaintenanceError.invalid,
                 _ => MaintenanceError.server,
               },
+        message: e.isNetwork ? null : _reason(e),
       );
     } on MaintenanceException {
       rethrow;

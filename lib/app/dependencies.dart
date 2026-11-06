@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api/api_client.dart';
 import '../core/demo/demo_mode.dart';
+import '../core/map_icons/map_icons.dart';
 import '../core/api/api_failure.dart';
 import '../core/config/app_config.dart';
 import '../core/connectivity/connectivity_source.dart';
@@ -663,14 +664,19 @@ class AppDependencies {
     );
 
     // Los avances de mantenimiento: sin red quedan en la cola y salen igual.
+    final apiMaintenance = ApiMaintenanceRepository(api);
     final offlineMaintenance = OfflineMaintenanceRepository(
-      ApiMaintenanceRepository(api),
+      apiMaintenance,
       queue,
+      files: fileStore,
     );
     scope.register(offlineMaintenance);
+    // Los iconos del mapa que eligio la concesion (Configuracion de la web).
+    scope.register(MapIconsLoader(api));
     final maintenanceRemote = MaintenanceSyncRemote(
       api,
       () async => (await deviceSource.read())?.identifier,
+      maintenance: apiMaintenance,
     );
 
     final DocumentsRepository documents;

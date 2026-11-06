@@ -262,6 +262,58 @@ class TicketLocation extends Equatable {
 }
 
 /// Lo que la persona captura para levantar un ticket nuevo.
+/// Una falla de la Matriz de falhas (reunion con TEKIA del 05/11/2026): el
+/// ticket se levanta eligiendo indicador, subclasificacion y falla, y el plazo
+/// de atencion sale de ella (fijo, 24x7).
+class TicketFailure extends Equatable {
+  const TicketFailure({
+    required this.code,
+    required this.label,
+    required this.subsystemCode,
+    required this.group,
+    required this.attentionHours,
+    this.attentionLabel,
+  });
+
+  /// El codigo del tipo de ticket en el servidor.
+  final String code;
+  final String label;
+
+  /// El indicador (SGP, SGS...).
+  final String subsystemCode;
+
+  /// La subclasificacion de la Matriz.
+  final String group;
+
+  /// El plazo en horas corridas.
+  final double attentionHours;
+
+  /// El plazo como lo escribe la Matriz ("30 dias", "Imediato").
+  final String? attentionLabel;
+
+  /// "Imediato" o una cantidad de dias, para mostrarlo.
+  bool get immediate {
+    final l = attentionLabel?.trim().toLowerCase() ?? '';
+    return l.startsWith('imediat') || l.startsWith('inmediat');
+  }
+
+  /// Los dias del plazo si es un numero entero de dias; si no, null.
+  int? get days =>
+      attentionHours >= 24 && attentionHours % 24 == 0 && !immediate
+      ? attentionHours ~/ 24
+      : null;
+
+  @override
+  List<Object?> get props => [
+    code,
+    label,
+    subsystemCode,
+    group,
+    attentionHours,
+    attentionLabel,
+  ];
+}
+
 class NewTicket extends Equatable {
   const NewTicket({
     required this.title,
@@ -274,7 +326,12 @@ class NewTicket extends Equatable {
     this.deviceClockAt,
     this.location,
     this.clientId,
+    this.fixedAttention = false,
   });
+
+  /// La categoria es una falla de la Matriz: el plazo es fijo y la prioridad la
+  /// calcula el servidor, asi que no se manda.
+  final bool fixedAttention;
 
   final String title;
   final String category;
@@ -310,5 +367,6 @@ class NewTicket extends Equatable {
     deviceClockAt,
     location,
     clientId,
+    fixedAttention,
   ];
 }

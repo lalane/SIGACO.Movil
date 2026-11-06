@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/map_icons/map_icons.dart';
 import '../../../core/theme/status_colors.dart';
 export '../../../core/ui/module_format.dart'
     show quantity, money, moneyExact, percent;
@@ -24,7 +25,12 @@ String indicatorLabel(AppLocalizations l10n, MaintenanceIndicator i) =>
       MaintenanceIndicator.sge => l10n.maintIndSge,
     };
 
-IconData indicatorIcon(MaintenanceIndicator i) => switch (i) {
+/// El icono del indicador: el que eligio la concesion para su subsistema o el
+/// de siempre.
+IconData indicatorIcon(MaintenanceIndicator i) =>
+    MapIconOverrides.subsystem(i.name) ?? _defaultIndicatorIcon(i);
+
+IconData _defaultIndicatorIcon(MaintenanceIndicator i) => switch (i) {
   MaintenanceIndicator.sgp => Icons.add_road,
   MaintenanceIndicator.sgs => Icons.traffic,
   MaintenanceIndicator.sgoae => Icons.account_balance,

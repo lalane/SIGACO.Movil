@@ -10,6 +10,10 @@ class UnavailableMaintenanceRepository implements MaintenanceRepository {
   static const _error = MaintenanceException(MaintenanceError.notAvailable);
 
   @override
+  Future<List<MaintenanceIndicator>> visibleIndicators() async =>
+      MaintenanceIndicator.values;
+
+  @override
   Future<List<MaintenanceOrder>> list(MaintenanceIndicator indicator) =>
       Future.error(_error);
 
@@ -19,9 +23,11 @@ class UnavailableMaintenanceRepository implements MaintenanceRepository {
   @override
   Future<MaintenanceOrder> addProgress(
     String id, {
-    required double percent,
     double? executedVolume,
+    double? percent,
     String? notes,
+    List<String> photoPaths = const [],
+    DateTime? at,
     String? clientId,
   }) => Future.error(_error);
 }

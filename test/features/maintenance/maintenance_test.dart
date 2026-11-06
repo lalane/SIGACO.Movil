@@ -18,17 +18,26 @@ import '../../support/surface.dart';
 
 /// Guarda los avances que recibe y, si se le pide, falla.
 class _ProgressRepo extends SampleMaintenanceRepository {
-  _ProgressRepo({this.fail});
+  _ProgressRepo({this.fail, this.indicators});
 
   final MaintenanceError? fail;
+
+  /// Los indicadores asignados; null, todos.
+  final List<MaintenanceIndicator>? indicators;
   final calls = <Map<String, Object?>>[];
+
+  @override
+  Future<List<MaintenanceIndicator>> visibleIndicators() async =>
+      indicators ?? MaintenanceIndicator.values;
 
   @override
   Future<MaintenanceOrder> addProgress(
     String id, {
-    required double percent,
     double? executedVolume,
+    double? percent,
     String? notes,
+    List<String> photoPaths = const [],
+    DateTime? at,
     String? clientId,
   }) async {
     final error = fail;
@@ -38,6 +47,7 @@ class _ProgressRepo extends SampleMaintenanceRepository {
       'percent': percent,
       'volume': executedVolume,
       'notes': notes,
+      'photos': photoPaths,
       'clientId': clientId,
     });
     return get(id);
@@ -154,69 +164,113 @@ void main() {
     });
 
     test(
-      'el avance se valida y se manda con su clave de idempotencia',
+      'con volumen manda solo lo de este seguimiento, nunca el porcentaje',
       () async {
         final repo = _ProgressRepo();
+        // 224 de 350: 64 %, faltan 126.
         final cubit = MaintenanceProgressCubit(
           repo,
           'M-210',
-          currentProgress: 0.64,
+          totalVolume: 350,
+          executedVolume: 224,
           clientIdGenerator: () => 'uuid-1',
         );
-        expect(cubit.state.percent, '64');
+        expect(cubit.state.currentPercent, 64);
+        expect(cubit.state.remaining, 126);
 
-        cubit.setPercent('120');
         await cubit.save();
         expect(cubit.state.showIssues, isTrue);
-        expect(cubit.state.issues, [ProgressIssue.percent]);
-        cubit.setPercent('70,5');
+        expect(cubit.state.issues, [ProgressIssue.missing]);
         cubit.setVolume('abc');
         expect(cubit.state.issues, [ProgressIssue.volume]);
+        cubit.setVolume('0');
+        expect(cubit.state.issues, [ProgressIssue.volume]);
+        // Escribir el acumulado (300) en lugar de lo de hoy se detecta.
+        cubit.setVolume('300');
+        expect(cubit.state.issues, [ProgressIssue.volumeOverRemaining]);
         await cubit.save();
         expect(repo.calls, isEmpty);
 
-        cubit.setVolume('12,5');
+        cubit.setVolume('35');
+        // El porcentaje escrito no cuenta si hay volumen.
+        cubit.setPercent('99');
+        expect(cubit.state.resultingPercent, 74);
         cubit.setNotes('  Se coloco la mitad  ');
+        cubit.setPhoto(0, '/fotos/a.jpg');
+        cubit.setPhoto(2, '/fotos/c.jpg');
         await cubit.save();
         expect(cubit.state.saved, isTrue);
-        expect(repo.calls, hasLength(1));
         expect(repo.calls.single, {
           'id': 'M-210',
-          'percent': 70.5,
-          'volume': 12.5,
+          'percent': null,
+          'volume': 35.0,
           'notes': '  Se coloco la mitad  ',
+          'photos': ['/fotos/a.jpg', '/fotos/c.jpg'],
           'clientId': 'uuid-1',
         });
       },
     );
 
-    test('un avance sin volumen ni notas manda solo el porcentaje', () async {
+    test('sin volumen manda el avance acumulado, que no puede bajar', () async {
       final repo = _ProgressRepo();
-      final cubit = MaintenanceProgressCubit(repo, 'M-210');
+      final cubit = MaintenanceProgressCubit(
+        repo,
+        'M-210',
+        totalVolume: 350,
+        executedVolume: 224,
+      );
       expect(cubit.state.percent, isEmpty);
-      await cubit.save();
+      cubit.setPercent('120');
       expect(cubit.state.issues, [ProgressIssue.percent]);
-      cubit.setPercent('100');
+      cubit.setPercent('50');
+      expect(cubit.state.issues, [ProgressIssue.percentBelowCurrent]);
+      cubit.setPercent('80,5');
+      expect(cubit.state.issues, isEmpty);
       await cubit.save();
       expect(repo.calls.single['volume'], isNull);
-      expect(repo.calls.single['percent'], 100);
+      expect(repo.calls.single['percent'], 80.5);
+    });
+
+    test('sin conocer la orden valida solo el formato', () async {
+      final repo = _ProgressRepo();
+      final cubit = MaintenanceProgressCubit(repo, 'M-210');
+      expect(cubit.state.currentPercent, isNull);
+      cubit.setVolume('1000');
+      expect(cubit.state.issues, isEmpty);
+      expect(cubit.state.resultingPercent, isNull);
+      await cubit.save();
+      expect(repo.calls.single['volume'], 1000);
+    });
+
+    test('si solo fallan las fotos, el avance cuenta y lo avisa', () async {
+      final cubit = MaintenanceProgressCubit(
+        _ProgressRepo(fail: MaintenanceError.photosNotSaved),
+        'M-210',
+      );
+      cubit.setPercent('70');
+      await cubit.save();
+      expect(cubit.state.saved, isTrue);
+      expect(cubit.state.error, MaintenanceError.photosNotSaved);
     });
 
     test('si falla, dice por que y deja reintentar', () async {
       for (final e in [
         MaintenanceError.network,
         MaintenanceError.permissionDenied,
+        MaintenanceError.invalid,
       ]) {
         final cubit = MaintenanceProgressCubit(
           _ProgressRepo(fail: e),
           'M-210',
-          currentProgress: 0.5,
+          totalVolume: 10,
+          executedVolume: 5,
         );
+        cubit.setVolume('1');
         await cubit.save();
         expect(cubit.state.saved, isFalse);
         expect(cubit.state.saving, isFalse);
         expect(cubit.state.error, e);
-        cubit.setPercent('60');
+        cubit.setVolume('2');
         expect(cubit.state.error, isNull, reason: 'al corregir se limpia');
       }
     });
@@ -309,6 +363,35 @@ void main() {
         );
       }
       expect(find.byKey(const Key('module-nav')), findsOneWidget);
+    });
+
+    testWidgets('solo se ven los indicadores asignados', (tester) async {
+      await launch(
+        tester,
+        maintenance: _ProgressRepo(
+          indicators: const [
+            MaintenanceIndicator.sgp,
+            MaintenanceIndicator.sgs,
+          ],
+        ),
+      );
+      await openIndicators(tester);
+      expect(find.byKey(const Key('indicator-sgp')), findsOneWidget);
+      expect(find.byKey(const Key('indicator-sgs')), findsOneWidget);
+      expect(
+        find.byKey(const Key('indicator-sgoae'), skipOffstage: false),
+        findsNothing,
+      );
+    });
+
+    testWidgets('sin indicadores asignados lo dice', (tester) async {
+      await launch(tester, maintenance: _ProgressRepo(indicators: const []));
+      await openIndicators(tester);
+      expect(
+        find.byKey(const Key('maintenance-indicators-message')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('indicator-sgp')), findsNothing);
     });
 
     testWidgets('un indicador abre su lista con el resumen', (tester) async {
@@ -451,26 +534,31 @@ void main() {
       await tester.tap(find.byKey(const Key('maintenance-action-add')));
       await tester.pumpAndSettle();
       expect(find.text('Registrar avance'), findsWidgets);
-      expect(find.text('Volumen ejecutado (PZA)'), findsOneWidget);
-      final percentField = find.byKey(
-        const Key('maintenance-progress-percent'),
+      expect(
+        find.text('Volumen ejecutado en este seguimiento (PZA)'),
+        findsOneWidget,
       );
       expect(
-        tester.widget<TextFormField>(percentField).initialValue,
-        '64',
-        reason: 'parte del avance actual',
+        find.text('Llevas 224 de 350 PZA (64 %). Faltan 126 PZA.'),
+        findsOneWidget,
       );
+      expect(find.byKey(const Key('maintenance-photo-0')), findsOneWidget);
+      final volumeField = find.byKey(const Key('maintenance-progress-volume'));
 
-      await tester.enterText(percentField, '150');
+      // Quien escribe el acumulado en lugar de lo de hoy recibe el aviso.
+      await tester.enterText(volumeField, '300');
       await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
       await tester.pumpAndSettle();
-      expect(find.text('Escribe un avance entre 0 y 100.'), findsOneWidget);
+      expect(find.text('Supera lo que falta: quedan 126 PZA.'), findsOneWidget);
       expect(repo.calls, isEmpty);
 
-      await tester.enterText(percentField, '75');
+      await tester.enterText(volumeField, '35');
+      await tester.pumpAndSettle();
+      expect(find.text('Quedará en 74 %.'), findsOneWidget);
       await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
       await tester.pumpAndSettle();
-      expect(repo.calls.single['percent'], 75);
+      expect(repo.calls.single['volume'], 35);
+      expect(repo.calls.single['percent'], isNull);
       expect(find.byKey(const Key('maintenance-detail')), findsOneWidget);
       expect(find.text('Avance guardado.'), findsOneWidget);
     });
@@ -485,6 +573,10 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('maintenance-action-add')));
       await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('maintenance-progress-volume')),
+        '10',
+      );
       await tester.tap(find.byKey(const Key('maintenance-progress-submit')));
       await tester.pumpAndSettle();
       expect(

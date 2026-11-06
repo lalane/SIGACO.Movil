@@ -2046,14 +2046,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maintProgressTitle => 'Registrar avanço';
 
   @override
-  String get maintProgressPercent => 'Avanço do projeto (%)';
+  String get maintProgressPercent =>
+      'Avanço acumulado (%), se não souber o volume';
 
   @override
-  String get maintProgressVolume => 'Volume executado';
+  String get maintProgressVolume => 'Volume executado neste acompanhamento';
 
   @override
   String maintProgressVolumeUnit(String unit) {
-    return 'Volume executado ($unit)';
+    return 'Volume executado neste acompanhamento ($unit)';
   }
 
   @override
@@ -2072,7 +2073,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maintProgressErrorPercent => 'Digite um avanço entre 0 e 100.';
 
   @override
-  String get maintProgressErrorVolume => 'Digite um volume válido.';
+  String get maintProgressErrorVolume => 'Digite um volume maior que 0.';
 
   @override
   String get maintProgressNetwork =>
@@ -3346,4 +3347,87 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dashTopCreators => 'Usuários que mais geraram tickets';
+
+  @override
+  String maintProgressStatus(
+    String executed,
+    String total,
+    String unit,
+    String percent,
+    String remaining,
+  ) {
+    return 'Executado $executed de $total $unit ($percent %). Faltam $remaining.';
+  }
+
+  @override
+  String maintProgressResult(String percent) {
+    return 'Ficará em $percent %.';
+  }
+
+  @override
+  String get maintProgressVolumeRules =>
+      'É somado ao já executado. Com volume, o avanço é calculado automaticamente.';
+
+  @override
+  String get maintProgressErrorMissing =>
+      'Digite o volume executado ou o avanço acumulado.';
+
+  @override
+  String maintProgressErrorVolumeOver(String remaining) {
+    return 'Excede o que falta: restam $remaining.';
+  }
+
+  @override
+  String maintProgressErrorPercentBelow(String percent) {
+    return 'O avanço não pode diminuir: já está em $percent %.';
+  }
+
+  @override
+  String get maintProgressPhotosFailed =>
+      'O avanço foi salvo, mas nem todas as fotos. Tente novamente pela web.';
+
+  @override
+  String get maintIndicatorsNone =>
+      'Você não tem indicadores atribuídos nesta concessão. Peça ao seu administrador.';
+
+  @override
+  String get maintIndicatorsFailed =>
+      'Não foi possível carregar seus indicadores.';
+
+  @override
+  String get newTicketIndicator => 'Indicador';
+
+  @override
+  String get newTicketGroup => 'Subclassificação';
+
+  @override
+  String get newTicketFailure => 'Falha';
+
+  @override
+  String get newTicketAttention => 'Prazo de atendimento';
+
+  @override
+  String get newTicketAttentionPending => 'Vem da falha escolhida';
+
+  @override
+  String newTicketAttentionValue(String value) {
+    return '$value · fixo, corre 24×7';
+  }
+
+  @override
+  String get newTicketAttentionImmediate => 'Imediato';
+
+  @override
+  String newTicketAttentionDays(int days) {
+    return '$days dias';
+  }
+
+  @override
+  String newTicketAttentionHours(int hours) {
+    return '$hours horas';
+  }
+
+  @override
+  String get newTicketErrorFailure =>
+      'Escolha o indicador, a subclassificação e a falha.';
 }

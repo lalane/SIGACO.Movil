@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigaco_movil/core/offline/offline_database.dart';
 import 'package:sigaco_movil/core/offline/operation.dart';
@@ -83,12 +86,26 @@ void main() {
       expect(op.entity, 'MAINTENANCE_PROGRESS');
       expect(op.kind, OperationKind.insert);
       expect(op.recordId, _id);
-      expect(op.payload, {
-        'progressPercent': 70.5,
-        'reportedOn': '2026-10-27',
+      // Con volumen solo viaja el volumen de este seguimiento.
+      expect(Map.of(op.payload)..remove(OfflineMaintenanceRepository.atKey), {
         'executedVolume': 12,
+        'reportedOn': '2026-10-27',
         'notes': 'La mitad',
       });
+      expect(
+        DateTime.parse(
+          op.payload[OfflineMaintenanceRepository.atKey]! as String,
+        ),
+        DateTime(2026, 10, 27, 9, 30).toUtc(),
+      );
+    });
+
+    test('sin volumen queda el avance acumulado', () async {
+      api.offline = true;
+      await repo.addProgress(_id, percent: 70.5, clientId: _clientId);
+      final op = (await queue.list(_scope)).single;
+      expect(op.payload['progressPercent'], 70.5);
+      expect(op.payload.containsKey('executedVolume'), isFalse);
     });
 
     test(
@@ -188,12 +205,59 @@ void main() {
         expect(sent['operation'], 'INSERT');
         expect(sent['recordId'], _id);
         expect(sent['payload'], {
-          'progressPercent': 70,
-          'reportedOn': '2026-10-27',
           'executedVolume': 5,
+          'reportedOn': '2026-10-27',
         });
       },
     );
+
+    test('las fotos suben despues, ligadas al seguimiento creado', () async {
+      final dir = Directory.systemTemp.createTempSync('maint_offline');
+      addTearDown(() {
+        try {
+          dir.deleteSync(recursive: true);
+        } on FileSystemException {
+          // Windows puede tener la foto abierta todavia: lo recoge el sistema.
+        }
+      });
+      final photo = File('${dir.path}/foto.jpg')..writeAsBytesSync([1, 2]);
+      api.offline = true;
+      await repo.addProgress(
+        _id,
+        executedVolume: 5,
+        photoPaths: [photo.path],
+        clientId: _clientId,
+      );
+      api.offline = false;
+      final op = (await queue.list(_scope)).single;
+      api
+        ..on('POST /api/sync/operations', result('APLICADA'))
+        ..on(
+          'POST /api/preventive-maintenance/$_id/attachments',
+          const FakeReply(201, {'id': 'a1'}),
+        );
+
+      expect(await remote().send(op), isA<SyncAccepted>());
+
+      final sent =
+          ((api.to('POST /api/sync/operations').single.data
+                          as Map)['operations']
+                      as List)
+                  .single
+              as Map;
+      expect(
+        (sent['payload'] as Map).keys.where((k) => '$k'.startsWith('_')),
+        isEmpty,
+        reason: 'las rutas locales no viajan en el lote',
+      );
+      final upload = api
+          .to('POST /api/preventive-maintenance/$_id/attachments')
+          .single;
+      final fields = {
+        for (final f in (upload.data as FormData).fields) f.key: f.value,
+      };
+      expect(fields['progressId'], 'p1');
+    });
 
     test('un avance duplicado se da por aceptado', () async {
       final op = await queued();

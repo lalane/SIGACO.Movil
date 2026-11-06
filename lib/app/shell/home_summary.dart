@@ -23,6 +23,7 @@ class HomeSummary extends StatefulWidget {
 class _HomeSummaryState extends State<HomeSummary> {
   DashboardSummary? _summary;
   PageController? _pages;
+  bool _loop = false;
 
   @override
   void initState() {
@@ -103,11 +104,20 @@ class _HomeSummaryState extends State<HomeSummary> {
     if (cards.isEmpty) return const SizedBox.shrink();
     // Con texto grande las tarjetas crecen: la franja no se queda corta.
     final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.8);
-    // Carrusel: se desliza de lado y se detiene en cada tarjeta, todas del mismo
-    // tamano; las de los lados asoman.
+    // Carrusel ciclico: se desliza de lado, se detiene en cada tarjeta (todas del
+    // mismo tamano) y despues de la ultima vuelve a la primera. Con menos de
+    // tres tarjetas no da la vuelta: se veria la misma dos veces.
+    final loop = cards.length >= 3;
+    final middle = (cards.length - 1) ~/ 2;
+    if (_pages != null && _loop != loop) {
+      _pages!.dispose();
+      _pages = null;
+    }
+    _loop = loop;
+    // Se empieza lejos del cero para poder ir hacia atras sin tope.
     final pages = _pages ??= PageController(
       viewportFraction: 0.44,
-      initialPage: (cards.length - 1) ~/ 2,
+      initialPage: loop ? cards.length * 500 + middle : middle,
     );
     return Padding(
       padding: EdgeInsets.only(bottom: r.s(24)),
@@ -117,10 +127,10 @@ class _HomeSummaryState extends State<HomeSummary> {
           key: const Key('home-summary'),
           controller: pages,
           padEnds: true,
-          itemCount: cards.length,
+          itemCount: loop ? null : cards.length,
           itemBuilder: (_, i) => Padding(
             padding: EdgeInsets.symmetric(horizontal: r.s(6)),
-            child: cards[i],
+            child: cards[i % cards.length],
           ),
         ),
       ),

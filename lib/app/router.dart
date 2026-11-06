@@ -349,6 +349,17 @@ GoRouter createRouter(
                 context.read<TicketsRepository>(),
                 // Si viene del mapa o de un activo, ya trae donde se levanta.
                 location: parseTicketLocation(state.uri.queryParameters),
+                // Solo las fallas de los indicadores asignados (reunion 05/11).
+                allowedIndicators: () async {
+                  try {
+                    final mine = await context
+                        .read<MaintenanceRepository>()
+                        .visibleIndicators();
+                    return {for (final i in mine) i.name.toUpperCase()};
+                  } catch (_) {
+                    return null;
+                  }
+                },
               )..load(),
               child: ConfigurationGate(
                 title: AppLocalizations.of(context).newTicketTitle,
@@ -470,7 +481,8 @@ GoRouter createRouter(
                         create: (_) => MaintenanceProgressCubit(
                           context.read<MaintenanceRepository>(),
                           state.pathParameters['id']!,
-                          currentProgress: order?.progress,
+                          totalVolume: order?.totalVolume,
+                          executedVolume: order?.executedVolume,
                         ),
                         child: MaintenanceProgressPage(unit: order?.unit),
                       );

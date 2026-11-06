@@ -234,7 +234,10 @@ class MaintenanceStateView extends StatelessWidget {
         '',
         false,
       ),
-      MaintenanceError.network || MaintenanceError.server => (
+      MaintenanceError.network ||
+      MaintenanceError.server ||
+      MaintenanceError.invalid ||
+      MaintenanceError.photosNotSaved => (
         Icons.cloud_off_outlined,
         l10n.maintErrorTitle,
         l10n.maintErrorBody,

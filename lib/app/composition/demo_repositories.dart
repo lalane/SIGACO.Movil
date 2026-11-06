@@ -25,7 +25,7 @@ import '../../features/works/domain/repositories/works_repository.dart';
 /// se consulta en cada llamada, asi el interruptor de la cuenta cambia de una a
 /// otra al momento, sin reiniciar la app ni cerrar la sesion.
 
-class DemoAwareTickets implements TicketsRepository {
+class DemoAwareTickets implements TicketsRepository, TicketFailureSource {
   const DemoAwareTickets({
     required this.real,
     required this.sample,
@@ -53,6 +53,14 @@ class DemoAwareTickets implements TicketsRepository {
 
   @override
   Future<List<String>> categories() => _r.categories();
+
+  @override
+  Future<List<TicketFailure>> failures() async {
+    final r = _r;
+    return r is TicketFailureSource
+        ? (r as TicketFailureSource).failures()
+        : const <TicketFailure>[];
+  }
 }
 
 class DemoAwareWorks implements WorksRepository {
@@ -134,17 +142,25 @@ class DemoAwareMaintenance implements MaintenanceRepository {
   Future<MaintenanceOrder> get(String id) => _r.get(id);
 
   @override
+  Future<List<MaintenanceIndicator>> visibleIndicators() =>
+      _r.visibleIndicators();
+
+  @override
   Future<MaintenanceOrder> addProgress(
     String id, {
-    required double percent,
     double? executedVolume,
+    double? percent,
     String? notes,
+    List<String> photoPaths = const [],
+    DateTime? at,
     String? clientId,
   }) => _r.addProgress(
     id,
-    percent: percent,
     executedVolume: executedVolume,
+    percent: percent,
     notes: notes,
+    photoPaths: photoPaths,
+    at: at,
     clientId: clientId,
   );
 }

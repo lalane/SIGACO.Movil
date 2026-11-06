@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/map_icons/map_icons.dart';
 import '../../../core/theme/sigaco_palette.dart';
 import '../../../core/theme/status_colors.dart';
 import '../../../l10n/app_localizations.dart';
@@ -14,12 +15,23 @@ String layerLabel(AppLocalizations l10n, MapLayer layer) => switch (layer) {
   MapLayer.works => l10n.mapTabWorks,
 };
 
-IconData layerIcon(MapLayer layer) => switch (layer) {
-  MapLayer.tickets => Icons.confirmation_number_outlined,
-  MapLayer.inventory => Icons.inventory_2_outlined,
-  MapLayer.maintenance => Icons.build_outlined,
-  MapLayer.works => Icons.construction_outlined,
+/// El codigo de la capa en el servidor (`GET /api/gis/icons`).
+String layerServerCode(MapLayer layer) => switch (layer) {
+  MapLayer.tickets => 'TICKETS',
+  MapLayer.inventory => 'INVENTARIO',
+  MapLayer.maintenance => 'MANTENIMIENTO',
+  MapLayer.works => 'OBRAS',
 };
+
+/// El icono de la capa: el que eligio la concesion o el de siempre.
+IconData layerIcon(MapLayer layer) =>
+    MapIconOverrides.operational(layerServerCode(layer)) ??
+    switch (layer) {
+      MapLayer.tickets => Icons.confirmation_number_outlined,
+      MapLayer.inventory => Icons.inventory_2_outlined,
+      MapLayer.maintenance => Icons.build_outlined,
+      MapLayer.works => Icons.construction_outlined,
+    };
 
 String statusLabel(AppLocalizations l10n, PinStatus status) => switch (status) {
   PinStatus.normal => l10n.mapStatusNormal,

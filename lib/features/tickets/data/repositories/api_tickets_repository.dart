@@ -15,7 +15,7 @@ import '../../domain/repositories/tickets_repository.dart';
 /// ambito de la persona y el SLA; la app traduce el ticket del servidor a lo que
 /// muestra (abierto o atendido, APP-MOB-03) y el seguimiento y las fotos que
 /// captura a lo que el servidor guarda.
-class ApiTicketsRepository implements TicketsRepository {
+class ApiTicketsRepository implements TicketsRepository, TicketFailureSource {
   ApiTicketsRepository(
     this._api, {
     required this.roadId,
@@ -202,15 +202,57 @@ class ApiTicketsRepository implements TicketsRepository {
     _ => '.jpg',
   };
 
+  /// Las fallas de la Matriz: los tipos de ticket con plazo fijo
+  /// (`attentionHours`), con su indicador y su subclasificacion.
+  @override
+  Future<List<TicketFailure>> failures() => _guard(() async {
+    final json = _asMap(await _api.getJson('/api/app-configuration'));
+    final catalogs = json['operationalCatalogs'];
+    final types = catalogs is Map ? catalogs['ticketTypes'] : null;
+    if (types is! List) return const <TicketFailure>[];
+    final rows = [
+      for (final t in types)
+        if (t is Map<String, dynamic> && t['active'] != false) t,
+    ]..sort((a, b) => _int(a['sortOrder']).compareTo(_int(b['sortOrder'])));
+    final pt = language() == 'pt';
+    final result = <TicketFailure>[];
+    for (final t in rows) {
+      final code = _text(t['code']);
+      final hours = t['attentionHours'];
+      final subsystem = _text(t['subsystemCode']);
+      final label = (pt ? _text(t['labelPt']) : null) ?? _text(t['labelEs']);
+      if (code == null || hours is! num || subsystem == null || label == null) {
+        continue;
+      }
+      // El codigo tambien vale como categoria al armar el ticket.
+      _typeCodes[code] = code;
+      result.add(
+        TicketFailure(
+          code: code,
+          label: label,
+          subsystemCode: subsystem.toUpperCase(),
+          group: _text(t['classification']) ?? '',
+          attentionHours: hours.toDouble(),
+          attentionLabel: _text(t['attentionLabel']),
+        ),
+      );
+    }
+    return result;
+  });
+
   @override
   Future<List<String>> categories() => _guard(() async {
     final json = _asMap(await _api.getJson('/api/app-configuration'));
     final catalogs = json['operationalCatalogs'];
     final types = catalogs is Map ? catalogs['ticketTypes'] : null;
     if (types is! List) return const <String>[];
+    // Las fallas de la Matriz (con plazo) se eligen en cascada, no aqui.
     final rows = [
       for (final t in types)
-        if (t is Map<String, dynamic> && t['active'] != false) t,
+        if (t is Map<String, dynamic> &&
+            t['active'] != false &&
+            t['attentionHours'] is! num)
+          t,
     ]..sort((a, b) => _int(a['sortOrder']).compareTo(_int(b['sortOrder'])));
     _typeCodes.clear();
     final labels = <String>[];
@@ -243,8 +285,11 @@ class ApiTicketsRepository implements TicketsRepository {
   /// Lo que el servidor recibe para crear el ticket. Sin red solo se puede armar
   /// si ya se conocian los tipos de ticket y la carretera.
   Future<Map<String, Object?>> ticketBody(NewTicket draft) async {
-    if (_typeCodes.isEmpty) await categories();
-    final code = _typeCodes[draft.category] ?? _codeOf(draft.category);
+    // Una falla de la Matriz ya trae su codigo; la lista plana va por nombre.
+    if (!draft.fixedAttention && _typeCodes.isEmpty) await categories();
+    final code = draft.fixedAttention
+        ? draft.category
+        : _typeCodes[draft.category] ?? _codeOf(draft.category);
     if (code == null) throw const TicketsException(TicketsError.server);
 
     final location = draft.location;
@@ -257,7 +302,8 @@ class ApiTicketsRepository implements TicketsRepository {
     final km = parseKm(draft.kmLabel ?? location?.kmLabel);
     return <String, Object?>{
       'ticketTypeCode': code,
-      'priority': draft.priority.code,
+      // Con una falla de la Matriz la prioridad sale del plazo (servidor).
+      if (!draft.fixedAttention) 'priority': draft.priority.code,
       'description': composeDescription(draft.title, draft.description),
       'assetId': ?assetId,
       'roadId': ?road,

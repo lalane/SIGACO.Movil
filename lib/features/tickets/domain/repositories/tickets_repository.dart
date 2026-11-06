@@ -39,6 +39,13 @@ class TicketPartiallySavedException implements Exception {
   String toString() => 'TicketPartiallySavedException($reason)';
 }
 
+/// El catalogo de fallas de la Matriz (indicador, subclasificacion, falla y
+/// plazo). Lo implementan los repositorios que hablan con el servidor; sin el,
+/// el formulario usa la lista plana de [TicketsRepository.categories].
+abstract interface class TicketFailureSource {
+  Future<List<TicketFailure>> failures();
+}
+
 /// Los tickets de la concesion activa. Lanza [TicketsException].
 abstract interface class TicketsRepository {
   Future<List<Ticket>> list();

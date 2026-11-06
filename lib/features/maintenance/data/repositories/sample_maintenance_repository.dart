@@ -318,9 +318,15 @@ class SampleMaintenanceRepository implements MaintenanceRepository {
   @override
   Future<MaintenanceOrder> addProgress(
     String id, {
-    required double percent,
     double? executedVolume,
+    double? percent,
     String? notes,
+    List<String> photoPaths = const [],
+    DateTime? at,
     String? clientId,
   }) => get(id);
+
+  @override
+  Future<List<MaintenanceIndicator>> visibleIndicators() async =>
+      MaintenanceIndicator.values;
 }

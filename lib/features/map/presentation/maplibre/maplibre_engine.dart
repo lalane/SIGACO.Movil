@@ -100,19 +100,24 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
 
   /// El estilo cargo (la primera vez o al cambiar de mapa base): se vuelven a
   /// crear las fuentes y las capas.
+  ///
+  /// Cada paso espera al mapa nativo: si mientras tanto se salio de la pantalla,
+  /// el widget ya no tiene `context` y se deja de trabajar.
   Future<void> _onStyleLoaded() async {
     _installed = false;
     _pushed.clear();
     _fitted = null;
     await _install();
+    if (!mounted) return;
     _installed = true;
     await _sync();
+    if (!mounted) return;
     await _fit();
   }
 
   Future<void> _install() async {
     final map = _map;
-    if (map == null) return;
+    if (map == null || !mounted) return;
     final p = context.palette;
     final s = widget.state;
     const text = ['Noto Sans Regular'];
@@ -355,7 +360,7 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
   /// resumen, para no reenviar miles de pines en cada cambio de la pantalla).
   Future<void> _sync() async {
     final map = _map;
-    if (map == null || !_installed) return;
+    if (map == null || !_installed || !mounted) return;
     final s = widget.state;
     final pins = s.visiblePins;
     final selected = s.selectedPin;
@@ -423,7 +428,10 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
   /// al moverse el usuario.
   Future<void> _fit() async {
     final map = _map;
-    if (map == null || !_installed || _fitted == widget.fitKey) return;
+    // Se llama despues de esperar al mapa nativo: puede que ya no este montado.
+    if (map == null || !_installed || !mounted || _fitted == widget.fitKey) {
+      return;
+    }
     _fitted = widget.fitKey;
     final s = widget.state;
     final r = context.responsive;
@@ -489,7 +497,7 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
 
   Future<void> _onTap(math.Point<double> at, LatLng where) async {
     final map = _map;
-    if (map == null || !_installed) return;
+    if (map == null || !_installed || !mounted) return;
     final cubit = context.read<MapCubit>();
 
     final pinHits = await _hits(at, [_selLayer, _pointLayer, _clusterLayer]);

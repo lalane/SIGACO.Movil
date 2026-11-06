@@ -102,6 +102,38 @@ void main() {
       expect(find.byKey(const Key('home-summary-accidents')), findsNothing);
     });
 
+    testWidgets(
+      'el carrusel es ciclico: hacia atras de la primera sale la ultima',
+      (tester) async {
+        await launch(
+          tester,
+          modules: [
+            'PANEL',
+            'TICKETS',
+            'INVENTARIO',
+            'ANTT.ACCIDENTES',
+            'ALERTAS_OPERATIVAS',
+          ],
+          dashboard: _FixedDashboard(
+            DashboardSummary(
+              generatedAt: DateTime.utc(2026, 10, 28),
+              tickets: const TicketsSummary(open: 1, attended: 0, overdue: 0),
+            ),
+          ),
+        );
+        final carousel = find.byKey(const Key('home-summary'));
+        // Abre en la de en medio: las alertas (la ultima) todavia no se ven.
+        expect(find.byKey(const Key('home-summary-alerts')), findsNothing);
+        final page = tester.getSize(carousel).width * 0.44;
+        // Hacia atras dos veces: pasa por la primera y da la vuelta a la ultima.
+        for (var i = 0; i < 2; i++) {
+          await tester.drag(carousel, Offset(page, 0));
+          await tester.pumpAndSettle();
+        }
+        expect(find.byKey(const Key('home-summary-alerts')), findsOneWidget);
+      },
+    );
+
     testWidgets('el carrusel trae registros, activos, accidentes y alertas', (
       tester,
     ) async {
