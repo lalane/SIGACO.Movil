@@ -9,7 +9,7 @@ import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/tickets_repository.dart';
 import 'follow_up_cubit.dart';
 
-enum NewTicketIssue { title, category, offRoad }
+enum NewTicketIssue { title, category, description, kmEnd, direction, offRoad }
 
 /// Las fallas de la Matriz que la persona puede usar: las de sus indicadores.
 /// Null si no se sabe (todas).
@@ -34,7 +34,20 @@ class NewTicketState extends Equatable {
     this.failed = false,
     this.warning,
     this.placement,
+    this.kmEndLabel = '',
+    this.direction,
   });
+
+  /// El km final, si la falla ocupa un tramo.
+  final String kmEndLabel;
+
+  /// El sentido que eligio la persona (solo se pide donde el trazo es compartido).
+  final String? direction;
+
+  /// El punto cae donde los dos sentidos comparten trazo: hay que elegir.
+  bool get needsDirection =>
+      placement?.status == TicketPlacementStatus.onRoad &&
+      placement!.directionAmbiguous;
 
   /// Donde cae el punto sobre la carretera; null si no hay punto o aun no se sabe.
   final TicketPlacement? placement;
@@ -87,9 +100,20 @@ class NewTicketState extends Equatable {
   List<NewTicketIssue> get issues => [
     if (title.trim().isEmpty) NewTicketIssue.title,
     if (category == null) NewTicketIssue.category,
+    if (description.trim().isEmpty) NewTicketIssue.description,
+    if (_kmEndInvalid) NewTicketIssue.kmEnd,
+    if (needsDirection && direction == null) NewTicketIssue.direction,
     if (placement?.status == TicketPlacementStatus.offRoad)
       NewTicketIssue.offRoad,
   ];
+
+  /// El km final va con el inicial y no puede ser menor.
+  bool get _kmEndInvalid {
+    if (kmEndLabel.trim().isEmpty) return false;
+    final end = parseKm(kmEndLabel);
+    final start = parseKm(kmLabel);
+    return end == null || start == null || end < start;
+  }
 
   NewTicketState copyWith({
     List<TicketFailure>? failures,
@@ -111,6 +135,8 @@ class NewTicketState extends Equatable {
     bool? failed,
     String? warning,
     TicketPlacement? placement,
+    String? kmEndLabel,
+    String? direction,
   }) => NewTicketState(
     failures: failures ?? this.failures,
     indicator: clearSelection ? indicator : (indicator ?? this.indicator),
@@ -129,6 +155,8 @@ class NewTicketState extends Equatable {
     failed: failed ?? this.failed,
     warning: warning ?? this.warning,
     placement: placement ?? this.placement,
+    kmEndLabel: kmEndLabel ?? this.kmEndLabel,
+    direction: direction ?? this.direction,
   );
 
   @override
@@ -150,6 +178,8 @@ class NewTicketState extends Equatable {
     failed,
     warning,
     placement,
+    kmEndLabel,
+    direction,
   ];
 }
 
@@ -274,6 +304,10 @@ class NewTicketCubit extends Cubit<NewTicketState> {
 
   void setKm(String v) => emit(state.copyWith(kmLabel: v));
 
+  void setKmEnd(String v) => emit(state.copyWith(kmEndLabel: v));
+
+  void setDirection(String v) => emit(state.copyWith(direction: v));
+
   void setDescription(String v) => emit(state.copyWith(description: v));
 
   void setPhoto(int slot, String? path) {
@@ -305,9 +339,12 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           location: location,
           clientId: _clientId,
           fixedAttention: state.failure != null,
-          direction:
-              state.placement?.status == TicketPlacementStatus.onRoad &&
-                  !state.placement!.directionAmbiguous
+          kmEndLabel: state.kmEndLabel.trim().isEmpty
+              ? null
+              : state.kmEndLabel.trim(),
+          direction: state.needsDirection
+              ? state.direction
+              : state.placement?.status == TicketPlacementStatus.onRoad
               ? state.placement!.direction
               : null,
         ),

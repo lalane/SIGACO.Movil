@@ -328,7 +328,11 @@ class NewTicket extends Equatable {
     this.clientId,
     this.fixedAttention = false,
     this.direction,
+    this.kmEndLabel,
   });
+
+  /// El km final, si la falla ocupa un tramo (`KM 150+400`).
+  final String? kmEndLabel;
 
   /// El sentido (CRECIENTE o DECRECIENTE) cuando el punto lo dice; null si no.
   final String? direction;
@@ -373,6 +377,7 @@ class NewTicket extends Equatable {
     clientId,
     fixedAttention,
     direction,
+    kmEndLabel,
   ];
 }
 

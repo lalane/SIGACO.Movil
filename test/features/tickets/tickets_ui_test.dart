@@ -381,6 +381,10 @@ void main() {
         find.byKey(const Key('new-ticket-title')),
         'Cuneta tapada km 160',
       );
+      await tester.enterText(
+        find.byKey(const Key('new-ticket-description')),
+        'Basura en la cuneta',
+      );
       await tester.tap(find.byKey(const Key('new-ticket-category')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Limpieza').last);

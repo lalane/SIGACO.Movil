@@ -215,6 +215,7 @@ void main() {
       final cubit =
           NewTicketCubit(_Repo(partial: 'Una FOTO debe ser una imagen.'))
             ..setTitle('test')
+            ..setDescription('detalle')
             ..setCategory('General');
       await cubit.save();
       expect(cubit.state.saved, isTrue);
@@ -225,6 +226,7 @@ void main() {
     test('sin aviso no hay advertencia', () async {
       final cubit = NewTicketCubit(_Repo())
         ..setTitle('test')
+        ..setDescription('detalle')
         ..setCategory('General');
       await cubit.save();
       expect(cubit.state.saved, isTrue);

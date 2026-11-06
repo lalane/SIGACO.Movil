@@ -1706,5 +1706,11 @@
         "type": "int"
       }
     }
-  }
+  },
+  "newTicketKmEnd": "Km final",
+  "newTicketKmEndHint": "Opcional, si la falla ocupa un tramo",
+  "newTicketDirection": "Sentido",
+  "newTicketErrorKmEnd": "Va con el km inicial y no puede ser menor que él.",
+  "newTicketErrorDirection": "Aquí los dos sentidos comparten trazo: elija el sentido.",
+  "newTicketErrorDescription": "Describa la falla."
 }

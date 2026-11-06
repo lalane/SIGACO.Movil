@@ -80,13 +80,34 @@ void main() {
 
   group('traduccion', () {
     test('los estados del servidor se agrupan en los de la app', () {
-      expect(ApiInspectionsRepository.statusFromCode('PENDIENTE'), InspectionStatus.pending);
-      expect(ApiInspectionsRepository.statusFromCode('ASIGNADA'), InspectionStatus.pending);
-      expect(ApiInspectionsRepository.statusFromCode('EN_PROCESO'), InspectionStatus.inProgress);
-      expect(ApiInspectionsRepository.statusFromCode('ATENDIDA'), InspectionStatus.attended);
-      expect(ApiInspectionsRepository.statusFromCode('EN_REVISION'), InspectionStatus.attended);
-      expect(ApiInspectionsRepository.statusFromCode('CERRADA'), InspectionStatus.closed);
-      expect(ApiInspectionsRepository.statusFromCode('CANCELADA'), InspectionStatus.cancelled);
+      expect(
+        ApiInspectionsRepository.statusFromCode('PENDIENTE'),
+        InspectionStatus.pending,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('ASIGNADA'),
+        InspectionStatus.pending,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('EN_PROCESO'),
+        InspectionStatus.inProgress,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('ATENDIDA'),
+        InspectionStatus.attended,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('EN_REVISION'),
+        InspectionStatus.attended,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('CERRADA'),
+        InspectionStatus.closed,
+      );
+      expect(
+        ApiInspectionsRepository.statusFromCode('CANCELADA'),
+        InspectionStatus.cancelled,
+      );
     });
 
     test('conforme es bien, no conforme es hallazgo', () {
@@ -113,7 +134,11 @@ void main() {
         }),
         [
           {'parameter': 'LEGIBLE', 'value': 'CONFORME', 'status': 'CONFORME'},
-          {'parameter': 'ANCLAJE', 'value': 'NO_CONFORME', 'status': 'NO_CONFORME'},
+          {
+            'parameter': 'ANCLAJE',
+            'value': 'NO_CONFORME',
+            'status': 'NO_CONFORME',
+          },
         ],
       );
     });
@@ -121,32 +146,47 @@ void main() {
 
   group('lista y ficha', () {
     void server() {
-      api.on('GET /api/inspections', FakeReply(200, {'items': [_dto('1'), _dto('2', notes: null, status: 'CERRADA')], 'total': 2}));
-      api.on('GET /api/inspections/1/results', const FakeReply(200, [
-        {'parameter': 'LEGIBLE', 'status': 'CONFORME'},
-      ]));
-      api.on('GET /api/inspections/2/results', const FakeReply(200, <Object>[]));
+      api.on(
+        'GET /api/inspections',
+        FakeReply(200, {
+          'items': [_dto('1'), _dto('2', notes: null, status: 'CERRADA')],
+          'total': 2,
+        }),
+      );
+      api.on(
+        'GET /api/inspections/1/results',
+        const FakeReply(200, [
+          {'parameter': 'LEGIBLE', 'status': 'CONFORME'},
+        ]),
+      );
+      api.on(
+        'GET /api/inspections/2/results',
+        const FakeReply(200, <Object>[]),
+      );
     }
 
-    test('arma la inspeccion con el checklist del tipo y sus resultados', () async {
-      server();
-      final list = await repo.list();
-      final i = list.first;
-      expect(i.id, '1');
-      expect(i.title, 'Revision del km 150');
-      expect(i.type, 'Señalización');
-      expect(i.status, InspectionStatus.pending);
-      expect(i.assignee, 'Ana Lopez');
-      expect(i.assetName, 'SEN-000001');
-      expect(i.kmLabel, 'KM 150+200');
-      expect(i.direction, 'Creciente');
-      expect(i.scheduledAt, DateTime.utc(2026, 10, 25));
-      expect(i.checklist.map((c) => c.id), ['LEGIBLE', 'ANCLAJE']);
-      expect(i.checklist.first.result, CheckResult.ok);
-      expect(i.checklist.last.result, CheckResult.pending);
-      expect(i.checklist.last.critical, isTrue);
-      expect(i.answered, 1);
-    });
+    test(
+      'arma la inspeccion con el checklist del tipo y sus resultados',
+      () async {
+        server();
+        final list = await repo.list();
+        final i = list.first;
+        expect(i.id, '1');
+        expect(i.title, 'Revision del km 150');
+        expect(i.type, 'Señalización');
+        expect(i.status, InspectionStatus.pending);
+        expect(i.assignee, 'Ana Lopez');
+        expect(i.assetName, 'SEN-000001');
+        expect(i.kmLabel, 'KM 150+200');
+        expect(i.direction, 'Creciente');
+        expect(i.scheduledAt, DateTime.utc(2026, 10, 25));
+        expect(i.checklist.map((c) => c.id), ['LEGIBLE', 'ANCLAJE']);
+        expect(i.checklist.first.result, CheckResult.ok);
+        expect(i.checklist.last.result, CheckResult.pending);
+        expect(i.checklist.last.critical, isTrue);
+        expect(i.answered, 1);
+      },
+    );
 
     test('sin notas, el titulo es el tipo y el folio', () async {
       server();
@@ -191,20 +231,38 @@ void main() {
 
   group('contestar y terminar', () {
     void server({required String status}) {
-      api.on('GET /api/inspections/1', FakeReply(200, _dto('1', status: status, rowVersion: 7)));
-      api.on('GET /api/inspections/1/results', const FakeReply(200, <Object>[]));
+      api.on(
+        'GET /api/inspections/1',
+        FakeReply(200, _dto('1', status: status, rowVersion: 7)),
+      );
+      api.on(
+        'GET /api/inspections/1/results',
+        const FakeReply(200, <Object>[]),
+      );
       api.on('PUT /api/inspections/1/results', const FakeReply(200));
-      api.on('POST /api/inspections/1/status', FakeReply(200, _dto('1', status: 'EN_PROCESO')));
+      api.on(
+        'POST /api/inspections/1/status',
+        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+      );
     }
 
     const answers = {'LEGIBLE': CheckResult.ok, 'ANCLAJE': CheckResult.finding};
 
-    test('guardar una asignada la pone en proceso y manda los resultados', () async {
-      server(status: 'ASIGNADA');
-      await repo.saveAnswers('1', answers);
-      expect(api.to('POST /api/inspections/1/status').single.data, {'status': 'EN_PROCESO', 'rowVersion': 7});
-      expect(api.to('PUT /api/inspections/1/results').single.data, hasLength(2));
-    });
+    test(
+      'guardar una asignada la pone en proceso y manda los resultados',
+      () async {
+        server(status: 'ASIGNADA');
+        await repo.saveAnswers('1', answers);
+        expect(api.to('POST /api/inspections/1/status').single.data, {
+          'status': 'EN_PROCESO',
+          'rowVersion': 7,
+        });
+        expect(
+          api.to('PUT /api/inspections/1/results').single.data,
+          hasLength(2),
+        );
+      },
+    );
 
     test('guardar una que ya esta en proceso no cambia el estado', () async {
       server(status: 'EN_PROCESO');
@@ -215,13 +273,19 @@ void main() {
     test('terminar la pasa a atendida', () async {
       server(status: 'EN_PROCESO');
       await repo.complete('1', answers);
-      expect(api.to('POST /api/inspections/1/status').single.data, {'status': 'ATENDIDA', 'rowVersion': 7});
+      expect(api.to('POST /api/inspections/1/status').single.data, {
+        'status': 'ATENDIDA',
+        'rowVersion': 7,
+      });
     });
 
     test('terminar con algo sin contestar no manda nada', () async {
       server(status: 'EN_PROCESO');
       await expectLater(
-        repo.complete('1', {'LEGIBLE': CheckResult.ok, 'ANCLAJE': CheckResult.pending}),
+        repo.complete('1', {
+          'LEGIBLE': CheckResult.ok,
+          'ANCLAJE': CheckResult.pending,
+        }),
         _fails(InspectionsError.incomplete),
       );
       expect(api.requests, isEmpty);
@@ -229,8 +293,14 @@ void main() {
 
     test('un conflicto del servidor es que ya no se puede editar', () async {
       server(status: 'EN_PROCESO');
-      api.on('PUT /api/inspections/1/results', const FakeReply(409, {'code': 'X'}));
-      await expectLater(repo.saveAnswers('1', answers), _fails(InspectionsError.notEditable));
+      api.on(
+        'PUT /api/inspections/1/results',
+        const FakeReply(409, {'code': 'X'}),
+      );
+      await expectLater(
+        repo.saveAnswers('1', answers),
+        _fails(InspectionsError.notEditable),
+      );
     });
   });
 
@@ -238,7 +308,10 @@ void main() {
     setUp(() {
       api.on('POST /api/inspections', FakeReply(200, _dto('5')));
       api.on('GET /api/inspections/5', FakeReply(200, _dto('5')));
-      api.on('GET /api/inspections/5/results', const FakeReply(200, <Object>[]));
+      api.on(
+        'GET /api/inspections/5/results',
+        const FakeReply(200, <Object>[]),
+      );
     });
 
     test('nace asignada a quien la levanta, con carretera y km', () async {
@@ -274,40 +347,71 @@ void main() {
 
   group('hallazgos', () {
     setUp(() {
-      api.on('GET /api/inspections/1', FakeReply(200, _dto('1', status: 'EN_PROCESO')));
-      api.on('GET /api/inspections/1/results', const FakeReply(200, <Object>[]));
-      api.on('POST /api/inspections/1/findings', const FakeReply(200, {'id': 'f1'}));
+      api.on(
+        'GET /api/inspections/1',
+        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+      );
+      api.on(
+        'GET /api/inspections/1/results',
+        const FakeReply(200, <Object>[]),
+      );
+      api.on(
+        'POST /api/inspections/1/findings',
+        const FakeReply(200, {'id': 'f1'}),
+      );
     });
 
-    test('manda la nota, la gravedad, el punto del checklist y la posicion', () async {
+    test(
+      'manda la nota, la gravedad, el punto del checklist y la posicion',
+      () async {
+        await repo.addFinding(
+          '1',
+          InspectionFinding(
+            id: 'x',
+            itemId: 'ANCLAJE',
+            note: 'Tornillo suelto',
+            capturedAt: DateTime.utc(2026, 10, 26),
+            position: const FindingPosition(
+              latitude: -18.8,
+              longitude: -41.9,
+              accuracyMeters: 8,
+            ),
+          ),
+        );
+        final body =
+            api.to('POST /api/inspections/1/findings').single.data as Map;
+        expect(body['description'], 'Tornillo suelto');
+        // El punto del checklist critico pide mas atencion.
+        expect(body['severity'], 'ALTA');
+        expect(body['parameter'], 'ANCLAJE');
+        expect(body['geometry'], {
+          'type': 'Point',
+          'coordinates': [-41.9, -18.8],
+        });
+      },
+    );
+
+    test('sin nota usa el texto del punto del checklist', () async {
       await repo.addFinding(
         '1',
         InspectionFinding(
           id: 'x',
-          itemId: 'ANCLAJE',
-          note: 'Tornillo suelto',
+          itemId: 'LEGIBLE',
           capturedAt: DateTime.utc(2026, 10, 26),
-          position: const FindingPosition(latitude: -18.8, longitude: -41.9, accuracyMeters: 8),
         ),
       );
-      final body = api.to('POST /api/inspections/1/findings').single.data as Map;
-      expect(body['description'], 'Tornillo suelto');
-      // El punto del checklist critico pide mas atencion.
-      expect(body['severity'], 'ALTA');
-      expect(body['parameter'], 'ANCLAJE');
-      expect(body['geometry'], {'type': 'Point', 'coordinates': [-41.9, -18.8]});
-    });
-
-    test('sin nota usa el texto del punto del checklist', () async {
-      await repo.addFinding('1', InspectionFinding(id: 'x', itemId: 'LEGIBLE', capturedAt: DateTime.utc(2026, 10, 26)));
-      final body = api.to('POST /api/inspections/1/findings').single.data as Map;
+      final body =
+          api.to('POST /api/inspections/1/findings').single.data as Map;
       expect(body['description'], 'Legible');
       expect(body['severity'], 'MEDIA');
       expect(body.containsKey('geometry'), isFalse);
     });
 
     test('las fotos van ligadas al hallazgo', () async {
-      api.on('POST /api/inspections/1/findings/f1/attachments', const FakeReply(200, {'id': 'a1'}));
+      api.on(
+        'POST /api/inspections/1/findings/f1/attachments',
+        const FakeReply(200, {'id': 'a1'}),
+      );
       final dir = _tempDir();
       final photo = File('${dir.path}/h.jpg')..writeAsBytesSync([1, 2]);
       await repo.addFinding(
@@ -319,7 +423,9 @@ void main() {
           photoPaths: [photo.path, '${dir.path}/no_existe.jpg'],
         ),
       );
-      final uploads = api.to('POST /api/inspections/1/findings/f1/attachments').toList();
+      final uploads = api
+          .to('POST /api/inspections/1/findings/f1/attachments')
+          .toList();
       expect(uploads, hasLength(1));
       final form = uploads.single.data as FormData;
       expect({for (final f in form.fields) f.key: f.value}['kind'], 'FOTO');

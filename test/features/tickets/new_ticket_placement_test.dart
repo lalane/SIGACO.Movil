@@ -47,6 +47,7 @@ Future<NewTicketCubit> _ready(_PlacedRepo repo, {TicketLocation? at}) async {
   await Future<void>.delayed(Duration.zero);
   cubit
     ..setTitle('Bache')
+    ..setDescription('En el carril derecho')
     ..setCategory(cubit.state.categories.first);
   return cubit;
 }
@@ -65,7 +66,7 @@ void main() {
     expect(repo.created!.kmLabel, 'KM 146+900');
   });
 
-  test('con los dos sentidos en el mismo trazo no manda sentido', () async {
+  test('con los dos sentidos en el mismo trazo pide el sentido', () async {
     final repo = _PlacedRepo(
       const TicketPlacement(
         status: TicketPlacementStatus.onRoad,
@@ -75,8 +76,22 @@ void main() {
       ),
     );
     final cubit = await _ready(repo);
+    expect(cubit.state.needsDirection, isTrue);
     await cubit.save();
-    expect(repo.created!.direction, isNull);
+    expect(repo.created, isNull);
+    expect(cubit.state.issues, [NewTicketIssue.direction]);
+
+    cubit.setDirection('DECRECIENTE');
+    await cubit.save();
+    expect(repo.created!.direction, 'DECRECIENTE');
+  });
+
+  test('el km final no puede ser menor que el inicial', () async {
+    final cubit = await _ready(_PlacedRepo(_onRoad));
+    cubit.setKmEnd('KM 146+500');
+    expect(cubit.state.issues, [NewTicketIssue.kmEnd]);
+    cubit.setKmEnd('147+100');
+    expect(cubit.state.issues, isEmpty);
   });
 
   test('lejos de la carretera no se guarda', () async {

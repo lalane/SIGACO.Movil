@@ -111,7 +111,9 @@ void main() {
     });
 
     test('sin endpoints el formulario dice que no hay tipos', () async {
-      final cubit = NewInspectionCubit(const UnavailableInspectionsRepository());
+      final cubit = NewInspectionCubit(
+        const UnavailableInspectionsRepository(),
+      );
       await cubit.load();
       expect(cubit.state.status, NewInspectionStatus.failure);
       cubit.setType('Drenaje');
@@ -330,7 +332,10 @@ void main() {
       await tester.tap(find.byKey(const Key('inspection-I-502')));
       await tester.pumpAndSettle();
       await reveal(tester, const Key('inspection-evidence-empty'));
-      expect(find.byKey(const Key('inspection-evidence-empty')), findsOneWidget);
+      expect(
+        find.byKey(const Key('inspection-evidence-empty')),
+        findsOneWidget,
+      );
       await tester.drag(
         find.byKey(const Key('inspection-detail')),
         const Offset(0, 3000),
@@ -367,7 +372,10 @@ void main() {
       await reveal(tester, Key('finding-${saved.id}'));
       expect(find.text('Defensa doblada'), findsOneWidget);
       expect(find.byKey(Key('finding-position-${saved.id}')), findsOneWidget);
-      expect(find.textContaining('Posición -18.85000, -41.98000'), findsOneWidget);
+      expect(
+        find.textContaining('Posición -18.85000, -41.98000'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('una inspeccion cerrada no ofrece capturar hallazgos', (
@@ -385,7 +393,10 @@ void main() {
       await tester.pumpAndSettle();
       await reveal(tester, const Key('inspection-evidence-empty'));
       expect(find.byKey(const Key('inspection-action-finding')), findsNothing);
-      expect(find.byKey(const Key('inspection-evidence-empty')), findsOneWidget);
+      expect(
+        find.byKey(const Key('inspection-evidence-empty')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('crear un monitoreo desde la lista', (tester) async {

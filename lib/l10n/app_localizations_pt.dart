@@ -3445,4 +3445,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String ticketPlacementOffRoad(int meters) {
     return 'O ponto está a mais de $meters m da rodovia: marque-o sobre a rodovia da concessão.';
   }
+
+  @override
+  String get newTicketKmEnd => 'Km final';
+
+  @override
+  String get newTicketKmEndHint => 'Opcional, se a falha ocupa um trecho';
+
+  @override
+  String get newTicketDirection => 'Sentido';
+
+  @override
+  String get newTicketErrorKmEnd =>
+      'Vai com o km inicial e não pode ser menor que ele.';
+
+  @override
+  String get newTicketErrorDirection =>
+      'Aqui os dois sentidos compartilham o traçado: escolha o sentido.';
+
+  @override
+  String get newTicketErrorDescription => 'Descreva a falha.';
 }

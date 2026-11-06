@@ -88,7 +88,8 @@ void main() {
         ..setIndicator('SGP')
         ..setGroup('Buracos')
         ..setCategory('SGP_1')
-        ..setTitle('Buraco grande');
+        ..setTitle('Buraco grande')
+        ..setDescription('En el carril derecho');
       await cubit.save();
       expect(cubit.state.saved, isTrue);
       expect(repo.created!.category, 'SGP_1');

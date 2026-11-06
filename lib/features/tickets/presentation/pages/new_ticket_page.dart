@@ -109,6 +109,8 @@ class NewTicketPage extends StatelessWidget {
             state.showIssues && state.issues.contains(NewTicketIssue.title);
         final categoryError =
             state.showIssues && state.issues.contains(NewTicketIssue.category);
+        bool shows(NewTicketIssue i) =>
+            state.showIssues && state.issues.contains(i);
         return ModuleFormScaffold(
           submitKey: const Key('ticket-form-submit'),
           header: SigacoModuleHeader(title: l10n.newTicketTitle),
@@ -200,9 +202,22 @@ class NewTicketPage extends StatelessWidget {
                         state.indicator != null &&
                         state.group == null,
                   ),
+                  // Las subclasificaciones son largas: en el campo, una linea
+                  // con puntos suspensivos; en la lista, completas.
+                  selectedItemBuilder: (_) => [
+                    for (final g in state.groups)
+                      Text(g, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
                   items: [
                     for (final g in state.groups)
-                      DropdownMenuItem(value: g, child: Text(g)),
+                      DropdownMenuItem(
+                        value: g,
+                        child: Text(
+                          g,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
                   onChanged: state.indicator != null
                       ? (v) {
@@ -230,9 +245,24 @@ class NewTicketPage extends StatelessWidget {
                     context,
                     error: categoryError && state.group != null,
                   ),
+                  selectedItemBuilder: (_) => [
+                    for (final f in state.groupFailures)
+                      Text(
+                        f.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
                   items: [
                     for (final f in state.groupFailures)
-                      DropdownMenuItem(value: f.code, child: Text(f.label)),
+                      DropdownMenuItem(
+                        value: f.code,
+                        child: Text(
+                          f.label,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                   ],
                   onChanged: state.group != null
                       ? (v) {
@@ -314,7 +344,60 @@ class NewTicketPage extends StatelessWidget {
               ),
             ),
             ModuleField(
+              label: l10n.newTicketKmEnd,
+              error: shows(NewTicketIssue.kmEnd)
+                  ? l10n.newTicketErrorKmEnd
+                  : null,
+              child: TextFormField(
+                key: const Key('new-ticket-km-end'),
+                initialValue: state.kmEndLabel,
+                onChanged: cubit.setKmEnd,
+                style: moduleInkStyle,
+                decoration: moduleInput(
+                  context,
+                  hint: l10n.newTicketKmEndHint,
+                  error: shows(NewTicketIssue.kmEnd),
+                ),
+              ),
+            ),
+            if (state.needsDirection)
+              ModuleField(
+                label: l10n.newTicketDirection,
+                error: shows(NewTicketIssue.direction)
+                    ? l10n.newTicketErrorDirection
+                    : null,
+                child: DropdownButtonFormField<String>(
+                  key: const Key('new-ticket-direction'),
+                  initialValue: state.direction,
+                  isExpanded: true,
+                  style: moduleInkStyle,
+                  dropdownColor: Colors.white,
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  hint: Text(l10n.followUpSelect, style: moduleHintStyle),
+                  decoration: moduleInput(
+                    context,
+                    error: shows(NewTicketIssue.direction),
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'CRECIENTE',
+                      child: Text(l10n.mapDirectionIncreasing),
+                    ),
+                    DropdownMenuItem(
+                      value: 'DECRECIENTE',
+                      child: Text(l10n.mapDirectionDecreasing),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) cubit.setDirection(v);
+                  },
+                ),
+              ),
+            ModuleField(
               label: l10n.followUpDescription,
+              error: shows(NewTicketIssue.description)
+                  ? l10n.newTicketErrorDescription
+                  : null,
               child: TextFormField(
                 key: const Key('new-ticket-description'),
                 initialValue: state.description,
@@ -323,7 +406,11 @@ class NewTicketPage extends StatelessWidget {
                 maxLines: 6,
                 style: moduleInkStyle,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: moduleInput(context, hint: l10n.followUpFillIn),
+                decoration: moduleInput(
+                  context,
+                  hint: l10n.followUpFillIn,
+                  error: shows(NewTicketIssue.description),
+                ),
               ),
             ),
           ],

@@ -223,12 +223,13 @@ void main() {
       expect(cubit.state.categories, isNotEmpty);
     });
 
-    test('pide titulo y tipo', () async {
+    test('pide titulo, tipo y descripcion', () async {
       final cubit = NewTicketCubit(repo);
       await cubit.save();
       expect(cubit.state.issues, [
         NewTicketIssue.title,
         NewTicketIssue.category,
+        NewTicketIssue.description,
       ]);
       expect(cubit.state.saved, isFalse);
     });
@@ -238,14 +239,14 @@ void main() {
         ..setTitle(' Señal caída ')
         ..setCategory('Señalización')
         ..setKm('KM 150+200')
-        ..setDescription('')
+        ..setDescription(' Poste doblado ')
         ..setPhoto(0, '/tmp/1.jpg');
       await cubit.save();
       expect(cubit.state.saved, isTrue);
       final created = (await repo.list()).first;
       expect(created.title, 'Señal caída');
       expect(created.kmLabel, 'KM 150+200');
-      expect(created.description, isNull);
+      expect(created.description, 'Poste doblado');
       expect(created.photoPaths, ['/tmp/1.jpg']);
     });
   });

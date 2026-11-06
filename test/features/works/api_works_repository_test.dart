@@ -52,7 +52,13 @@ void main() {
   });
 
   test('una obra del servidor se ve como la app la muestra', () async {
-    api.on('GET /api/works', FakeReply(200, {'items': [_dto('w1')], 'total': 1}));
+    api.on(
+      'GET /api/works',
+      FakeReply(200, {
+        'items': [_dto('w1')],
+        'total': 1,
+      }),
+    );
     api.on('GET /api/works/w1/summary', const FakeReply(200, _summary));
 
     final works = await repo.list();
@@ -78,36 +84,63 @@ void main() {
   });
 
   test('los estados del servidor se agrupan en los cuatro de la app', () {
-    expect(ApiWorksRepository.statusFromCode('PLANIFICADA'), WorkStatus.notStarted);
-    expect(ApiWorksRepository.statusFromCode('APROBADA'), WorkStatus.notStarted);
-    expect(ApiWorksRepository.statusFromCode('EN_EJECUCION'), WorkStatus.inProgress);
+    expect(
+      ApiWorksRepository.statusFromCode('PLANIFICADA'),
+      WorkStatus.notStarted,
+    );
+    expect(
+      ApiWorksRepository.statusFromCode('APROBADA'),
+      WorkStatus.notStarted,
+    );
+    expect(
+      ApiWorksRepository.statusFromCode('EN_EJECUCION'),
+      WorkStatus.inProgress,
+    );
     expect(ApiWorksRepository.statusFromCode('SUSPENDIDA'), WorkStatus.delayed);
-    expect(ApiWorksRepository.statusFromCode('CON_DESVIACION'), WorkStatus.delayed);
+    expect(
+      ApiWorksRepository.statusFromCode('CON_DESVIACION'),
+      WorkStatus.delayed,
+    );
     expect(ApiWorksRepository.statusFromCode('TERMINADA'), WorkStatus.finished);
     expect(ApiWorksRepository.statusFromCode('CERRADA'), WorkStatus.finished);
   });
 
   test('una obra cancelada no se muestra', () async {
-    api.on('GET /api/works', FakeReply(200, {'items': [_dto('w1'), _dto('w2', status: 'CANCELADA')], 'total': 2}));
+    api.on(
+      'GET /api/works',
+      FakeReply(200, {
+        'items': [_dto('w1'), _dto('w2', status: 'CANCELADA')],
+        'total': 2,
+      }),
+    );
     api.on('GET /api/works/w1/summary', const FakeReply(200, _summary));
     expect((await repo.list()).map((w) => w.id), ['w1']);
     expect(api.to('GET /api/works/w2/summary'), isEmpty);
   });
 
-  test('un resumen que no baja deja la obra sin avance, no sin lista', () async {
-    api.on('GET /api/works', FakeReply(200, {'items': [_dto('w1')], 'total': 1}));
-    api.on('GET /api/works/w1/summary', const FakeReply(500));
-    final w = (await repo.list()).single;
-    expect(w.physicalProgress, 0);
-    expect(w.programmedProgress, 0);
-    expect(w.executedAmount, isNull);
-  });
+  test(
+    'un resumen que no baja deja la obra sin avance, no sin lista',
+    () async {
+      api.on(
+        'GET /api/works',
+        FakeReply(200, {
+          'items': [_dto('w1')],
+          'total': 1,
+        }),
+      );
+      api.on('GET /api/works/w1/summary', const FakeReply(500));
+      final w = (await repo.list()).single;
+      expect(w.physicalProgress, 0);
+      expect(w.programmedProgress, 0);
+      expect(w.executedAmount, isNull);
+    },
+  );
 
   test('el avance se acota entre 0 y 100 por ciento', () {
-    final w = ApiWorksRepository.workFromDto(
-      _dto('w1'),
-      const {'physicalPercent': 130, 'plannedPercent': -5},
-    );
+    final w = ApiWorksRepository.workFromDto(_dto('w1'), const {
+      'physicalPercent': 130,
+      'plannedPercent': -5,
+    });
     expect(w.physicalProgress, 1);
     expect(w.programmedProgress, 0);
   });
@@ -116,8 +149,14 @@ void main() {
     api.reply('GET /api/works', (o) {
       final page = o.queryParameters['page'];
       return page == 1
-          ? FakeReply(200, {'items': [_dto('w1'), _dto('w2')], 'total': 3})
-          : FakeReply(200, {'items': [_dto('w3')], 'total': 3});
+          ? FakeReply(200, {
+              'items': [_dto('w1'), _dto('w2')],
+              'total': 3,
+            })
+          : FakeReply(200, {
+              'items': [_dto('w3')],
+              'total': 3,
+            });
     });
     for (final id in ['w1', 'w2', 'w3']) {
       api.on('GET /api/works/$id/summary', const FakeReply(200, _summary));

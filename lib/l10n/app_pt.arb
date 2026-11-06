@@ -1513,5 +1513,11 @@
   "newTicketErrorFailure": "Escolha o indicador, a subclassificação e a falha.",
   "ticketPlacementSegment": "trecho {code}",
   "ticketPlacementDistance": "a {meters} m da rodovia",
-  "ticketPlacementOffRoad": "O ponto está a mais de {meters} m da rodovia: marque-o sobre a rodovia da concessão."
+  "ticketPlacementOffRoad": "O ponto está a mais de {meters} m da rodovia: marque-o sobre a rodovia da concessão.",
+  "newTicketKmEnd": "Km final",
+  "newTicketKmEndHint": "Opcional, se a falha ocupa um trecho",
+  "newTicketDirection": "Sentido",
+  "newTicketErrorKmEnd": "Vai com o km inicial e não pode ser menor que ele.",
+  "newTicketErrorDirection": "Aqui os dois sentidos compartilham o traçado: escolha o sentido.",
+  "newTicketErrorDescription": "Descreva a falha."
 }

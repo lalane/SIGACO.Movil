@@ -103,6 +103,7 @@ void main() {
       final cubit = NewTicketCubit(repo, clientIdGenerator: () => 'fijo-1');
       await cubit.load();
       cubit.setTitle('Bache');
+      cubit.setDescription('Detalle');
       cubit.setCategory(cubit.state.categories.first);
       await cubit.save();
       expect(repo.drafts.single.clientId, 'fijo-1');
@@ -136,6 +137,7 @@ void main() {
       final cubit = NewTicketCubit(repo, location: location);
       await cubit.load();
       cubit.setTitle('Drenaje tapado');
+      cubit.setDescription('Detalle');
       cubit.setCategory(cubit.state.categories.first);
       await cubit.save();
       expect(repo.drafts.single.location, location);
@@ -151,6 +153,7 @@ void main() {
       final cubit = NewTicketCubit(repo);
       await cubit.load();
       cubit.setTitle('Señal caída');
+      cubit.setDescription('Detalle');
       cubit.setCategory(cubit.state.categories.first);
       await cubit.save();
       expect(repo.drafts.single.location, isNull);
@@ -167,6 +170,7 @@ void main() {
         isNot(NewAccidentCubit(repo).clientId),
       );
       cubit.setTitle('Choque');
+      cubit.setDescription('Detalle');
       cubit.setType(AccidentType.collision);
       await cubit.save();
       expect(cubit.state.saved, isTrue);
@@ -356,6 +360,12 @@ void main() {
       await tester.tap(find.byKey(const Key('new-ticket-category')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Limpieza').last);
+      await tester.pumpAndSettle();
+      // La descripcion queda mas abajo: al escribirla el formulario se desplaza.
+      await tester.enterText(
+        find.byKey(const Key('new-ticket-description')),
+        'Detalle de prueba',
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('ticket-form-submit')));
       await tester.pumpAndSettle();

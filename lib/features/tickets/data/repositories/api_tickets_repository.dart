@@ -265,7 +265,10 @@ class ApiTicketsRepository
           code: code,
           label: label,
           subsystemCode: subsystem.toUpperCase(),
-          group: _text(t['classification']) ?? '',
+          group:
+              (pt ? _text(t['classificationPt']) : null) ??
+              _text(t['classification']) ??
+              '',
           attentionHours: hours.toDouble(),
           attentionLabel: _text(t['attentionLabel']),
         ),
@@ -342,6 +345,7 @@ class ApiTicketsRepository
       'assetId': ?assetId,
       'roadId': ?road,
       'kmStart': ?km,
+      'kmEnd': ?parseKm(draft.kmEndLabel),
       'direction': ?draft.direction,
       if (location != null)
         'geometry': {

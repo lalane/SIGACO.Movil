@@ -6283,6 +6283,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'El punto está a más de {meters} m de la carretera: márquelo sobre la carretera de la concesión.'**
   String ticketPlacementOffRoad(int meters);
+
+  /// No description provided for @newTicketKmEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Km final'**
+  String get newTicketKmEnd;
+
+  /// No description provided for @newTicketKmEndHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional, si la falla ocupa un tramo'**
+  String get newTicketKmEndHint;
+
+  /// No description provided for @newTicketDirection.
+  ///
+  /// In es, this message translates to:
+  /// **'Sentido'**
+  String get newTicketDirection;
+
+  /// No description provided for @newTicketErrorKmEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Va con el km inicial y no puede ser menor que él.'**
+  String get newTicketErrorKmEnd;
+
+  /// No description provided for @newTicketErrorDirection.
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí los dos sentidos comparten trazo: elija el sentido.'**
+  String get newTicketErrorDirection;
+
+  /// No description provided for @newTicketErrorDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Describa la falla.'**
+  String get newTicketErrorDescription;
 }
 
 class _AppLocalizationsDelegate
