@@ -1,0 +1,104 @@
+# Compila el APK release firmado y lo distribuye con Firebase App Distribution.
+# Requiere:
+#   - archivos seguros: sigaco-release.jks (llave de firma) y sigacoapp-ci.json (cuenta de servicio de Firebase);
+#   - grupo de variables vg-sigaco-movil: sigacoKeystorePassword (secreta).
+parameters:
+  - name: environment
+    type: string
+  - name: apiBaseUrl
+    type: string
+  - name: firebaseAppId
+    type: string
+  - name: testerGroups
+    type: string
+  - name: appIdSuffix
+    type: string
+    default: ''
+  - name: appLabel
+    type: string
+    default: SIGACO
+  - name: flutterVersion
+    type: string
+    default: 3.44.8
+
+steps:
+  - checkout: self
+    fetchDepth: 30
+
+  - bash: |
+      set -euo pipefail
+      echo "##vso[task.setvariable variable=JAVA_HOME]${JAVA_HOME_17_X64}"
+      git clone --quiet --depth 1 --branch ${{ parameters.flutterVersion }} https://github.com/flutter/flutter.git "$(Agent.ToolsDirectory)/flutter"
+      echo "##vso[task.prependpath]$(Agent.ToolsDirectory)/flutter/bin"
+    displayName: Install Flutter ${{ parameters.flutterVersion }}
+
+  - bash: |
+      set -euo pipefail
+      flutter config --no-analytics >/dev/null
+      flutter --version
+      yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+    displayName: Flutter doctor
+
+  - task: DownloadSecureFile@1
+    name: releaseKeystore
+    displayName: Download signing key
+    inputs:
+      secureFile: sigaco-release.jks
+
+  - task: DownloadSecureFile@1
+    name: firebaseKey
+    displayName: Download Firebase service account
+    inputs:
+      secureFile: sigacoapp-ci.json
+
+  - bash: |
+      set -euo pipefail
+      flutter pub get
+      flutter build apk --release \
+        --dart-define=API_BASE_URL=${{ parameters.apiBaseUrl }} \
+        --build-number=$(Build.BuildId)
+      ls -l build/app/outputs/flutter-apk/app-release.apk
+    displayName: Build APK (${{ parameters.environment }})
+    env:
+      SIGACO_KEYSTORE_PATH: $(releaseKeystore.secureFilePath)
+      SIGACO_KEYSTORE_PASSWORD: $(sigacoKeystorePassword)
+      SIGACO_KEY_ALIAS: sigaco
+      SIGACO_APP_ID_SUFFIX: ${{ parameters.appIdSuffix }}
+      SIGACO_APP_LABEL: ${{ parameters.appLabel }}
+
+  # El APK tiene que salir firmado con la llave de SIGACO, nunca con la de depuración.
+  - bash: |
+      set -euo pipefail
+      apksigner=$(ls -d "${ANDROID_HOME}"/build-tools/*/ | sort -V | tail -1)apksigner
+      "$apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk | tee certs.txt | grep -E "Signer #1 certificate DN"
+      if grep -qi "CN=Android Debug" certs.txt; then
+        echo "##vso[task.logissue type=error]El APK quedó firmado con la llave de depuración."
+        exit 1
+      fi
+    displayName: Verify signature
+
+  - bash: |
+      set -euo pipefail
+      version=$(grep -E '^version:' pubspec.yaml | sed -E 's/version:[[:space:]]*([^+]+).*/\1/')
+      {
+        echo "SIGACO ${{ parameters.environment }} · ${version} (${BUILD_BUILDID}) · commit ${BUILD_SOURCEVERSION:0:7}"
+        echo "API: ${{ parameters.apiBaseUrl }}"
+        echo ""
+        echo "Cambios recientes:"
+        git log -8 --no-merges --pretty='- %s' | grep -v '\[skip ci\]' || true
+      } > release-notes.txt
+      cat release-notes.txt
+      npx -y firebase-tools@14 appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+        --app "${{ parameters.firebaseAppId }}" \
+        --groups "${{ parameters.testerGroups }}" \
+        --release-notes-file release-notes.txt \
+        --non-interactive
+    displayName: Distribute with Firebase (${{ parameters.testerGroups }})
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: $(firebaseKey.secureFilePath)
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish APK
+    inputs:
+      targetPath: build/app/outputs/flutter-apk/app-release.apk
+      artifact: sigaco-${{ parameters.environment }}-apk

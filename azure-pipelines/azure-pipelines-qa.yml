@@ -1,0 +1,32 @@
+# Pipeline: SIGACO Móvil - QA de TEKIA
+# Cada push a la rama qa compila el APK release (apunta al API de QA, sigaco-api-dev) y lo distribuye con
+# Firebase App Distribution al grupo tekia-qa. App id com.idare.sigaco_movil, nombre «SIGACO».
+
+name: SIGACO-MOVIL-QA-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - qa
+
+pr: none
+
+variables:
+  - group: vg-sigaco-movil
+
+stages:
+  - stage: BuildDistribute
+    displayName: Build and distribute QA
+    jobs:
+      - job: Apk
+        displayName: APK QA
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - template: templates/build-distribute.yml
+            parameters:
+              environment: QA
+              apiBaseUrl: https://sigaco-api-dev.azurewebsites.net
+              firebaseAppId: 1:388452504565:android:9d9b7494d619814df086bc
+              testerGroups: tekia-qa
+              appLabel: SIGACO
