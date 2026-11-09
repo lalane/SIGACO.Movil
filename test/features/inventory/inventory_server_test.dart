@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigaco_movil/app/app.dart';
 import 'package:sigaco_movil/app/dependencies.dart';
+import 'package:sigaco_movil/features/inventory/data/repositories/in_memory_inventory.dart';
 import 'package:sigaco_movil/features/inventory/domain/entities/inventory_asset.dart';
 import 'package:sigaco_movil/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:sigaco_movil/features/inventory/presentation/bloc/inventory_cubit.dart';
@@ -25,7 +26,7 @@ final _png = base64Decode(
 
 /// Como responde el servidor: codigo propio, activos sin evaluar y sin fecha de
 /// inspeccion, y una foto principal.
-class _ServerInventory implements InventoryRepository {
+class _ServerInventory with InMemoryInventory {
   _ServerInventory({this.photo, this.failPhoto = false});
 
   final Uint8List? photo;
@@ -51,7 +52,7 @@ class _ServerInventory implements InventoryRepository {
   );
 
   @override
-  Future<List<InventoryAsset>> list() async => [unknown, good];
+  Future<List<InventoryAsset>> allAssets() async => [unknown, good];
 
   @override
   Future<InventoryAsset> get(String id) async {
@@ -69,6 +70,42 @@ class _ServerInventory implements InventoryRepository {
   }
 }
 
+/// Un catalogo grande, de a 50 por pagina; anota cuantas paginas se piden.
+class _ManyInventory with InMemoryInventory {
+  _ManyInventory(this.count);
+
+  final int count;
+  int pageCalls = 0;
+
+  @override
+  Future<List<InventoryAsset>> allAssets() async => [
+    for (var i = 0; i < count; i++)
+      InventoryAsset(
+        id: 'm-${i.toString().padLeft(3, '0')}',
+        name: 'M-${i.toString().padLeft(3, '0')}',
+        category: 'Defensa metálica',
+        condition: AssetCondition.unknown,
+      ),
+  ];
+
+  @override
+  Future<InventoryResultPage> page(
+    InventoryQuery query, {
+    Object? after,
+    InventoryCancellation? cancellation,
+  }) {
+    pageCalls++;
+    return super.page(query, after: after, cancellation: cancellation);
+  }
+
+  @override
+  Future<InventoryAsset> get(String id) async =>
+      throw const InventoryException(InventoryError.notFound);
+
+  @override
+  Future<Uint8List?> mainPhoto(InventoryAsset asset) async => null;
+}
+
 void main() {
   group('cubits', () {
     test('lo que no se evaluo va al final y no cuenta como estado', () async {
@@ -81,23 +118,35 @@ void main() {
         expect(cubit.state.count(c), c == AssetCondition.good ? 1 : 0);
       }
       expect(cubit.state.count(AssetCondition.unknown), 1);
-      // Filtrar por "sin evaluar" deja solo esos.
-      cubit.setCondition(AssetCondition.unknown);
-      expect(cubit.state.visible.map((a) => a.id), ['g-2']);
+      // Filtrar por bueno deja solo ese, y el resumen no cambia.
+      await cubit.setCondition(AssetCondition.good);
+      expect(cubit.state.visible.map((a) => a.id), ['g-1']);
+      expect(cubit.state.total, 1);
+      expect(cubit.state.counts?.total, 2);
     });
 
-    test('sin fechas de inspeccion no hay filtro por fecha', () async {
-      final cubit = InventoryCubit(_ServerInventory());
-      await cubit.load();
-      expect(cubit.state.hasInspectionDates, isFalse);
-      cubit.setInspectedFrom(DateTime.utc(2026, 10, 1));
-      expect(cubit.state.hasInspectionDates, isTrue);
-    });
+    test(
+      'sin monitoreos en esas fechas no hay resultados, y se deshace',
+      () async {
+        final cubit = InventoryCubit(_ServerInventory());
+        await cubit.load();
+        await cubit.setInspectedFrom(DateTime.utc(2026, 10, 1));
+        expect(cubit.state.request.inspectedFrom, DateTime.utc(2026, 10, 1));
+        expect(cubit.state.visible, isEmpty);
+        // Los filtros siguen a la vista para poder quitarlos.
+        expect(cubit.state.hasContent, isTrue);
+        await cubit.clearFilters();
+        expect(cubit.state.visible, hasLength(2));
+      },
+    );
 
     test('se busca por el codigo del servidor', () async {
-      final cubit = InventoryCubit(_ServerInventory());
+      final cubit = InventoryCubit(
+        _ServerInventory(),
+        searchDelay: Duration.zero,
+      );
       await cubit.load();
-      cubit.setQuery('sen-0000');
+      await cubit.setQuery('sen-0000');
       expect(cubit.state.visible.map((a) => a.id), ['g-2']);
     });
 
@@ -198,8 +247,41 @@ void main() {
       expect(find.byKey(const Key('inventory-stat-all')), findsOneWidget);
       expect(find.byKey(const Key('inventory-stat-good')), findsOneWidget);
       expect(find.byKey(const Key('inventory-stat-unknown')), findsNothing);
-      // El servidor aun no publica la fecha de inspeccion.
-      expect(find.byKey(const Key('inventory-from')), findsNothing);
+      // La fecha de monitoreo la filtra el servidor: el campo siempre esta.
+      expect(find.byKey(const Key('inventory-from')), findsOneWidget);
+    });
+
+    testWidgets('al bajar por la lista se piden las paginas siguientes', (
+      tester,
+    ) async {
+      final repo = _ManyInventory(120);
+      await launch(tester, repo);
+
+      // El total es el de la consulta, no lo que ya bajo.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('inventory-stat-all')),
+          matching: find.text('120'),
+        ),
+        findsOneWidget,
+      );
+      expect(repo.pageCalls, 1);
+      expect(find.byKey(const Key('inventory-m-119')), findsNothing);
+
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('inventory-m-119')),
+        800,
+        scrollable: find.descendant(
+          of: find.byKey(const Key('inventory-list')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('inventory-m-119')), findsOneWidget);
+      expect(repo.pageCalls, 3);
+      // Ya no hay mas: sin rueda al final.
+      expect(find.byKey(const Key('inventory-more')), findsNothing);
     });
 
     testWidgets('la ficha muestra el codigo y la vista en sitio', (

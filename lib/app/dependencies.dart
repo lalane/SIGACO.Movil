@@ -57,9 +57,15 @@ import '../features/inspections/data/repositories/api_inspections_repository.dar
 import '../features/inspections/data/repositories/sample_inspections_repository.dart';
 import '../features/inspections/data/repositories/unavailable_inspections_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../core/scan/qr_scanner.dart';
+import '../features/inventory/data/repositories/api_asset_capture_repository.dart';
 import '../features/inventory/data/repositories/api_inventory_repository.dart';
+import '../features/inventory/data/repositories/offline_asset_capture_repository.dart';
 import '../features/inventory/data/repositories/sample_inventory_repository.dart';
+import '../features/inventory/data/repositories/unavailable_asset_capture_repository.dart';
 import '../features/inventory/data/repositories/unavailable_inventory_repository.dart';
+import '../features/inventory/data/sync/assets_sync_remote.dart';
+import '../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/api_maintenance_repository.dart';
 import '../features/maintenance/data/repositories/offline_maintenance_repository.dart';
@@ -326,6 +332,8 @@ class AppDependencies {
     this.sampleMaintenance = false,
     this.inventoryRepository = const UnavailableInventoryRepository(),
     this.sampleInventory = false,
+    this.assetCaptureRepository = const UnavailableAssetCaptureRepository(),
+    this.qrScanner = const NoQrScanner(),
     this.worksRepository = const UnavailableWorksRepository(),
     this.sampleWorks = false,
     this.alertsRepository = const UnavailableAlertsRepository(),
@@ -442,6 +450,13 @@ class AppDependencies {
   /// Inventario (APP-MOB-06). Igual que los tickets.
   final InventoryRepository inventoryRepository;
   final bool sampleInventory;
+
+  /// El alta de activos en campo (contrato de Activos); sin red queda en la
+  /// cola. Sin servidor, el formulario dice que no esta disponible.
+  final AssetCaptureRepository assetCaptureRepository;
+
+  /// La camara que lee el QR de los activos; las pruebas no tienen camara.
+  final QrScanner qrScanner;
 
   /// Obras (APP-MOB-09). Igual que los tickets.
   final WorksRepository worksRepository;
@@ -679,6 +694,24 @@ class AppDependencies {
       maintenance: apiMaintenance,
     );
 
+    // El alta de activos en campo: sin red queda en la cola con su clave y
+    // sale por /api/sync/operations; las fotos se suben despues.
+    final apiAssets = ApiAssetCaptureRepository(
+      api,
+      roadId: () => activeRoadId(api),
+    );
+    final offlineAssets = OfflineAssetCaptureRepository(
+      apiAssets,
+      queue,
+      fileStore,
+    );
+    scope.register(offlineAssets);
+    final assetsRemote = AssetsSyncRemote(
+      api,
+      apiAssets,
+      () async => (await deviceSource.read())?.identifier,
+    );
+
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
@@ -689,6 +722,7 @@ class AppDependencies {
         OfflineTicketsRepository.ticketEntity: ticketsRemote,
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
         OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
+        OfflineAssetCaptureRepository.assetEntity: assetsRemote,
       });
     } else {
       final server = DocumentsRepositoryImpl(api, language: language);
@@ -708,6 +742,7 @@ class AppDependencies {
         OfflineTicketsRepository.ticketEntity: ticketsRemote,
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
         OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
+        OfflineAssetCaptureRepository.assetEntity: assetsRemote,
       });
     }
     final authRepository = AuthRepositoryImpl(api);
@@ -755,6 +790,7 @@ class AppDependencies {
         onDiscarded: (operation) async {
           final path = operation.payload['localPath'];
           if (path is String) await fileStore.remove(path);
+          // Tickets y activos guardan sus fotos con la misma clave.
           final photos = operation.payload[OfflineTicketsRepository.photosKey];
           if (photos is List) {
             for (final photo in photos) {
@@ -824,6 +860,11 @@ class AppDependencies {
         demo: () => demo.on || AppConfig.sampleInventory,
       ),
       sampleInventory: AppConfig.sampleInventory,
+      assetCaptureRepository: DemoAwareAssetCapture(
+        real: offlineAssets,
+        demo: () => demo.on || AppConfig.sampleInventory,
+      ),
+      qrScanner: const CameraQrScanner(),
       // El token push se registra en `/api/auth/me/devices` solo si el canal
       // push de la concesion esta encendido. Falta la fuente del token
       // (Firebase): sin ella no se registra nada.

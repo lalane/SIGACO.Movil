@@ -4,14 +4,16 @@ import '../../../../core/geo/geojson_anchor.dart';
 import '../../../../core/geo/km_label.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
+import '../../domain/entities/nearby_pin.dart';
 import '../../domain/repositories/map_repository.dart';
 
 /// El mapa contra el backend. El inventario sale de `/api/assets/map` (GeoJSON
 /// de los activos con geometria de las carreteras autorizadas); los tickets
 /// abiertos y las obras en curso, de `/api/map/pins`; el mantenimiento, de las
 /// ordenes de mantenimiento preventivo que siguen abiertas y tienen geometria
-/// (`/api/preventive-maintenance`).
-class ApiMapRepository implements MapRepository {
+/// (`/api/preventive-maintenance`). Los activos cercanos, de
+/// `/api/assets/nearby`.
+class ApiMapRepository implements MapRepository, NearbyAssetsSource {
   ApiMapRepository(this._api, {required this._language});
 
   final ApiClient _api;
@@ -204,17 +206,86 @@ class ApiMapRepository implements MapRepository {
     if (!point.isValid) return null;
     final code = (props['code'] as String?)?.trim() ?? id;
     final type = (props['assetTypeCode'] as String?)?.trim();
+    final typeLabel = (props['assetTypeLabel'] as String?)?.trim();
+    final subsystem = (props['subsystemCode'] as String?)?.trim();
     final km = props['kmStart'];
     return MapPin(
       id: id,
       layer: MapLayer.inventory,
       title: code,
-      category: type == null ? null : (labels[type] ?? type),
+      category: type == null
+          ? typeLabel
+          : (labels[type] ??
+                (typeLabel == null || typeLabel.isEmpty ? type : typeLabel)),
+      group: subsystem == null || subsystem.isEmpty ? null : subsystem,
       kmLabel: km is num ? _kmLabel(km.toDouble()) : null,
       status: _attention(props['conservationState'] as String?),
-      operatingState: _operating(props['status'] as String?),
+      operatingState: _operating(
+        props['status'] as String?,
+        inMaintenance: props['inMaintenance'] == true,
+      ),
       position: point,
     );
+  }
+
+  /// Cuantos cercanos pide al servidor.
+  static const _nearbyLimit = 100;
+
+  @override
+  Future<List<NearbyPin>> nearbyAssets(
+    GeoPoint from,
+    double radiusMeters,
+  ) async {
+    try {
+      final labels = await _labels();
+      final json = await _api.getJson(
+        '/api/assets/nearby',
+        query: {
+          'lon': from.longitude,
+          'lat': from.latitude,
+          'radius': radiusMeters.round(),
+          'limit': _nearbyLimit,
+        },
+      );
+      final items = json is List ? json : (json is Map ? json['items'] : null);
+      if (items is! List) throw const FormatException('sin cercanos');
+      final result = [
+        for (final n in items)
+          if (n is Map<String, dynamic>) ?nearbyPin(n, labels),
+      ]..sort((a, b) => a.distanceMeters.compareTo(b.distanceMeters));
+      return result;
+    } on ApiFailure catch (e) {
+      throw MapException(
+        e.isNetwork
+            ? MapError.network
+            : switch (e.status) {
+                403 => MapError.permissionDenied,
+                404 => MapError.notAvailable,
+                _ => MapError.server,
+              },
+      );
+    } on MapException {
+      rethrow;
+    } catch (_) {
+      throw const MapException(MapError.server);
+    }
+  }
+
+  /// Un cercano del servidor (`NearbyAssetDto`: el renglon del activo, la
+  /// distancia y su geometria). Null si no se puede ubicar.
+  static NearbyPin? nearbyPin(
+    Map<String, dynamic> n,
+    Map<String, String> labels,
+  ) {
+    final asset = n['asset'];
+    final distance = n['distanceMeters'];
+    if (asset is! Map<String, dynamic> || distance is! num) return null;
+    final pin = _pin({
+      'id': asset['id'],
+      'properties': asset,
+      'geometry': n['geometry'] ?? asset['geometry'],
+    }, labels);
+    return pin == null ? null : NearbyPin(pin, distance.toDouble());
   }
 
   static String _kmLabel(double km) {
@@ -230,11 +301,16 @@ class ApiMapRepository implements MapRepository {
         _ => PinStatus.normal,
       };
 
-  static OperatingState? _operating(String? status) =>
-      switch (status?.trim().toUpperCase()) {
-        'ACTIVO' => OperatingState.inOperation,
-        'EN_MANTENIMIENTO' => OperatingState.inMaintenance,
-        'FUERA_SERVICIO' => OperatingState.outOfService,
-        _ => null,
-      };
+  /// "En mantenimiento" ya no es un estado del activo: sale de tener un ticket
+  /// abierto (`inMaintenance`). Fuera de servicio pesa mas.
+  static OperatingState? _operating(
+    String? status, {
+    bool inMaintenance = false,
+  }) => switch (status?.trim().toUpperCase()) {
+    'FUERA_SERVICIO' => OperatingState.outOfService,
+    _ when inMaintenance => OperatingState.inMaintenance,
+    'ACTIVO' => OperatingState.inOperation,
+    'EN_MANTENIMIENTO' => OperatingState.inMaintenance,
+    _ => null,
+  };
 }

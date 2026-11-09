@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -39,6 +41,8 @@ class MapState extends Equatable {
     this.categories = const {},
     this.statusFilter,
     this.operatingFilter,
+    this.groupFilter,
+    this.serverNearby,
     this.pickedPoint,
     this.selectedId,
     this.settings = const MapSettings(),
@@ -73,6 +77,13 @@ class MapState extends Equatable {
   /// Estado operativo elegido en el filtro de equipos; null = todos.
   final OperatingState? operatingFilter;
 
+  /// El grupo elegido (en los activos, el subsistema); null = todos.
+  final String? groupFilter;
+
+  /// Los activos cercanos que dio el servidor para la ultima ubicacion y radio;
+  /// null si no los dio (sin conexion): entonces se calculan en el telefono.
+  final List<NearbyPin>? serverNearby;
+
   /// El punto que la persona eligio manteniendo presionado el mapa.
   final GeoPoint? pickedPoint;
   final String? selectedId;
@@ -105,7 +116,17 @@ class MapState extends Equatable {
   int get activeFilterCount =>
       categories.length +
       (statusFilter == null ? 0 : 1) +
-      (operatingFilter == null ? 0 : 1);
+      (operatingFilter == null ? 0 : 1) +
+      (groupFilter == null ? 0 : 1);
+
+  /// Los grupos de la pestana (subsistemas de los activos), en orden.
+  List<String> get availableGroups {
+    final set = <String>{
+      for (final p in layerPins)
+        if (p.group != null) p.group!,
+    };
+    return set.toList()..sort();
+  }
 
   /// Si la pestana abierta tiene equipos con estado operativo (para mostrar su
   /// filtro solo donde aplica).
@@ -117,7 +138,8 @@ class MapState extends Equatable {
       if ((categories.isEmpty ||
               (p.category != null && categories.contains(p.category))) &&
           (statusFilter == null || p.status == statusFilter) &&
-          (operatingFilter == null || p.operatingState == operatingFilter))
+          (operatingFilter == null || p.operatingState == operatingFilter) &&
+          (groupFilter == null || p.group == groupFilter))
         p,
   ];
 
@@ -137,10 +159,13 @@ class MapState extends Equatable {
 
   /// Los activos de inventario cercanos a la ultima ubicacion, con el radio
   /// elegido. Son lo que se elige para levantar un ticket, una inspeccion o un
-  /// mantenimiento, y se calculan en el telefono (con y sin conexion igual).
+  /// mantenimiento. Con conexion los da el servidor (mide hasta la geometria de
+  /// cada activo); sin ella se calculan en el telefono con los pines.
   List<NearbyPin> get nearby {
     final here = location;
     if (here == null) return const [];
+    final fromServer = serverNearby;
+    if (fromServer != null) return fromServer;
     return nearbyPins(
       pinsByLayer[MapLayer.inventory] ?? const [],
       here.position,
@@ -167,6 +192,10 @@ class MapState extends Equatable {
     bool clearStatusFilter = false,
     OperatingState? operatingFilter,
     bool clearOperatingFilter = false,
+    String? groupFilter,
+    bool clearGroupFilter = false,
+    List<NearbyPin>? serverNearby,
+    bool clearServerNearby = false,
     GeoPoint? pickedPoint,
     bool clearPickedPoint = false,
     String? selectedId,
@@ -198,6 +227,10 @@ class MapState extends Equatable {
     operatingFilter: clearOperatingFilter
         ? null
         : (operatingFilter ?? this.operatingFilter),
+    groupFilter: clearGroupFilter ? null : (groupFilter ?? this.groupFilter),
+    serverNearby: clearServerNearby
+        ? null
+        : (serverNearby ?? this.serverNearby),
     pickedPoint: clearPickedPoint ? null : (pickedPoint ?? this.pickedPoint),
     selectedId: clearSelection ? null : (selectedId ?? this.selectedId),
     settings: settings ?? this.settings,
@@ -221,6 +254,8 @@ class MapState extends Equatable {
     categories,
     statusFilter,
     operatingFilter,
+    groupFilter,
+    serverNearby,
     pickedPoint,
     selectedId,
     settings,
@@ -317,6 +352,7 @@ class MapCubit extends Cubit<MapState> {
         status: known ? MapStatus.ready : MapStatus.loading,
         categories: const {},
         clearStatusFilter: true,
+        clearGroupFilter: true,
         clearSelection: true,
         clearSegmentSelection: true,
         clearPickedPoint: true,
@@ -371,11 +407,19 @@ class MapCubit extends Cubit<MapState> {
         : state.copyWith(operatingFilter: value, clearSelection: true),
   );
 
+  /// Solo un grupo (subsistema) a la vez; null = todos.
+  void setGroupFilter(String? group) => emit(
+    group == null
+        ? state.copyWith(clearGroupFilter: true, clearSelection: true)
+        : state.copyWith(groupFilter: group, clearSelection: true),
+  );
+
   void clearFilters() => emit(
     state.copyWith(
       categories: const {},
       clearStatusFilter: true,
       clearOperatingFilter: true,
+      clearGroupFilter: true,
       clearSelection: true,
     ),
   );
@@ -435,11 +479,41 @@ class MapCubit extends Cubit<MapState> {
         : state.copyWith(selectedSegmentId: id, clearSelection: true),
   );
 
-  void setRadius(double meters) => emit(
-    state.copyWith(
-      settings: state.settings.copyWith(nearbyRadiusMeters: meters),
-    ),
-  );
+  void setRadius(double meters) {
+    emit(
+      state.copyWith(
+        settings: state.settings.copyWith(nearbyRadiusMeters: meters),
+        // Los del servidor eran del radio anterior.
+        clearServerNearby: true,
+      ),
+    );
+    unawaited(loadServerNearby());
+  }
+
+  /// Pide al servidor los activos cercanos a la ultima ubicacion. Sin conexion
+  /// (o si el servidor no los da) quedan los calculados en el telefono.
+  Future<void> loadServerNearby() async {
+    final source = repository;
+    final here = state.location;
+    if (source is! NearbyAssetsSource || here == null) return;
+    final radius = state.settings.nearbyRadiusMeters;
+    try {
+      final found = await (source as NearbyAssetsSource).nearbyAssets(
+        here.position,
+        radius,
+      );
+      // Si mientras tanto cambio la ubicacion o el radio, ya no sirve.
+      if (isClosed ||
+          state.location != here ||
+          state.settings.nearbyRadiusMeters != radius) {
+        return;
+      }
+      emit(state.copyWith(serverNearby: found));
+    } on MapException {
+      if (isClosed) return;
+      emit(state.copyWith(clearServerNearby: true));
+    }
+  }
 
   /// Busca la ubicacion del usuario y pide centrar el mapa en ella. Tambien
   /// trae el inventario, que es de donde salen los cercanos. Con [silent] (al
@@ -459,8 +533,11 @@ class MapCubit extends Cubit<MapState> {
           location: here,
           locate: LocateStatus.ready,
           focusTick: state.focusTick + 1,
+          // Los del servidor eran de la ubicacion anterior.
+          clearServerNearby: true,
         ),
       );
+      unawaited(loadServerNearby());
     } on LocationException catch (e) {
       if (isClosed) return;
       if (silent) {

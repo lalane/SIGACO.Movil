@@ -220,6 +220,7 @@ class FileMapPinsCache implements MapPinsCache {
     'title': pin.title,
     'subtitle': pin.subtitle,
     'category': pin.category,
+    'group': ?pin.group,
     'kmLabel': pin.kmLabel,
     'segmentCode': pin.segmentCode,
     'direction': pin.direction?.name,
@@ -235,6 +236,7 @@ class FileMapPinsCache implements MapPinsCache {
     title: j['title'] as String,
     subtitle: j['subtitle'] as String?,
     category: j['category'] as String?,
+    group: j['group'] as String?,
     kmLabel: j['kmLabel'] as String?,
     segmentCode: j['segmentCode'] as String?,
     direction: switch (j['direction']) {

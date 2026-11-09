@@ -3947,7 +3947,7 @@ abstract class AppLocalizations {
   /// No description provided for @invSearchHint.
   ///
   /// In es, this message translates to:
-  /// **'Buscar activo, tramo o kilómetro'**
+  /// **'Código, descripción, marca o serie'**
   String get invSearchHint;
 
   /// No description provided for @invFilterClear.
@@ -4129,6 +4129,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Reintentar'**
   String get invRetry;
+
+  /// No description provided for @invOfflineTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión'**
+  String get invOfflineTitle;
+
+  /// No description provided for @invOfflineBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin señal solo se ve lo que ya consultaste. Conéctate e inténtalo de nuevo.'**
+  String get invOfflineBody;
+
+  /// No description provided for @invMoreError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron traer más activos.'**
+  String get invMoreError;
 
   /// No description provided for @invDetailTitle.
   ///
@@ -6319,6 +6337,582 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Describa la falla.'**
   String get newTicketErrorDescription;
+
+  /// No description provided for @invLifecyclePending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de validación'**
+  String get invLifecyclePending;
+
+  /// No description provided for @invLifecycleActive.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo'**
+  String get invLifecycleActive;
+
+  /// No description provided for @invLifecycleOutOfService.
+  ///
+  /// In es, this message translates to:
+  /// **'Fuera de servicio'**
+  String get invLifecycleOutOfService;
+
+  /// No description provided for @invLifecycleInactive.
+  ///
+  /// In es, this message translates to:
+  /// **'Inactivo'**
+  String get invLifecycleInactive;
+
+  /// No description provided for @invLifecycleDecommissioned.
+  ///
+  /// In es, this message translates to:
+  /// **'Dado de baja'**
+  String get invLifecycleDecommissioned;
+
+  /// No description provided for @invLifecycleDiscarded.
+  ///
+  /// In es, this message translates to:
+  /// **'Descartado'**
+  String get invLifecycleDiscarded;
+
+  /// No description provided for @invInMaintenance.
+  ///
+  /// In es, this message translates to:
+  /// **'En mantenimiento'**
+  String get invInMaintenance;
+
+  /// No description provided for @invNotSynced.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin enviar'**
+  String get invNotSynced;
+
+  /// No description provided for @invPendingSyncBody.
+  ///
+  /// In es, this message translates to:
+  /// **'Se capturó sin conexión: se enviará al servidor cuando vuelva la señal.'**
+  String get invPendingSyncBody;
+
+  /// No description provided for @invStatusLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado'**
+  String get invStatusLabel;
+
+  /// No description provided for @invConditionLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Conservación'**
+  String get invConditionLabel;
+
+  /// No description provided for @invRoad.
+  ///
+  /// In es, this message translates to:
+  /// **'Carretera'**
+  String get invRoad;
+
+  /// No description provided for @invOpenTickets.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets abiertos'**
+  String get invOpenTickets;
+
+  /// No description provided for @invStatusReasonLayerRemoved.
+  ///
+  /// In es, this message translates to:
+  /// **'Su capa del WebGIS dejó de alimentar este tipo.'**
+  String get invStatusReasonLayerRemoved;
+
+  /// No description provided for @invStatusReasonGone.
+  ///
+  /// In es, this message translates to:
+  /// **'Su elemento desapareció del WebGIS.'**
+  String get invStatusReasonGone;
+
+  /// No description provided for @invTemplateTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos de la ficha'**
+  String get invTemplateTitle;
+
+  /// No description provided for @invTemplateVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Ficha v{number}'**
+  String invTemplateVersion(int number);
+
+  /// No description provided for @invWebGisTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Datos del WebGIS'**
+  String get invWebGisTitle;
+
+  /// No description provided for @invWebGisSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Capa {layer} · elemento {id}'**
+  String invWebGisSource(String layer, String id);
+
+  /// No description provided for @invManagementTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Gestión'**
+  String get invManagementTitle;
+
+  /// No description provided for @invDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get invDescription;
+
+  /// No description provided for @invBrand.
+  ///
+  /// In es, this message translates to:
+  /// **'Marca'**
+  String get invBrand;
+
+  /// No description provided for @invModel.
+  ///
+  /// In es, this message translates to:
+  /// **'Modelo'**
+  String get invModel;
+
+  /// No description provided for @invSerial.
+  ///
+  /// In es, this message translates to:
+  /// **'Número de serie'**
+  String get invSerial;
+
+  /// No description provided for @invUsefulLife.
+  ///
+  /// In es, this message translates to:
+  /// **'Vida útil'**
+  String get invUsefulLife;
+
+  /// No description provided for @invUsefulLifeMonths.
+  ///
+  /// In es, this message translates to:
+  /// **'{months} meses'**
+  String invUsefulLifeMonths(int months);
+
+  /// No description provided for @invSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Origen'**
+  String get invSource;
+
+  /// No description provided for @invSourceMobile.
+  ///
+  /// In es, this message translates to:
+  /// **'App'**
+  String get invSourceMobile;
+
+  /// No description provided for @invSourceWeb.
+  ///
+  /// In es, this message translates to:
+  /// **'Web'**
+  String get invSourceWeb;
+
+  /// No description provided for @invSourceBulk.
+  ///
+  /// In es, this message translates to:
+  /// **'Carga masiva'**
+  String get invSourceBulk;
+
+  /// No description provided for @invSourceWebGis.
+  ///
+  /// In es, this message translates to:
+  /// **'WebGIS'**
+  String get invSourceWebGis;
+
+  /// No description provided for @invPhotosTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Fotos'**
+  String get invPhotosTitle;
+
+  /// No description provided for @invYes.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get invYes;
+
+  /// No description provided for @invNo.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get invNo;
+
+  /// No description provided for @invNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo activo'**
+  String get invNew;
+
+  /// No description provided for @invScanTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer QR'**
+  String get invScanTooltip;
+
+  /// No description provided for @invNewTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta de activo'**
+  String get invNewTitle;
+
+  /// No description provided for @invNewSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Dar de alta'**
+  String get invNewSave;
+
+  /// No description provided for @invNewType.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo de activo'**
+  String get invNewType;
+
+  /// No description provided for @invNewTypeError.
+  ///
+  /// In es, this message translates to:
+  /// **'Elija el tipo de activo.'**
+  String get invNewTypeError;
+
+  /// No description provided for @invNewTypesEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay tipos de activo que se puedan dar de alta desde la app.'**
+  String get invNewTypesEmpty;
+
+  /// No description provided for @invNewTypesError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron traer los tipos de activo. Revise su conexión.'**
+  String get invNewTypesError;
+
+  /// No description provided for @invNewTemplateLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando la ficha del tipo…'**
+  String get invNewTemplateLoading;
+
+  /// No description provided for @invNewTemplateMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Este tipo no tiene una ficha vigente: todavía no se puede dar de alta.'**
+  String get invNewTemplateMissing;
+
+  /// No description provided for @invNewTemplateError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo traer la ficha del tipo.'**
+  String get invNewTemplateError;
+
+  /// No description provided for @invNewNoFields.
+  ///
+  /// In es, this message translates to:
+  /// **'La ficha de este tipo no tiene campos propios.'**
+  String get invNewNoFields;
+
+  /// No description provided for @invNewGpsReading.
+  ///
+  /// In es, this message translates to:
+  /// **'Leyendo el GPS…'**
+  String get invNewGpsReading;
+
+  /// No description provided for @invNewGpsUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo leer el GPS: escriba el km.'**
+  String get invNewGpsUnavailable;
+
+  /// No description provided for @invNewGpsRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a leer el GPS'**
+  String get invNewGpsRetry;
+
+  /// No description provided for @invNewGpsOrigin.
+  ///
+  /// In es, this message translates to:
+  /// **'GPS del teléfono'**
+  String get invNewGpsOrigin;
+
+  /// No description provided for @invNewOffRoad.
+  ///
+  /// In es, this message translates to:
+  /// **'El punto queda lejos de la carretera: escriba el km.'**
+  String get invNewOffRoad;
+
+  /// No description provided for @invNewPlacementUnknown.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo calcular el km del punto: escríbalo si lo conoce.'**
+  String get invNewPlacementUnknown;
+
+  /// No description provided for @invNewPointOnlyKm.
+  ///
+  /// In es, this message translates to:
+  /// **'Este tipo se dibuja como línea o polígono: se ubica por km.'**
+  String get invNewPointOnlyKm;
+
+  /// No description provided for @invNewKm.
+  ///
+  /// In es, this message translates to:
+  /// **'Km'**
+  String get invNewKm;
+
+  /// No description provided for @invNewKmEnd.
+  ///
+  /// In es, this message translates to:
+  /// **'Km final'**
+  String get invNewKmEnd;
+
+  /// No description provided for @invNewKmEndHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo si ocupa un tramo'**
+  String get invNewKmEndHint;
+
+  /// No description provided for @invNewKmError.
+  ///
+  /// In es, this message translates to:
+  /// **'Escriba el km como 150+200.'**
+  String get invNewKmError;
+
+  /// No description provided for @invNewKmEndError.
+  ///
+  /// In es, this message translates to:
+  /// **'Va con el km inicial y no puede ser menor que él.'**
+  String get invNewKmEndError;
+
+  /// No description provided for @invNewKmEndRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Este tipo se ubica por rango: indique el km final.'**
+  String get invNewKmEndRequired;
+
+  /// No description provided for @invNewLocationError.
+  ///
+  /// In es, this message translates to:
+  /// **'Indique el km o lea el GPS.'**
+  String get invNewLocationError;
+
+  /// No description provided for @invNewDirection.
+  ///
+  /// In es, this message translates to:
+  /// **'Sentido'**
+  String get invNewDirection;
+
+  /// No description provided for @invNewDirectionError.
+  ///
+  /// In es, this message translates to:
+  /// **'Aquí los dos sentidos comparten trazo: elija el sentido.'**
+  String get invNewDirectionError;
+
+  /// No description provided for @invNewDescriptionHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Opcional'**
+  String get invNewDescriptionHint;
+
+  /// No description provided for @invNewRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Es obligatorio.'**
+  String get invNewRequired;
+
+  /// No description provided for @invNewNotNumber.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe ser un número.'**
+  String get invNewNotNumber;
+
+  /// No description provided for @invNewNotInteger.
+  ///
+  /// In es, this message translates to:
+  /// **'Debe ser un número entero.'**
+  String get invNewNotInteger;
+
+  /// No description provided for @invNewBelowMin.
+  ///
+  /// In es, this message translates to:
+  /// **'El mínimo es {min}.'**
+  String invNewBelowMin(String min);
+
+  /// No description provided for @invNewAboveMax.
+  ///
+  /// In es, this message translates to:
+  /// **'El máximo es {max}.'**
+  String invNewAboveMax(String max);
+
+  /// No description provided for @invNewTooLong.
+  ///
+  /// In es, this message translates to:
+  /// **'Admite como máximo 500 caracteres.'**
+  String get invNewTooLong;
+
+  /// No description provided for @invNewInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Valor inválido.'**
+  String get invNewInvalid;
+
+  /// No description provided for @invNewRange.
+  ///
+  /// In es, this message translates to:
+  /// **'De {min} a {max}'**
+  String invNewRange(String min, String max);
+
+  /// No description provided for @invNewMin.
+  ///
+  /// In es, this message translates to:
+  /// **'Desde {min}'**
+  String invNewMin(String min);
+
+  /// No description provided for @invNewMax.
+  ///
+  /// In es, this message translates to:
+  /// **'Hasta {max}'**
+  String invNewMax(String max);
+
+  /// No description provided for @invNewDateHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir fecha'**
+  String get invNewDateHint;
+
+  /// No description provided for @invNewDateTimeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegir fecha y hora'**
+  String get invNewDateTimeHint;
+
+  /// No description provided for @invNewFromLayer.
+  ///
+  /// In es, this message translates to:
+  /// **'En el WebGIS lo llena su capa; aquí se captura a mano.'**
+  String get invNewFromLayer;
+
+  /// No description provided for @invNewSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo {code} dado de alta: queda pendiente de validación.'**
+  String invNewSaved(String code);
+
+  /// No description provided for @invNewQueued.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión: el activo quedó en el teléfono y se enviará al volver la señal.'**
+  String get invNewQueued;
+
+  /// No description provided for @invNewSavedPartly.
+  ///
+  /// In es, this message translates to:
+  /// **'El activo se dio de alta, pero faltaron las fotos: {reason}'**
+  String invNewSavedPartly(String reason);
+
+  /// No description provided for @invNewFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo dar de alta el activo. Inténtelo de nuevo.'**
+  String get invNewFailed;
+
+  /// No description provided for @invNewFailedReason.
+  ///
+  /// In es, this message translates to:
+  /// **'El servidor no aceptó el alta: {reason}'**
+  String invNewFailedReason(String reason);
+
+  /// No description provided for @invNewOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión y sin la carretera de la concesión: conéctese una vez para poder dar de alta sin señal.'**
+  String get invNewOffline;
+
+  /// No description provided for @invNewNoPermission.
+  ///
+  /// In es, this message translates to:
+  /// **'Su perfil no puede dar de alta activos.'**
+  String get invNewNoPermission;
+
+  /// No description provided for @invNewChannel.
+  ///
+  /// In es, this message translates to:
+  /// **'Este tipo de activo no puede darse de alta desde la app.'**
+  String get invNewChannel;
+
+  /// No description provided for @invQrTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer QR del activo'**
+  String get invQrTitle;
+
+  /// No description provided for @invQrHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Apunte la cámara al código QR del activo.'**
+  String get invQrHint;
+
+  /// No description provided for @invQrResolving.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscando el activo…'**
+  String get invQrResolving;
+
+  /// No description provided for @invQrInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Ese código no es de un activo de SIGACO.'**
+  String get invQrInvalid;
+
+  /// No description provided for @invQrNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay un activo con ese QR en esta concesión.'**
+  String get invQrNotFound;
+
+  /// No description provided for @invQrFailure.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo buscar el activo. Revise su conexión.'**
+  String get invQrFailure;
+
+  /// No description provided for @invQrRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Leer otro'**
+  String get invQrRetry;
+
+  /// No description provided for @invQrManual.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribir el código'**
+  String get invQrManual;
+
+  /// No description provided for @invQrManualHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Código del QR'**
+  String get invQrManualHint;
+
+  /// No description provided for @invQrManualGo.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get invQrManualGo;
+
+  /// No description provided for @invQrCameraError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo abrir la cámara. Puede escribir el código.'**
+  String get invQrCameraError;
+
+  /// No description provided for @mapFilterSubsystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Subsistema'**
+  String get mapFilterSubsystem;
 }
 
 class _AppLocalizationsDelegate

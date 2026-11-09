@@ -37,6 +37,8 @@ import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../core/scan/qr_scanner.dart';
+import '../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../features/reports/domain/repositories/reports_repository.dart';
@@ -175,6 +177,12 @@ class _SigacoAppState extends State<SigacoApp> {
         ),
         RepositoryProvider<InventoryRepository>.value(
           value: widget.dependencies.inventoryRepository,
+        ),
+        RepositoryProvider<AssetCaptureRepository>.value(
+          value: widget.dependencies.assetCaptureRepository,
+        ),
+        RepositoryProvider<QrScanner>.value(
+          value: widget.dependencies.qrScanner,
         ),
         RepositoryProvider<WorksRepository>.value(
           value: widget.dependencies.worksRepository,

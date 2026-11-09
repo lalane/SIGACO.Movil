@@ -2,12 +2,13 @@ import 'dart:typed_data';
 
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import 'in_memory_inventory.dart';
 
 /// Activos de ejemplo para ver el modulo mientras el backend no publica los
 /// suyos. Tienen el mismo id, tramo, kilometro y posicion que los pines de
 /// inventario del mapa de ejemplo, asi que "Ver en mapa" cae sobre el pin. No
-/// son activos reales.
-class SampleInventoryRepository implements InventoryRepository {
+/// son activos reales. Se filtran y paginan en el telefono.
+class SampleInventoryRepository with InMemoryInventory {
   SampleInventoryRepository({
     DateTime Function()? clock,
     this.delay = Duration.zero,
@@ -197,7 +198,7 @@ class SampleInventoryRepository implements InventoryRepository {
   }
 
   @override
-  Future<List<InventoryAsset>> list() async {
+  Future<List<InventoryAsset>> allAssets() async {
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     return [..._load()];
   }

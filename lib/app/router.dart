@@ -41,6 +41,7 @@ import '../features/documents/presentation/pages/document_upload_page.dart';
 import '../features/documents/presentation/bloc/documents_cubit.dart';
 import '../features/documents/presentation/pages/document_detail_page.dart';
 import '../features/documents/presentation/pages/documents_page.dart';
+import '../features/map/domain/entities/geo_point.dart';
 import '../features/map/domain/entities/map_pin.dart';
 import '../features/map/domain/entities/map_settings.dart';
 import '../features/map/domain/repositories/location_source.dart';
@@ -78,11 +79,19 @@ import 'composition/location_finding_position_source.dart';
 import '../features/inspections/presentation/bloc/inspections_cubit.dart';
 import '../features/inspections/presentation/pages/inspection_detail_page.dart';
 import '../features/inspections/presentation/pages/inspections_page.dart';
+import '../core/permissions/permission_keys.dart';
+import '../core/scan/qr_scanner.dart';
+import '../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
+import '../features/inventory/presentation/bloc/asset_qr_cubit.dart';
 import '../features/inventory/presentation/bloc/inventory_cubit.dart';
 import '../features/inventory/presentation/bloc/inventory_detail_cubit.dart';
+import '../features/inventory/presentation/bloc/new_asset_cubit.dart';
+import '../features/inventory/presentation/pages/asset_qr_page.dart';
 import '../features/inventory/presentation/pages/inventory_detail_page.dart';
 import '../features/inventory/presentation/pages/inventory_page.dart';
+import '../features/inventory/presentation/pages/new_asset_page.dart';
+import 'composition/location_asset_position_source.dart';
 import '../features/maintenance/domain/entities/maintenance.dart';
 import '../features/reports/domain/entities/indicator_report.dart';
 import '../features/reports/domain/repositories/reports_repository.dart';
@@ -173,6 +182,23 @@ MapRecordActions _mapActions(BuildContext context) {
           }
         : null,
   );
+}
+
+/// `?lat=&lon=` de la ruta del mapa (donde esta el elemento que se abre); null
+/// si no vienen o no son numeros.
+GeoPoint? _queryPoint(Map<String, String> query) {
+  final lat = double.tryParse(query['lat'] ?? '');
+  final lon = double.tryParse(query['lon'] ?? '');
+  return lat == null || lon == null ? null : GeoPoint(lat, lon);
+}
+
+/// El perfil puede dar de alta activos (cualquiera de los permisos que acepta
+/// el servidor); se recalcula si el menu cambia con la pantalla abierta.
+bool _canCreateAssets(BuildContext context) {
+  final permissions = context.select(
+    (NavigationBloc b) => b.state.menu.permissions,
+  );
+  return PermissionKeys.inventoryCreate.any(permissions.contains);
 }
 
 GoRouter createRouter(
@@ -318,6 +344,7 @@ GoRouter createRouter(
                 .where((l) => l.name == state.uri.queryParameters['layer'])
                 .firstOrNull,
             initialPinId: state.uri.queryParameters['pin'],
+            initialPosition: _queryPoint(state.uri.queryParameters),
             actions: _mapActions(context),
             engine: context.read<MapEngine>(),
           ),
@@ -615,13 +642,54 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/inventory',
-        builder: (context, _) => BlocProvider(
-          create: (_) => InventoryCubit(context.read<InventoryRepository>()),
-          child: InventoryPage(
-            sampleData: sampleInventory || context.read<DemoMode>().on,
-          ),
-        ),
+        builder: (context, _) {
+          final capture = context.read<AssetCaptureRepository>();
+          return BlocProvider(
+            create: (_) => InventoryCubit(
+              context.read<InventoryRepository>(),
+              // Las altas que siguen en el telefono tambien se ven.
+              pending: capture is PendingAssetsSource
+                  ? capture as PendingAssetsSource
+                  : null,
+            ),
+            child: Builder(
+              builder: (context) => InventoryPage(
+                sampleData: sampleInventory || context.read<DemoMode>().on,
+                canCreate: _canCreateAssets(context),
+              ),
+            ),
+          );
+        },
         routes: [
+          // Antes que ':id', o "new" y "scan" se tomarian por un activo.
+          GoRoute(
+            path: 'new',
+            builder: (context, _) => BlocProvider(
+              create: (_) => NewAssetCubit(
+                context.read<AssetCaptureRepository>(),
+                positionSource: LocationAssetPositionSource(
+                  context.read<LocationSource>(),
+                ),
+                language: Localizations.localeOf(context).languageCode,
+              )..load(),
+              child: ConfigurationGate(
+                title: AppLocalizations.of(context).invNewTitle,
+                child: NewAssetPage(
+                  minAccuracyMeters: context
+                      .read<MapSettings>()
+                      .minAccuracyMeters,
+                ),
+                onSync: () => refreshConcessionZone(context),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: 'scan',
+            builder: (context, _) => BlocProvider(
+              create: (_) => AssetQrCubit(context.read<InventoryRepository>()),
+              child: AssetQrPage(scanner: context.read<QrScanner>()),
+            ),
+          ),
           GoRoute(
             path: ':id',
             builder: (context, state) => BlocProvider(

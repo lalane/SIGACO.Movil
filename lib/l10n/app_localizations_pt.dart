@@ -2164,7 +2164,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get invSearchTooltip => 'Buscar';
 
   @override
-  String get invSearchHint => 'Buscar ativo, trecho ou quilômetro';
+  String get invSearchHint => 'Código, descrição, marca ou série';
 
   @override
   String get invFilterClear => 'Limpar filtros';
@@ -2258,6 +2258,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get invRetry => 'Tentar novamente';
+
+  @override
+  String get invOfflineTitle => 'Sem conexão';
+
+  @override
+  String get invOfflineBody =>
+      'Sem sinal, só aparece o que você já consultou. Conecte-se e tente novamente.';
+
+  @override
+  String get invMoreError => 'Não foi possível trazer mais ativos.';
 
   @override
   String get invDetailTitle => 'Ativo';
@@ -3465,4 +3475,331 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get newTicketErrorDescription => 'Descreva a falha.';
+
+  @override
+  String get invLifecyclePending => 'Pendente de validação';
+
+  @override
+  String get invLifecycleActive => 'Ativo';
+
+  @override
+  String get invLifecycleOutOfService => 'Fora de serviço';
+
+  @override
+  String get invLifecycleInactive => 'Inativo';
+
+  @override
+  String get invLifecycleDecommissioned => 'Baixado';
+
+  @override
+  String get invLifecycleDiscarded => 'Descartado';
+
+  @override
+  String get invInMaintenance => 'Em manutenção';
+
+  @override
+  String get invNotSynced => 'Não enviado';
+
+  @override
+  String get invPendingSyncBody =>
+      'Foi capturado sem conexão: será enviado ao servidor quando o sinal voltar.';
+
+  @override
+  String get invStatusLabel => 'Estado';
+
+  @override
+  String get invConditionLabel => 'Conservação';
+
+  @override
+  String get invRoad => 'Rodovia';
+
+  @override
+  String get invOpenTickets => 'Tickets abertos';
+
+  @override
+  String get invStatusReasonLayerRemoved =>
+      'Sua camada do WebGIS deixou de alimentar este tipo.';
+
+  @override
+  String get invStatusReasonGone => 'Seu elemento desapareceu do WebGIS.';
+
+  @override
+  String get invTemplateTitle => 'Dados da ficha';
+
+  @override
+  String invTemplateVersion(int number) {
+    return 'Ficha v$number';
+  }
+
+  @override
+  String get invWebGisTitle => 'Dados do WebGIS';
+
+  @override
+  String invWebGisSource(String layer, String id) {
+    return 'Camada $layer · elemento $id';
+  }
+
+  @override
+  String get invManagementTitle => 'Gestão';
+
+  @override
+  String get invDescription => 'Descrição';
+
+  @override
+  String get invBrand => 'Marca';
+
+  @override
+  String get invModel => 'Modelo';
+
+  @override
+  String get invSerial => 'Número de série';
+
+  @override
+  String get invUsefulLife => 'Vida útil';
+
+  @override
+  String invUsefulLifeMonths(int months) {
+    return '$months meses';
+  }
+
+  @override
+  String get invSource => 'Origem';
+
+  @override
+  String get invSourceMobile => 'App';
+
+  @override
+  String get invSourceWeb => 'Web';
+
+  @override
+  String get invSourceBulk => 'Carga em massa';
+
+  @override
+  String get invSourceWebGis => 'WebGIS';
+
+  @override
+  String get invPhotosTitle => 'Fotos';
+
+  @override
+  String get invYes => 'Sim';
+
+  @override
+  String get invNo => 'Não';
+
+  @override
+  String get invNew => 'Novo ativo';
+
+  @override
+  String get invScanTooltip => 'Ler QR';
+
+  @override
+  String get invNewTitle => 'Cadastro de ativo';
+
+  @override
+  String get invNewSave => 'Cadastrar';
+
+  @override
+  String get invNewType => 'Tipo de ativo';
+
+  @override
+  String get invNewTypeError => 'Escolha o tipo de ativo.';
+
+  @override
+  String get invNewTypesEmpty =>
+      'Não há tipos de ativo que possam ser cadastrados pelo app.';
+
+  @override
+  String get invNewTypesError =>
+      'Não foi possível trazer os tipos de ativo. Verifique sua conexão.';
+
+  @override
+  String get invNewTemplateLoading => 'Carregando a ficha do tipo…';
+
+  @override
+  String get invNewTemplateMissing =>
+      'Este tipo não tem uma ficha vigente: ainda não pode ser cadastrado.';
+
+  @override
+  String get invNewTemplateError => 'Não foi possível trazer a ficha do tipo.';
+
+  @override
+  String get invNewNoFields => 'A ficha deste tipo não tem campos próprios.';
+
+  @override
+  String get invNewGpsReading => 'Lendo o GPS…';
+
+  @override
+  String get invNewGpsUnavailable => 'Não foi possível ler o GPS: digite o km.';
+
+  @override
+  String get invNewGpsRetry => 'Ler o GPS novamente';
+
+  @override
+  String get invNewGpsOrigin => 'GPS do telefone';
+
+  @override
+  String get invNewOffRoad => 'O ponto fica longe da rodovia: digite o km.';
+
+  @override
+  String get invNewPlacementUnknown =>
+      'Não foi possível calcular o km do ponto: digite-o se souber.';
+
+  @override
+  String get invNewPointOnlyKm =>
+      'Este tipo é desenhado como linha ou polígono: é localizado pelo km.';
+
+  @override
+  String get invNewKm => 'Km';
+
+  @override
+  String get invNewKmEnd => 'Km final';
+
+  @override
+  String get invNewKmEndHint => 'Só se ocupar um trecho';
+
+  @override
+  String get invNewKmError => 'Digite o km como 150+200.';
+
+  @override
+  String get invNewKmEndError =>
+      'Vai com o km inicial e não pode ser menor que ele.';
+
+  @override
+  String get invNewKmEndRequired =>
+      'Este tipo é localizado por faixa: indique o km final.';
+
+  @override
+  String get invNewLocationError => 'Indique o km ou leia o GPS.';
+
+  @override
+  String get invNewDirection => 'Sentido';
+
+  @override
+  String get invNewDirectionError =>
+      'Aqui os dois sentidos compartilham o traçado: escolha o sentido.';
+
+  @override
+  String get invNewDescriptionHint => 'Opcional';
+
+  @override
+  String get invNewRequired => 'É obrigatório.';
+
+  @override
+  String get invNewNotNumber => 'Deve ser um número.';
+
+  @override
+  String get invNewNotInteger => 'Deve ser um número inteiro.';
+
+  @override
+  String invNewBelowMin(String min) {
+    return 'O mínimo é $min.';
+  }
+
+  @override
+  String invNewAboveMax(String max) {
+    return 'O máximo é $max.';
+  }
+
+  @override
+  String get invNewTooLong => 'Admite no máximo 500 caracteres.';
+
+  @override
+  String get invNewInvalid => 'Valor inválido.';
+
+  @override
+  String invNewRange(String min, String max) {
+    return 'De $min a $max';
+  }
+
+  @override
+  String invNewMin(String min) {
+    return 'A partir de $min';
+  }
+
+  @override
+  String invNewMax(String max) {
+    return 'Até $max';
+  }
+
+  @override
+  String get invNewDateHint => 'Escolher data';
+
+  @override
+  String get invNewDateTimeHint => 'Escolher data e hora';
+
+  @override
+  String get invNewFromLayer =>
+      'No WebGIS é preenchido pela camada; aqui é capturado à mão.';
+
+  @override
+  String invNewSaved(String code) {
+    return 'Ativo $code cadastrado: fica pendente de validação.';
+  }
+
+  @override
+  String get invNewQueued =>
+      'Sem conexão: o ativo ficou no telefone e será enviado quando o sinal voltar.';
+
+  @override
+  String invNewSavedPartly(String reason) {
+    return 'O ativo foi cadastrado, mas faltaram as fotos: $reason';
+  }
+
+  @override
+  String get invNewFailed =>
+      'Não foi possível cadastrar o ativo. Tente novamente.';
+
+  @override
+  String invNewFailedReason(String reason) {
+    return 'O servidor não aceitou o cadastro: $reason';
+  }
+
+  @override
+  String get invNewOffline =>
+      'Sem conexão e sem a rodovia da concessão: conecte-se uma vez para poder cadastrar sem sinal.';
+
+  @override
+  String get invNewNoPermission => 'Seu perfil não pode cadastrar ativos.';
+
+  @override
+  String get invNewChannel =>
+      'Este tipo de ativo não pode ser cadastrado pelo app.';
+
+  @override
+  String get invQrTitle => 'Ler QR do ativo';
+
+  @override
+  String get invQrHint => 'Aponte a câmera para o código QR do ativo.';
+
+  @override
+  String get invQrResolving => 'Buscando o ativo…';
+
+  @override
+  String get invQrInvalid => 'Esse código não é de um ativo do SIGACO.';
+
+  @override
+  String get invQrNotFound => 'Não há um ativo com esse QR nesta concessão.';
+
+  @override
+  String get invQrFailure =>
+      'Não foi possível buscar o ativo. Verifique sua conexão.';
+
+  @override
+  String get invQrRetry => 'Ler outro';
+
+  @override
+  String get invQrManual => 'Digitar o código';
+
+  @override
+  String get invQrManualHint => 'Código do QR';
+
+  @override
+  String get invQrManualGo => 'Buscar';
+
+  @override
+  String get invQrCameraError =>
+      'Não foi possível abrir a câmera. Você pode digitar o código.';
+
+  @override
+  String get mapFilterSubsystem => 'Subsistema';
 }

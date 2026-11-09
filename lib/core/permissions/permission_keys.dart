@@ -16,6 +16,14 @@ abstract final class PermissionKeys {
   /// catalogo no publique el modulo SIG).
   static const inventoryView = 'INVENTARIO:VISUALIZAR_CONTENIDO';
 
+  /// Inventario: dar de alta activos. El servidor acepta cualquiera de las dos
+  /// (`AssetPermissions.Create` de SIGACO.Api): la del modulo y la del
+  /// submodulo de inventario individual de Mantenimiento.
+  static const inventoryCreate = [
+    'INVENTARIO:CREAR_NUEVO_ELEMENTO',
+    'MANTENIMIENTO.INVENTARIO_INDIVIDUAL:CREAR_NUEVO_ELEMENTO',
+  ];
+
   /// SIG: ver el mapa (DTF M10: "SIG: Ver mapa", permiso nuevo propuesto en P11).
   /// La clave sigue la forma FUNCION:ACCION; hay que confirmarla cuando el
   /// backend la publique.

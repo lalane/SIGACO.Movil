@@ -8,11 +8,17 @@ import '../../features/dashboard/domain/entities/dashboard_summary.dart';
 import '../../features/dashboard/domain/repositories/compliance_source.dart';
 import '../../features/inspections/domain/entities/inspection.dart';
 import '../../features/inspections/domain/repositories/inspections_repository.dart';
+import '../../features/inventory/data/repositories/unavailable_asset_capture_repository.dart';
+import '../../features/inventory/domain/entities/asset_capture.dart';
+import '../../features/inventory/domain/entities/asset_template.dart';
 import '../../features/inventory/domain/entities/inventory_asset.dart';
+import '../../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../../features/inventory/domain/repositories/inventory_repository.dart';
 import '../../features/maintenance/domain/entities/maintenance.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/map/domain/entities/geo_point.dart';
 import '../../features/map/domain/entities/map_pin.dart';
+import '../../features/map/domain/entities/nearby_pin.dart';
 import '../../features/map/domain/entities/road_segment.dart';
 import '../../features/map/domain/repositories/map_repository.dart';
 import '../../features/map/domain/repositories/road_segments_repository.dart';
@@ -197,7 +203,13 @@ class DemoAwareAccidents implements AccidentsRepository {
   Future<Accident> create(NewAccident draft) => _r.create(draft);
 }
 
-class DemoAwareInventory implements InventoryRepository {
+class DemoAwareInventory
+    implements
+        InventoryRepository,
+        AssetPhotosSource,
+        AssetTemplateSource,
+        AssetCatalogSource,
+        AssetQrSource {
   const DemoAwareInventory({
     required this.real,
     required this.sample,
@@ -211,13 +223,95 @@ class DemoAwareInventory implements InventoryRepository {
   InventoryRepository get _r => demo() ? sample : real;
 
   @override
-  Future<List<InventoryAsset>> list() => _r.list();
+  Future<InventoryResultPage> page(
+    InventoryQuery query, {
+    Object? after,
+    InventoryCancellation? cancellation,
+  }) => _r.page(query, after: after, cancellation: cancellation);
+
+  @override
+  Future<InventoryCounts> counts(
+    InventoryQuery query, {
+    InventoryCancellation? cancellation,
+  }) => _r.counts(query, cancellation: cancellation);
+
+  @override
+  Future<List<AssetTypeOption>> types() => _r.types();
 
   @override
   Future<InventoryAsset> get(String id) => _r.get(id);
 
   @override
   Future<Uint8List?> mainPhoto(InventoryAsset asset) => _r.mainPhoto(asset);
+
+  @override
+  Future<List<String>> photos(InventoryAsset asset) async {
+    final r = _r;
+    return r is AssetPhotosSource
+        ? (r as AssetPhotosSource).photos(asset)
+        : const <String>[];
+  }
+
+  @override
+  Future<AssetTemplate?> template(String typeCode) async {
+    final r = _r;
+    return r is AssetTemplateSource
+        ? (r as AssetTemplateSource).template(typeCode)
+        : null;
+  }
+
+  @override
+  Future<Map<String, List<CatalogOption>>> catalogs() async {
+    final r = _r;
+    return r is AssetCatalogSource
+        ? (r as AssetCatalogSource).catalogs()
+        : const <String, List<CatalogOption>>{};
+  }
+
+  @override
+  Future<InventoryAsset> byQr(String token) {
+    final r = _r;
+    return r is AssetQrSource
+        ? (r as AssetQrSource).byQr(token)
+        : Future.error(const InventoryException(InventoryError.notFound));
+  }
+}
+
+/// El alta de activos: con datos de ejemplo no hay servidor donde darlos de
+/// alta, y el formulario lo dice.
+class DemoAwareAssetCapture
+    implements AssetCaptureRepository, PendingAssetsSource {
+  const DemoAwareAssetCapture({required this.real, required this.demo});
+
+  final AssetCaptureRepository real;
+  final bool Function() demo;
+
+  AssetCaptureRepository get _r =>
+      demo() ? const UnavailableAssetCaptureRepository() : real;
+
+  @override
+  Future<List<AssetTypeOption>> types() => _r.types();
+
+  @override
+  Future<AssetTemplate> template(String typeCode) => _r.template(typeCode);
+
+  @override
+  Future<Map<String, List<CatalogOption>>> catalogs() => _r.catalogs();
+
+  @override
+  Future<RoadPlacement> locate(double longitude, double latitude) =>
+      _r.locate(longitude, latitude);
+
+  @override
+  Future<CapturedAsset> create(NewAsset draft) => _r.create(draft);
+
+  @override
+  Future<List<InventoryAsset>> pendingAssets() async {
+    final r = _r;
+    return r is PendingAssetsSource
+        ? (r as PendingAssetsSource).pendingAssets()
+        : const <InventoryAsset>[];
+  }
 }
 
 class DemoAwareAlerts implements AlertsRepository {
@@ -243,7 +337,7 @@ class DemoAwareAlerts implements AlertsRepository {
   Future<void> markAllRead() => _r.markAllRead();
 }
 
-class DemoAwareMap implements MapRepository {
+class DemoAwareMap implements MapRepository, NearbyAssetsSource {
   const DemoAwareMap({
     required this.real,
     required this.sample,
@@ -257,6 +351,16 @@ class DemoAwareMap implements MapRepository {
   @override
   Future<List<MapPin>> pins(MapLayer layer) =>
       (demo() ? sample : real).pins(layer);
+
+  /// Con datos de ejemplo los cercanos se calculan en el telefono.
+  @override
+  Future<List<NearbyPin>> nearbyAssets(GeoPoint from, double radiusMeters) {
+    final r = demo() ? sample : real;
+    if (r is! NearbyAssetsSource) {
+      return Future.error(const MapException(MapError.notAvailable));
+    }
+    return (r as NearbyAssetsSource).nearbyAssets(from, radiusMeters);
+  }
 }
 
 class DemoAwareRoadSegments implements RoadSegmentsRepository {

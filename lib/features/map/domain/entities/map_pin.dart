@@ -28,6 +28,7 @@ class MapPin extends Equatable {
     required this.position,
     this.subtitle,
     this.category,
+    this.group,
     this.kmLabel,
     this.segmentCode,
     this.direction,
@@ -43,6 +44,10 @@ class MapPin extends Equatable {
   /// Nombre de la categoria tal como lo entrega el servidor (tipo de activo,
   /// tipo de ticket...). Es lo que filtra la pestana y lo que se muestra.
   final String? category;
+
+  /// El grupo de la categoria: en los activos, su subsistema (`SGS`, `SGOAE`).
+  /// Tambien se filtra por el. Null si no lo tiene.
+  final String? group;
 
   /// Referencia kilometrica tal como la muestra el negocio (`KM 150+200`).
   final String? kmLabel;
@@ -65,6 +70,7 @@ class MapPin extends Equatable {
     title,
     subtitle,
     category,
+    group,
     kmLabel,
     segmentCode,
     direction,

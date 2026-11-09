@@ -26,7 +26,7 @@ void main() {
     setUp(() => repo = SampleInventoryRepository(clock: () => now));
 
     test('son los mismos elementos que el mapa de ejemplo', () async {
-      final assets = await repo.list();
+      final assets = await repo.allAssets();
       expect(assets, hasLength(12));
       final pins = await SampleMapRepository().pins(MapLayer.inventory);
       expect(assets.map((a) => a.id), pins.map((p) => p.id));
@@ -104,49 +104,53 @@ void main() {
     });
 
     test('filtra por estado, tipo y fecha de inspeccion, y busca', () async {
-      final cubit = InventoryCubit(repo);
+      final cubit = InventoryCubit(repo, searchDelay: Duration.zero);
       await cubit.load();
       final all = cubit.state.total;
 
-      cubit.setCondition(AssetCondition.poor);
+      await cubit.setCondition(AssetCondition.poor);
       expect(
         cubit.state.visible.every((a) => a.condition == AssetCondition.poor),
         isTrue,
       );
-      cubit.setCondition(null);
+      await cubit.setCondition(null);
       expect(cubit.state.visible, hasLength(all));
 
-      expect(cubit.state.categories, contains('Señal vertical'));
-      cubit.setCategory('Señal vertical');
+      // Sin codigo de tipo, el nombre hace de codigo.
+      expect(
+        cubit.state.typeOptions('es').map((t) => t.code),
+        contains('Señal vertical'),
+      );
+      await cubit.setType('Señal vertical');
       expect(cubit.state.visible, isNotEmpty);
       expect(
         cubit.state.visible.every((a) => a.category == 'Señal vertical'),
         isTrue,
       );
-      cubit.setCategory(null);
+      await cubit.setType(null);
 
       // El primero se inspecciono hace 3 dias y cada uno hace 17 mas.
-      cubit.setInspectedFrom(DateTime.utc(2026, 10, 15 - 3));
+      await cubit.setInspectedFrom(DateTime.utc(2026, 10, 15 - 3));
       expect(cubit.state.visible.map((a) => a.id), ['A-001']);
-      cubit.setInspectedFrom(null);
+      await cubit.setInspectedFrom(null);
 
       // Hasta: el primero (hace 3 dias) queda fuera si el tope es anterior, y
       // el rango desde-hasta deja solo lo que cae dentro, extremos incluidos.
-      cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 4));
+      await cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 4));
       expect(cubit.state.visible.map((a) => a.id), isNot(contains('A-001')));
-      cubit.setInspectedFrom(DateTime.utc(2026, 10, 15 - 3));
+      await cubit.setInspectedFrom(DateTime.utc(2026, 10, 15 - 3));
       expect(cubit.state.visible, isEmpty);
-      cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 3));
+      await cubit.setInspectedTo(DateTime.utc(2026, 10, 15 - 3));
       expect(cubit.state.visible.map((a) => a.id), ['A-001']);
       expect(cubit.state.hasActiveFilters, isTrue);
-      cubit.clearFilters();
+      await cubit.clearFilters();
       expect(cubit.state.inspectedTo, isNull);
       expect(cubit.state.inspectedFrom, isNull);
 
-      cubit.setQuery('SV-114');
+      await cubit.setQuery('SV-114');
       expect(cubit.state.visible.map((a) => a.id), ['A-002']);
       expect(cubit.state.hasActiveFilters, isTrue);
-      cubit.clearFilters();
+      await cubit.clearFilters();
       expect(cubit.state.hasActiveFilters, isFalse);
       expect(cubit.state.visible, hasLength(all));
     });
@@ -222,6 +226,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// La busqueda sale cuando se deja de escribir.
+    Future<void> search(WidgetTester tester) async {
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pumpAndSettle();
+    }
+
     Finder card(String id) => find.byKey(Key('inventory-$id'));
     Finder stat(String id) => find.descendant(
       of: find.byKey(Key('inventory-stat-$id')),
@@ -264,14 +274,14 @@ void main() {
         find.byKey(const Key('inventory-search')),
         'SV-114',
       );
-      await tester.pumpAndSettle();
+      await search(tester);
       expect(card('A-002'), findsOneWidget);
       expect(card('A-008'), findsNothing);
       await tester.enterText(
         find.byKey(const Key('inventory-search')),
         'no existe',
       );
-      await tester.pumpAndSettle();
+      await search(tester);
       expect(find.byKey(const Key('inventory-state-empty')), findsOneWidget);
       expect(
         find.text('Ningún activo coincide con los filtros.'),
@@ -305,7 +315,7 @@ void main() {
         find.byKey(const Key('inventory-search')),
         'SV-114',
       );
-      await tester.pumpAndSettle();
+      await search(tester);
       await tester.tap(card('A-002'));
       await tester.pumpAndSettle();
       expect(

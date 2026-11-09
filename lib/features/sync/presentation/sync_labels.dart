@@ -15,7 +15,7 @@ String entityLabel(AppLocalizations l10n, String entity) =>
       'maintenance_progress' => l10n.syncEntityMaintenanceProgress,
       'inspeccion' => l10n.syncEntityInspection,
       'evento' => l10n.syncEntityEvent,
-      'activo' => l10n.syncEntityAsset,
+      'activo' || 'asset' => l10n.syncEntityAsset,
       'levantamiento' => l10n.syncEntitySurvey,
       'media' => l10n.syncEntityMedia,
       _ => l10n.syncEntityOther,
@@ -45,7 +45,15 @@ Color statusColor(OperationStatus status) => switch (status) {
 
 /// Un nombre para reconocer la operacion: el del documento, archivo, titulo...
 String? operationName(PendingOperation op) {
-  for (final key in const ['name', 'nombre', 'filename', 'title', 'titulo']) {
+  // `_name`: el nombre que guarda la app para lo que no lo tiene (un activo).
+  for (final key in const [
+    'name',
+    'nombre',
+    'filename',
+    'title',
+    'titulo',
+    '_name',
+  ]) {
     final v = op.payload[key];
     if (v is String && v.trim().isNotEmpty) return v.trim();
   }

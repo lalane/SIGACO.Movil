@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../../domain/entities/asset_capture.dart';
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
 
@@ -12,7 +13,20 @@ class UnavailableInventoryRepository implements InventoryRepository {
   static const _error = InventoryException(InventoryError.notAvailable);
 
   @override
-  Future<List<InventoryAsset>> list() => Future.error(_error);
+  Future<InventoryResultPage> page(
+    InventoryQuery query, {
+    Object? after,
+    InventoryCancellation? cancellation,
+  }) => Future.error(_error);
+
+  @override
+  Future<InventoryCounts> counts(
+    InventoryQuery query, {
+    InventoryCancellation? cancellation,
+  }) => Future.error(_error);
+
+  @override
+  Future<List<AssetTypeOption>> types() async => const [];
 
   @override
   Future<InventoryAsset> get(String id) => Future.error(_error);

@@ -4,6 +4,10 @@
     <!-- Mapa: "ubicarme" y activos cercanos. Solo ubicacion con la app abierta. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- Lector del QR de los activos (mobile_scanner). La camara no es
+         obligatoria: sin ella el codigo se escribe a mano. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
         android:label="SIGACO"
         android:name="${applicationName}"

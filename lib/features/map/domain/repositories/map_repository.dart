@@ -1,4 +1,6 @@
+import '../entities/geo_point.dart';
 import '../entities/map_pin.dart';
+import '../entities/nearby_pin.dart';
 
 /// Por que no se pudieron traer los pines.
 enum MapError {
@@ -22,6 +24,13 @@ class MapException implements Exception {
 
   @override
   String toString() => 'MapException($error)';
+}
+
+/// Los activos cercanos segun el servidor (`/api/assets/nearby`): mide hasta la
+/// geometria de cada activo (una linea o un poligono, no solo su punto). Lanza
+/// [MapException]; sin conexion el mapa los calcula con lo que ya tiene.
+abstract interface class NearbyAssetsSource {
+  Future<List<NearbyPin>> nearbyAssets(GeoPoint from, double radiusMeters);
 }
 
 /// Lo que el mapa muestra de la concesion activa. Lanza [MapException].

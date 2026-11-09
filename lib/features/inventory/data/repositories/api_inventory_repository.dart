@@ -1,94 +1,421 @@
+import 'dart:io';
 import 'dart:typed_data';
+
+import 'package:dio/dio.dart' show CancelToken;
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/geojson_anchor.dart';
+import '../../domain/entities/asset_capture.dart';
+import '../../domain/entities/asset_template.dart';
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
+import 'api_asset_capture_repository.dart';
+import 'inventory_json.dart';
 
 /// El inventario contra el backend (`/api/assets`, M13). El servidor aplica el
-/// ambito de la persona (carreteras autorizadas) y deja fuera los activos dados
-/// de baja; la app solo traduce la ficha del servidor a lo que muestra.
-class ApiInventoryRepository implements InventoryRepository {
-  ApiInventoryRepository(this._api);
+/// ambito de la persona (carreteras autorizadas), deja fuera los activos dados
+/// de baja y busca, filtra, ordena y pagina: la app pide de a una pagina y solo
+/// traduce la ficha del servidor a lo que muestra. Lo consultado con red queda
+/// en el telefono (las respuestas, por el cache de la API; las fotos, en
+/// archivos) para verlo sin senal.
+class ApiInventoryRepository
+    implements
+        InventoryRepository,
+        AssetPhotosSource,
+        AssetTemplateSource,
+        AssetCatalogSource,
+        AssetQrSource {
+  ApiInventoryRepository(this._api, {Future<Directory> Function()? cacheDir})
+    : _cacheDir = cacheDir ?? _defaultCacheDir;
 
   final ApiClient _api;
 
-  /// Tamano de pagina maximo del servidor y tope de paginas: la lista movil no
-  /// tiene paginacion propia (se busca y filtra en el telefono).
-  static const _pageSize = 200;
-  static const _maxPages = 10;
+  /// Donde se guardan las fotos que baja de los activos.
+  final Future<Directory> Function() _cacheDir;
+
+  static Future<Directory> _defaultCacheDir() async =>
+      Directory(p.join((await getTemporaryDirectory()).path, 'asset_photos'));
+
+  /// Filas por pagina de la lista (el servidor acepta hasta 200): lo que cabe en
+  /// unas pantallas, para que la primera llegue pronto aun con poca senal.
+  static const pageSize = 50;
 
   /// Una foto de ficha mas grande que esto no se baja (lista movil).
   static const _maxPhotoBytes = 6 * 1024 * 1024;
 
+  /// Cuantas fotos de la galeria se bajan por ficha.
+  static const _maxPhotos = 8;
+
+  /// El estado de conservacion como lo filtra el servidor (`conservationState`
+  /// acepta un solo valor). "Malo" junta dos valores del catalogo: se piden uno
+  /// tras otro, primero los pesimos. Sin filtro, una sola consulta.
+  static List<String?> _conservationCodes(AssetCondition? c) => switch (c) {
+    null => const [null],
+    AssetCondition.good => const ['BUENO'],
+    AssetCondition.regular => const ['REGULAR'],
+    AssetCondition.poor => const ['PESIMO', 'MALO'],
+    // El servidor no filtra lo que no se evaluo (la pantalla no lo ofrece).
+    AssetCondition.unknown => const [null],
+  };
+
+  /// Los filtros de [query] como los lee `GET /api/assets` (sin la pagina).
+  static Map<String, Object?> _filters(InventoryQuery query, String? state) {
+    final from = query.inspectedFrom;
+    final to = query.inspectedTo;
+    return {
+      'search': query.trimmedSearch,
+      'assetTypeCode': query.typeCode,
+      'conservationState': state,
+      if (from != null || to != null) 'dateField': 'INSPECCION',
+      'from': _isoDay(from),
+      'to': _isoDay(to),
+    };
+  }
+
+  static String? _isoDay(DateTime? d) => d == null
+      ? null
+      : '${d.year.toString().padLeft(4, '0')}-'
+            '${d.month.toString().padLeft(2, '0')}-'
+            '${d.day.toString().padLeft(2, '0')}';
+
+  /// Una consulta que se puede cortar.
+  static CancelToken? _token(InventoryCancellation? cancellation) {
+    if (cancellation == null) return null;
+    final token = CancelToken();
+    cancellation.whenCancelled(token.cancel);
+    return token;
+  }
+
+  Future<({List<InventoryAsset> items, int total})> _fetch(
+    InventoryQuery query,
+    String? state, {
+    required int page,
+    required int size,
+    CancelToken? token,
+  }) async {
+    final json = await _api.getJson(
+      '/api/assets',
+      query: {
+        'page': page,
+        'pageSize': size,
+        if (size > 1) 'sort': 'road',
+        ..._filters(query, state),
+      },
+      cancelToken: token,
+    );
+    final map = _asMap(json);
+    final items = map['items'];
+    if (items is! List) throw const FormatException('sin items');
+    return (
+      items: [for (final item in items) fromListItem(_asMap(item))],
+      total: (map['total'] as num?)?.toInt() ?? items.length,
+    );
+  }
+
   @override
-  Future<List<InventoryAsset>> list() => _guard(() async {
-    final result = <InventoryAsset>[];
-    var page = 1;
-    var total = 0;
-    do {
-      final json = await _api.getJson(
-        '/api/assets',
-        query: {'page': page, 'pageSize': _pageSize},
-      );
-      final map = _asMap(json);
-      total = (map['total'] as num?)?.toInt() ?? 0;
-      final items = map['items'];
-      if (items is! List) throw const FormatException('sin items');
-      if (items.isEmpty) break;
-      for (final item in items) {
-        result.add(fromListItem(_asMap(item)));
+  Future<InventoryResultPage> page(
+    InventoryQuery query, {
+    Object? after,
+    InventoryCancellation? cancellation,
+  }) => _guard(() async {
+    assert(
+      query.condition != AssetCondition.unknown,
+      'El servidor no filtra lo que no se evaluo',
+    );
+    final codes = _conservationCodes(query.condition);
+    final token = _token(cancellation);
+    final cursor = after is _Cursor && after.totals.length == codes.length
+        ? after
+        : null;
+    final totals = cursor?.totals.toList() ?? List<int>.filled(codes.length, 0);
+    var segment = cursor?.segment ?? 0;
+    var serverPage = cursor?.page ?? 1;
+    // Con varios valores, el total de los que van despues se sabe desde la
+    // primera pagina.
+    if (cursor == null && codes.length > 1) {
+      final rest = await Future.wait([
+        for (var i = 1; i < codes.length; i++)
+          _fetch(query, codes[i], page: 1, size: 1, token: token),
+      ]);
+      for (var i = 1; i < codes.length; i++) {
+        totals[i] = rest[i - 1].total;
       }
-      page++;
-    } while (result.length < total && page <= _maxPages);
-    return result;
+    }
+    final items = <InventoryAsset>[];
+    while (segment < codes.length && items.length < pageSize) {
+      final got = await _fetch(
+        query,
+        codes[segment],
+        page: serverPage,
+        size: pageSize,
+        token: token,
+      );
+      totals[segment] = got.total;
+      items.addAll(got.items);
+      final seen = (serverPage - 1) * pageSize + got.items.length;
+      if (got.items.isEmpty || seen >= got.total) {
+        segment++;
+        serverPage = 1;
+      } else {
+        serverPage++;
+      }
+    }
+    return InventoryResultPage(
+      items: items,
+      total: totals.fold(0, (sum, t) => sum + t),
+      next: segment < codes.length
+          ? _Cursor(segment: segment, page: serverPage, totals: totals)
+          : null,
+    );
   }, listing: true);
+
+  /// Cuantos cumplen la consulta y cuantos de cada estado: una consulta de una
+  /// fila por valor (el servidor da el total de cada una).
+  @override
+  Future<InventoryCounts> counts(
+    InventoryQuery query, {
+    InventoryCancellation? cancellation,
+  }) => _guard(() async {
+    final base = query.withoutCondition();
+    final token = _token(cancellation);
+    Future<int> total(String? state) async =>
+        (await _fetch(base, state, page: 1, size: 1, token: token)).total;
+    final r = await Future.wait([
+      total(null),
+      total('BUENO'),
+      total('REGULAR'),
+      total('MALO'),
+      total('PESIMO'),
+    ]);
+    return InventoryCounts(
+      total: r[0],
+      good: r[1],
+      regular: r[2],
+      poor: r[3] + r[4],
+    );
+  }, listing: true);
+
+  /// `GET /api/catalogs/asset-types` (si no, los tipos de `/api/catalogs`). Se
+  /// dejan fuera los que el servidor dice que no tienen activos.
+  @override
+  Future<List<AssetTypeOption>> types() async {
+    List<Object?> rows;
+    try {
+      rows = InventoryJson.list(
+        await _api.getJson('/api/catalogs/asset-types'),
+      );
+    } catch (_) {
+      rows = const [];
+    }
+    if (rows.isEmpty) {
+      try {
+        final json = InventoryJson.map(await _api.getJson('/api/catalogs'));
+        rows = InventoryJson.list(json?['assetTypes']);
+      } catch (_) {
+        return const [];
+      }
+    }
+    return [
+      for (final row in rows)
+        if (InventoryJson.map(row)?['assetCount'] != 0)
+          ?InventoryJson.assetType(row),
+    ]..sort((a, b) {
+      final byOrder = a.sortOrder.compareTo(b.sortOrder);
+      return byOrder != 0 ? byOrder : a.labelEs.compareTo(b.labelEs);
+    });
+  }
 
   @override
   Future<InventoryAsset> get(String id) => _guard(() async {
     final json = await _api.getJson('/api/assets/${Uri.encodeComponent(id)}');
-    return fromDetail(_asMap(_asMap(json)['asset']));
+    return fromDetailResponse(_asMap(json));
   });
+
+  @override
+  Future<InventoryAsset> byQr(String token) => _guard(() async {
+    final json = await _api.getJson(
+      '/api/assets/by-qr/${Uri.encodeComponent(token.trim())}',
+    );
+    return fromDetailResponse(_asMap(json));
+  });
+
+  @override
+  Future<AssetTemplate?> template(String typeCode) async {
+    try {
+      return await ApiAssetCaptureRepository.currentTemplate(_api, typeCode);
+    } catch (_) {
+      // Sin ficha, la seccion de campos no se pinta.
+      return null;
+    }
+  }
+
+  @override
+  Future<Map<String, List<CatalogOption>>> catalogs() async {
+    try {
+      final json = InventoryJson.map(await _api.getJson('/api/catalogs'));
+      return InventoryJson.catalogs(json?['catalogs']);
+    } catch (_) {
+      return const {};
+    }
+  }
 
   @override
   Future<Uint8List?> mainPhoto(InventoryAsset asset) async {
     final photo = asset.mainPhotoId;
     if (photo == null) return null;
-    // Una foto que no baja no impide ver la ficha.
-    return _api.downloadFile(
+    // Una foto que no baja no impide ver la ficha: si ya se habia bajado, se
+    // muestra la guardada.
+    final bytes = await _api.downloadFile(
       '/api/assets/${Uri.encodeComponent(asset.id)}'
       '/attachments/${Uri.encodeComponent(photo)}/content',
       maxBytes: _maxPhotoBytes,
     );
+    final file = await _photoFile(photo);
+    if (bytes != null) {
+      await _write(file, bytes);
+      return bytes;
+    }
+    try {
+      if (file != null && file.existsSync()) return await file.readAsBytes();
+    } catch (_) {}
+    return null;
   }
 
-  /// Un renglon de la lista (`AssetListItemDto`): sin descripcion ni geometria.
+  @override
+  Future<List<String>> photos(InventoryAsset asset) async {
+    final key = Uri.encodeComponent(asset.id);
+    final List<Object?> items;
+    try {
+      items = InventoryJson.list(
+        await _api.getJson('/api/assets/$key/attachments'),
+      );
+    } catch (_) {
+      return const [];
+    }
+    final paths = <String>[];
+    for (final item in items) {
+      if (paths.length >= _maxPhotos) break;
+      final a = InventoryJson.map(item);
+      final id = InventoryJson.text(a?['id']);
+      final type = InventoryJson.text(a?['contentType']) ?? '';
+      final kind = InventoryJson.text(a?['kind'])?.toUpperCase();
+      if (a == null || id == null || id == asset.mainPhotoId) continue;
+      if (!type.startsWith('image/') && kind != 'FOTO') continue;
+      final file = await _photoFile(id);
+      if (file == null) continue;
+      try {
+        if (!file.existsSync()) {
+          final bytes = await _api.downloadFile(
+            '/api/assets/$key/attachments/${Uri.encodeComponent(id)}/content',
+            maxBytes: _maxPhotoBytes,
+          );
+          if (bytes == null) continue;
+          await _write(file, bytes);
+        }
+        paths.add(file.path);
+      } catch (_) {
+        // Una foto que no baja se omite.
+      }
+    }
+    return paths;
+  }
+
+  Future<File?> _photoFile(String attachmentId) async {
+    try {
+      final dir = await _cacheDir();
+      final safe = attachmentId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
+      return File(p.join(dir.path, '$safe.img'));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Guardar es un extra: un fallo del disco no debe romper la ficha.
+  static Future<void> _write(File? file, Uint8List bytes) async {
+    if (file == null) return;
+    try {
+      await file.parent.create(recursive: true);
+      await file.writeAsBytes(bytes, flush: true);
+    } catch (_) {}
+  }
+
+  /// Un renglon de la lista (`AssetListItemDto`): sin descripcion y, salvo que
+  /// se pida, sin geometria.
   static InventoryAsset fromListItem(Map<String, dynamic> m) {
     final code = (m['code'] as String?)?.trim() ?? '';
+    final status = _text(m['status']);
+    final anchor = geoJsonAnchor(m['geometry']);
     return InventoryAsset(
       id: m['id'] as String,
       code: code.isEmpty ? null : code,
       name: code,
       category: (m['assetTypeLabel'] as String?)?.trim() ?? '',
+      typeCode: _text(m['assetTypeCode']),
+      subsystemCode: _text(m['subsystemCode']),
+      roadCode: _text(m['roadCode']),
       condition: _condition(m['conservationState'] as String?),
+      lifecycle: AssetLifecycle.fromCode(status),
+      inMaintenance: _inMaintenance(m, status),
+      source: _text(m['source']),
+      externalLayerCode: _text(m['externalLayerCode']),
       kmLabel: _kmLabel(_num(m['kmStart']), _num(m['kmEnd'])),
       segmentCode: _text(m['roadSegmentCode']),
       direction: _text(m['direction']),
+      latitude: anchor?.$1,
+      longitude: anchor?.$2,
     );
   }
 
-  /// La ficha completa (`AssetDto`).
-  static InventoryAsset fromDetail(Map<String, dynamic> m) {
+  /// La ficha completa (`AssetDetailDto`): el activo y, si el servidor ya los
+  /// manda, la ficha con la que se valido y los datos crudos del WebGIS.
+  static InventoryAsset fromDetailResponse(Map<String, dynamic> json) {
+    final asset = InventoryJson.map(json['asset']) ?? json;
+    final typeCode = _text(asset['assetTypeCode']);
+    final template = InventoryJson.template(
+      json['template'] ?? asset['template'],
+      typeCode: typeCode,
+    );
+    final external = InventoryJson.map(
+      json['externalAttributes'] ?? asset['externalAttributes'],
+    );
+    return fromDetail(
+      asset,
+      template: template,
+      externalAttributes: external,
+      attachmentCount: InventoryJson.integer(json['attachmentCount']),
+    );
+  }
+
+  /// El activo (`AssetDto`).
+  static InventoryAsset fromDetail(
+    Map<String, dynamic> m, {
+    AssetTemplate? template,
+    Map<String, dynamic>? externalAttributes,
+    int? attachmentCount,
+  }) {
     final code = (m['code'] as String?)?.trim() ?? '';
     final description = _text(m['description']);
     final anchor = geoJsonAnchor(m['geometry']);
+    final status = _text(m['status']);
     return InventoryAsset(
       id: m['id'] as String,
       code: code.isEmpty ? null : code,
       name: description ?? code,
       category: (m['assetTypeLabel'] as String?)?.trim() ?? '',
+      typeCode: _text(m['assetTypeCode']),
+      subsystemCode: _text(m['subsystemCode']),
+      roadCode: _text(m['roadCode']),
       condition: _condition(m['conservationState'] as String?),
+      lifecycle: AssetLifecycle.fromCode(status),
+      statusReason: _text(m['statusReason']),
+      inMaintenance: _inMaintenance(m, status),
+      openTicketCount: InventoryJson.integer(m['openTicketCount']),
+      source: _text(m['source']),
+      externalLayerCode: _text(m['externalLayerCode']),
+      externalId: _text('${m['externalId'] ?? ''}'),
       kmLabel: _kmLabel(_num(m['kmStart']), _num(m['kmEnd'])),
       segmentCode: _text(m['roadSegmentCode']),
       direction: _text(m['direction']),
@@ -97,8 +424,25 @@ class ApiInventoryRepository implements InventoryRepository {
       installedAt: _day(m['installedOn']),
       notes: _text(m['notes']),
       mainPhotoId: _text(m['mainPhotoId']),
+      description: description,
+      brand: _text(m['brand']),
+      model: _text(m['model']),
+      serialNumber: _text(m['serialNumber']),
+      usefulLifeMonths: InventoryJson.integer(m['usefulLifeMonths']),
+      attributes: InventoryJson.map(m['attributes']) ?? const {},
+      externalAttributes: externalAttributes,
+      template: template,
+      templateNumber: InventoryJson.integer(m['templateNumber']),
+      attachmentCount: attachmentCount,
     );
   }
+
+  /// Con ticket abierto (`inMaintenance`, `openTicketCount`) o, en un servidor
+  /// anterior al contrato, en estado EN_MANTENIMIENTO.
+  static bool _inMaintenance(Map<String, dynamic> m, String? status) =>
+      m['inMaintenance'] == true ||
+      (InventoryJson.integer(m['openTicketCount']) ?? 0) > 0 ||
+      status?.toUpperCase() == 'EN_MANTENIMIENTO';
 
   /// BUENO, REGULAR, MALO y PESIMO (catalogo de conservacion del servidor); lo
   /// que no se evaluo o no se conoce queda "sin evaluar".
@@ -165,4 +509,19 @@ class ApiInventoryRepository implements InventoryRepository {
       throw const InventoryException(InventoryError.server);
     }
   }
+}
+
+/// Por donde va la lista: en que valor del estado de conservacion (cuando el
+/// filtro junta varios), que pagina del servidor sigue y el total de cada
+/// valor.
+class _Cursor {
+  const _Cursor({
+    required this.segment,
+    required this.page,
+    required this.totals,
+  });
+
+  final int segment;
+  final int page;
+  final List<int> totals;
 }

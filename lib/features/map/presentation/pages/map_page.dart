@@ -53,6 +53,7 @@ class MapPage extends StatefulWidget {
     this.sampleData = false,
     this.initialLayer,
     this.initialPinId,
+    this.initialPosition,
     this.actions = MapRecordActions.none,
     this.engine = MapEngine.flutterMap,
   });
@@ -67,6 +68,10 @@ class MapPage extends StatefulWidget {
   /// ejemplo): su pestana y su id. Si ya no esta, el mapa se ve normal.
   final MapLayer? initialLayer;
   final String? initialPinId;
+
+  /// Donde esta ese elemento: si su pin no esta entre los que bajaron (la capa
+  /// tiene tope), el mapa igual se centra ahi.
+  final GeoPoint? initialPosition;
 
   /// Abrir la ficha de un elemento y levantar registros desde el mapa; lo
   /// compone la app segun lo que el usuario puede hacer.
@@ -126,6 +131,8 @@ class _MapPageState extends State<MapPage> {
         return;
       }
     }
+    final at = widget.initialPosition;
+    if (at != null && at.isValid) _camera.moveTo(at);
   }
 
   @override

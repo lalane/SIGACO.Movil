@@ -1036,7 +1036,7 @@
   "invTitle": "Catálogo",
   "invSubtitle": "Activos de la concesión",
   "invSearchTooltip": "Buscar",
-  "invSearchHint": "Buscar activo, tramo o kilómetro",
+  "invSearchHint": "Código, descripción, marca o serie",
   "invFilterClear": "Quitar filtros",
   "invSampleBanner": "Datos de ejemplo: no son activos reales.",
   "invStatTotal": "Total",
@@ -1074,6 +1074,9 @@
   "invErrorTitle": "No se pudo cargar el catálogo",
   "invErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
   "invRetry": "Reintentar",
+  "invOfflineTitle": "Sin conexión",
+  "invOfflineBody": "Sin señal solo se ve lo que ya consultaste. Conéctate e inténtalo de nuevo.",
+  "invMoreError": "No se pudieron traer más activos.",
   "invDetailTitle": "Activo",
   "invDetailsTitle": "Datos del activo",
   "invCategoryLabel": "Tipo",
@@ -1712,5 +1715,184 @@
   "newTicketDirection": "Sentido",
   "newTicketErrorKmEnd": "Va con el km inicial y no puede ser menor que él.",
   "newTicketErrorDirection": "Aquí los dos sentidos comparten trazo: elija el sentido.",
-  "newTicketErrorDescription": "Describa la falla."
+  "newTicketErrorDescription": "Describa la falla.",
+  "invLifecyclePending": "Pendiente de validación",
+  "invLifecycleActive": "Activo",
+  "invLifecycleOutOfService": "Fuera de servicio",
+  "invLifecycleInactive": "Inactivo",
+  "invLifecycleDecommissioned": "Dado de baja",
+  "invLifecycleDiscarded": "Descartado",
+  "invInMaintenance": "En mantenimiento",
+  "invNotSynced": "Sin enviar",
+  "invPendingSyncBody": "Se capturó sin conexión: se enviará al servidor cuando vuelva la señal.",
+  "invStatusLabel": "Estado",
+  "invConditionLabel": "Conservación",
+  "invRoad": "Carretera",
+  "invOpenTickets": "Tickets abiertos",
+  "invStatusReasonLayerRemoved": "Su capa del WebGIS dejó de alimentar este tipo.",
+  "invStatusReasonGone": "Su elemento desapareció del WebGIS.",
+  "invTemplateTitle": "Datos de la ficha",
+  "invTemplateVersion": "Ficha v{number}",
+  "@invTemplateVersion": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "invWebGisTitle": "Datos del WebGIS",
+  "invWebGisSource": "Capa {layer} · elemento {id}",
+  "@invWebGisSource": {
+    "placeholders": {
+      "layer": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "invManagementTitle": "Gestión",
+  "invDescription": "Descripción",
+  "invBrand": "Marca",
+  "invModel": "Modelo",
+  "invSerial": "Número de serie",
+  "invUsefulLife": "Vida útil",
+  "invUsefulLifeMonths": "{months} meses",
+  "@invUsefulLifeMonths": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "invSource": "Origen",
+  "invSourceMobile": "App",
+  "invSourceWeb": "Web",
+  "invSourceBulk": "Carga masiva",
+  "invSourceWebGis": "WebGIS",
+  "invPhotosTitle": "Fotos",
+  "invYes": "Sí",
+  "invNo": "No",
+  "invNew": "Nuevo activo",
+  "invScanTooltip": "Leer QR",
+  "invNewTitle": "Alta de activo",
+  "invNewSave": "Dar de alta",
+  "invNewType": "Tipo de activo",
+  "invNewTypeError": "Elija el tipo de activo.",
+  "invNewTypesEmpty": "No hay tipos de activo que se puedan dar de alta desde la app.",
+  "invNewTypesError": "No se pudieron traer los tipos de activo. Revise su conexión.",
+  "invNewTemplateLoading": "Cargando la ficha del tipo…",
+  "invNewTemplateMissing": "Este tipo no tiene una ficha vigente: todavía no se puede dar de alta.",
+  "invNewTemplateError": "No se pudo traer la ficha del tipo.",
+  "invNewNoFields": "La ficha de este tipo no tiene campos propios.",
+  "invNewGpsReading": "Leyendo el GPS…",
+  "invNewGpsUnavailable": "No se pudo leer el GPS: escriba el km.",
+  "invNewGpsRetry": "Volver a leer el GPS",
+  "invNewGpsOrigin": "GPS del teléfono",
+  "invNewOffRoad": "El punto queda lejos de la carretera: escriba el km.",
+  "invNewPlacementUnknown": "No se pudo calcular el km del punto: escríbalo si lo conoce.",
+  "invNewPointOnlyKm": "Este tipo se dibuja como línea o polígono: se ubica por km.",
+  "invNewKm": "Km",
+  "invNewKmEnd": "Km final",
+  "invNewKmEndHint": "Solo si ocupa un tramo",
+  "invNewKmError": "Escriba el km como 150+200.",
+  "invNewKmEndError": "Va con el km inicial y no puede ser menor que él.",
+  "invNewKmEndRequired": "Este tipo se ubica por rango: indique el km final.",
+  "invNewLocationError": "Indique el km o lea el GPS.",
+  "invNewDirection": "Sentido",
+  "invNewDirectionError": "Aquí los dos sentidos comparten trazo: elija el sentido.",
+  "invNewDescriptionHint": "Opcional",
+  "invNewRequired": "Es obligatorio.",
+  "invNewNotNumber": "Debe ser un número.",
+  "invNewNotInteger": "Debe ser un número entero.",
+  "invNewBelowMin": "El mínimo es {min}.",
+  "@invNewBelowMin": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewAboveMax": "El máximo es {max}.",
+  "@invNewAboveMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewTooLong": "Admite como máximo 500 caracteres.",
+  "invNewInvalid": "Valor inválido.",
+  "invNewRange": "De {min} a {max}",
+  "@invNewRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewMin": "Desde {min}",
+  "@invNewMin": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewMax": "Hasta {max}",
+  "@invNewMax": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewDateHint": "Elegir fecha",
+  "invNewDateTimeHint": "Elegir fecha y hora",
+  "invNewFromLayer": "En el WebGIS lo llena su capa; aquí se captura a mano.",
+  "invNewSaved": "Activo {code} dado de alta: queda pendiente de validación.",
+  "@invNewSaved": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewQueued": "Sin conexión: el activo quedó en el teléfono y se enviará al volver la señal.",
+  "invNewSavedPartly": "El activo se dio de alta, pero faltaron las fotos: {reason}",
+  "@invNewSavedPartly": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewFailed": "No se pudo dar de alta el activo. Inténtelo de nuevo.",
+  "invNewFailedReason": "El servidor no aceptó el alta: {reason}",
+  "@invNewFailedReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "invNewOffline": "Sin conexión y sin la carretera de la concesión: conéctese una vez para poder dar de alta sin señal.",
+  "invNewNoPermission": "Su perfil no puede dar de alta activos.",
+  "invNewChannel": "Este tipo de activo no puede darse de alta desde la app.",
+  "invQrTitle": "Leer QR del activo",
+  "invQrHint": "Apunte la cámara al código QR del activo.",
+  "invQrResolving": "Buscando el activo…",
+  "invQrInvalid": "Ese código no es de un activo de SIGACO.",
+  "invQrNotFound": "No hay un activo con ese QR en esta concesión.",
+  "invQrFailure": "No se pudo buscar el activo. Revise su conexión.",
+  "invQrRetry": "Leer otro",
+  "invQrManual": "Escribir el código",
+  "invQrManualHint": "Código del QR",
+  "invQrManualGo": "Buscar",
+  "invQrCameraError": "No se pudo abrir la cámara. Puede escribir el código.",
+  "mapFilterSubsystem": "Subsistema"
 }

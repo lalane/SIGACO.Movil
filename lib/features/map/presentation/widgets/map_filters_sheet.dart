@@ -66,6 +66,34 @@ class _FiltersSheet extends StatelessWidget {
                   ),
                   SizedBox(height: r.s(16)),
                 ],
+                // El subsistema de los activos (o el grupo de otra pestana).
+                if (state.availableGroups.isNotEmpty) ...[
+                  Text(
+                    l10n.mapFilterSubsystem,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  SizedBox(height: r.s(8)),
+                  Wrap(
+                    spacing: r.s(8),
+                    runSpacing: r.s(8),
+                    children: [
+                      ChoiceChip(
+                        key: const Key('map-filter-group-all'),
+                        label: Text(l10n.mapFilterAll),
+                        selected: state.groupFilter == null,
+                        onSelected: (_) => cubit.setGroupFilter(null),
+                      ),
+                      for (final g in state.availableGroups)
+                        ChoiceChip(
+                          key: Key('map-filter-group-$g'),
+                          label: Text(g),
+                          selected: state.groupFilter == g,
+                          onSelected: (_) => cubit.setGroupFilter(g),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: r.s(16)),
+                ],
                 Text(
                   l10n.mapFilterStatus,
                   style: Theme.of(context).textTheme.labelLarge,

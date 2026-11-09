@@ -69,7 +69,12 @@ class InventoryCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: moduleMuted),
+                    Icon(
+                      asset.pendingSync
+                          ? Icons.cloud_upload_outlined
+                          : Icons.chevron_right,
+                      color: moduleMuted,
+                    ),
                   ],
                 ),
                 SizedBox(height: r.s(12)),
@@ -77,6 +82,18 @@ class InventoryCard extends StatelessWidget {
                   asset.category,
                   style: TextStyle(color: moduleMuted, fontSize: r.s(16)),
                 ),
+                // Lo activo es lo normal: solo se marca lo que pide atencion.
+                if ((asset.lifecycle != null &&
+                        asset.lifecycle != AssetLifecycle.active) ||
+                    asset.inMaintenance ||
+                    asset.pendingSync) ...[
+                  SizedBox(height: r.s(8)),
+                  AssetStatusPills(
+                    asset: asset,
+                    keyPrefix: 'inventory-${asset.id}',
+                    showActive: false,
+                  ),
+                ],
                 if (where.isNotEmpty) ...[
                   SizedBox(height: r.s(6)),
                   Row(
@@ -128,6 +145,56 @@ class InventoryCard extends StatelessWidget {
   }
 }
 
+/// El estado del activo en el inventario, "En mantenimiento" si tiene un
+/// ticket abierto y "Sin enviar" si espera en el telefono. Las llaves son
+/// `$keyPrefix-status`, `$keyPrefix-maintenance` y `$keyPrefix-unsent`.
+class AssetStatusPills extends StatelessWidget {
+  const AssetStatusPills({
+    super.key,
+    required this.asset,
+    required this.keyPrefix,
+    this.showActive = true,
+  });
+
+  final InventoryAsset asset;
+  final String keyPrefix;
+
+  /// En la lista, "Activo" no se marca (es lo normal).
+  final bool showActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final r = context.responsive;
+    final lifecycle = asset.lifecycle;
+    return Wrap(
+      spacing: r.s(8),
+      runSpacing: r.s(8),
+      children: [
+        if (lifecycle != null &&
+            (showActive || lifecycle != AssetLifecycle.active))
+          ModuleStatusPill(
+            key: Key('$keyPrefix-status'),
+            label: lifecycleLabel(l10n, lifecycle),
+            color: lifecycleColor(lifecycle),
+          ),
+        if (asset.inMaintenance)
+          ModuleStatusPill(
+            key: Key('$keyPrefix-maintenance'),
+            label: l10n.invInMaintenance,
+            color: maintenanceColor,
+          ),
+        if (asset.pendingSync)
+          ModuleStatusPill(
+            key: Key('$keyPrefix-unsent'),
+            label: l10n.invNotSynced,
+            color: moduleMuted,
+          ),
+      ],
+    );
+  }
+}
+
 /// Los estados de la lista sin tarjetas.
 class InventoryStateView extends StatelessWidget {
   const InventoryStateView({super.key, required this.error, this.onRetry})
@@ -170,8 +237,14 @@ class InventoryStateView extends StatelessWidget {
         '',
         false,
       ),
-      InventoryError.network || InventoryError.server => (
+      InventoryError.network => (
         Icons.cloud_off_outlined,
+        l10n.invOfflineTitle,
+        l10n.invOfflineBody,
+        true,
+      ),
+      InventoryError.server => (
+        Icons.error_outline,
         l10n.invErrorTitle,
         l10n.invErrorBody,
         true,

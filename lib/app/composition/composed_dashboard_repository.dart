@@ -1,6 +1,5 @@
 import '../../features/accidents/domain/entities/accident.dart';
 import '../../features/accidents/domain/repositories/accidents_repository.dart';
-import '../../features/inventory/domain/entities/inventory_asset.dart';
 import '../../features/inventory/domain/repositories/inventory_repository.dart';
 import '../../features/maintenance/domain/entities/maintenance.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
@@ -156,13 +155,13 @@ class ComposedDashboardRepository implements DashboardRepository {
     );
   }
 
+  /// Los conteos del catalogo los da el servidor: no se baja la lista.
   Future<InventorySummary> _inventory() async {
-    final assets = await inventory.list();
-    int count(AssetCondition c) => assets.where((a) => a.condition == c).length;
+    final counts = await inventory.counts(const InventoryQuery());
     return InventorySummary(
-      good: count(AssetCondition.good),
-      regular: count(AssetCondition.regular),
-      poor: count(AssetCondition.poor),
+      good: counts.good,
+      regular: counts.regular,
+      poor: counts.poor,
     );
   }
 

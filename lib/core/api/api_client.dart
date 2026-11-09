@@ -272,15 +272,26 @@ class ApiClient {
     }
   }
 
-  /// GET que devuelve el JSON tal cual llega (objeto o lista).
-  Future<Object?> getJson(String path, {Map<String, Object?>? query}) async {
+  /// GET que devuelve el JSON tal cual llega (objeto o lista). Con
+  /// [cancelToken], quien pregunta puede dejar de esperar (una busqueda que ya
+  /// cambio): lo cancelado falla como sin red, pero sin buscar lo guardado.
+  Future<Object?> getJson(
+    String path, {
+    Map<String, Object?>? query,
+    CancelToken? cancelToken,
+  }) async {
     final key = _cacheKey(path, query);
     try {
-      final r = await _dio.get<dynamic>(path, queryParameters: _clean(query));
+      final r = await _dio.get<dynamic>(
+        path,
+        queryParameters: _clean(query),
+        cancelToken: cancelToken,
+      );
       await _remember(path, key, r.data);
       return r.data;
     } on DioException catch (e) {
       final failure = ApiFailure.fromDio(e);
+      if (CancelToken.isCancel(e)) throw failure;
       final saved = await _recall(path, key, failure);
       if (saved != null) return saved.json;
       throw failure;

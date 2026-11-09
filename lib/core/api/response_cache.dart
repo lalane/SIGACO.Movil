@@ -57,6 +57,8 @@ class FileResponseCache implements ResponseCache {
     '/api/inspection-types',
     '/api/preventive-maintenance',
     '/api/assets',
+    // La ficha de cada tipo: con ella se arma el alta de activos sin senal.
+    '/api/asset-templates',
     '/api/works',
     '/api/app-configuration',
     '/api/catalogs',
@@ -78,8 +80,11 @@ class FileResponseCache implements ResponseCache {
   @override
   bool accepts(String path) {
     final clean = path.split('?').first;
-    // Las fotos y los archivos pesan y ya tienen su propio cache.
-    if (clean.endsWith('/content')) return false;
+    // Las fotos y los archivos pesan y ya tienen su propio cache. Los cercanos
+    // cambian con cada posicion: sin red se calculan en el telefono.
+    if (clean.endsWith('/content') || clean == '/api/assets/nearby') {
+      return false;
+    }
     return _prefixes.any((x) => clean == x || clean.startsWith('$x/'));
   }
 
