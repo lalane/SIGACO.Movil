@@ -1,0 +1,34 @@
+# Pipeline: SIGACO Móvil - DEVIDARE (desarrollo de Idare)
+# Cada push a la rama devidare compila el APK release (apunta a sigaco-api-devidare) y lo distribuye con
+# Firebase App Distribution al grupo idare-dev. App id com.idare.sigaco_movil.devidare, nombre «SIGACO DEV»:
+# se instala junto a la de QA.
+
+name: SIGACO-MOVIL-DEVIDARE-$(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - devidare
+
+pr: none
+
+variables:
+  - group: vg-sigaco-movil
+
+stages:
+  - stage: BuildDistribute
+    displayName: Build and distribute DEVIDARE
+    jobs:
+      - job: Apk
+        displayName: APK DEVIDARE
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - template: templates/build-distribute.yml
+            parameters:
+              environment: DEVIDARE
+              apiBaseUrl: https://sigaco-api-devidare.azurewebsites.net
+              firebaseAppId: 1:388452504565:android:e62d8e8122edbc72f086bc
+              testerGroups: idare-dev
+              appIdSuffix: .devidare
+              appLabel: SIGACO DEV
