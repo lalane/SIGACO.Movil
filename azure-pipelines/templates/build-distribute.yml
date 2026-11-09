@@ -27,7 +27,7 @@ steps:
 
   - bash: |
       set -euo pipefail
-      echo "##vso[task.setvariable variable=JAVA_HOME]${JAVA_HOME_17_X64}"
+      echo "##vso[task.setvariable variable=JAVA_HOME]${JAVA_HOME_21_X64}"
       git clone --quiet --depth 1 --branch ${{ parameters.flutterVersion }} https://github.com/flutter/flutter.git "$(Agent.ToolsDirectory)/flutter"
       echo "##vso[task.prependpath]$(Agent.ToolsDirectory)/flutter/bin"
     displayName: Install Flutter ${{ parameters.flutterVersion }}
