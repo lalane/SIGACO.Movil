@@ -25,6 +25,12 @@ steps:
   - checkout: self
     fetchDepth: 30
 
+  # El agente hospedado llega casi lleno; Flutter + Gradle necesitan varios GB.
+  - bash: |
+      sudo rm -rf /usr/share/dotnet /usr/local/lib/node_modules/@angular /opt/ghc /usr/local/.ghcup /usr/local/share/boost /usr/share/swift || true
+      df -h / | tail -1
+    displayName: Free disk space
+
   - bash: |
       set -euo pipefail
       echo "##vso[task.setvariable variable=JAVA_HOME]${JAVA_HOME_21_X64}"
@@ -66,13 +72,21 @@ steps:
       SIGACO_APP_ID_SUFFIX: ${{ parameters.appIdSuffix }}
       SIGACO_APP_LABEL: ${{ parameters.appLabel }}
 
-  # El APK tiene que salir firmado con la llave de SIGACO, nunca con la de depuración.
+  # El APK tiene que salir firmado con la llave de SIGACO (CN=SIGACO Movil), nunca con la de depuración.
+  # Con minSdk 29 solo lleva firma v2 (keytool no la lee): se usa apksigner.jar con el Java 21 del job.
   - bash: |
-      set -euo pipefail
-      apksigner=$(ls -d "${ANDROID_HOME}"/build-tools/*/ | sort -V | tail -1)apksigner
-      "$apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk | tee certs.txt | grep -E "Signer #1 certificate DN"
-      if grep -qi "CN=Android Debug" certs.txt; then
+      set -uo pipefail
+      apk=build/app/outputs/flutter-apk/app-release.apk
+      jar=$(ls "${ANDROID_HOME}"/build-tools/*/lib/apksigner.jar | sort -V | tail -1)
+      echo "apksigner: $jar"
+      certs=$("${JAVA_HOME}/bin/java" -jar "$jar" verify --print-certs "$apk" 2>&1)
+      echo "$certs" | grep -vE "^WARNING" || true
+      if echo "$certs" | grep -qi "CN=Android Debug"; then
         echo "##vso[task.logissue type=error]El APK quedó firmado con la llave de depuración."
+        exit 1
+      fi
+      if ! echo "$certs" | grep -q "CN=SIGACO Movil"; then
+        echo "##vso[task.logissue type=error]El APK no está firmado con la llave de SIGACO."
         exit 1
       fi
     displayName: Verify signature
