@@ -7,8 +7,13 @@ import 'in_memory_inventory.dart';
 /// Activos de ejemplo para ver el modulo mientras el backend no publica los
 /// suyos. Tienen el mismo id, tramo, kilometro y posicion que los pines de
 /// inventario del mapa de ejemplo, asi que "Ver en mapa" cae sobre el pin. No
-/// son activos reales. Se filtran y paginan en el telefono.
-class SampleInventoryRepository with InMemoryInventory {
+/// son activos reales. Se filtran y paginan en el telefono. Su historia
+/// operativa (tickets, inspecciones y mantenimientos) tambien es de ejemplo;
+/// los que el mapa de ejemplo pinta "en mantenimiento" tienen un ticket
+/// abierto.
+class SampleInventoryRepository
+    with InMemoryInventory
+    implements AssetHistorySource {
   SampleInventoryRepository({
     DateTime Function()? clock,
     this.delay = Duration.zero,
@@ -169,6 +174,18 @@ class SampleInventoryRepository with InMemoryInventory {
         ),
       ];
 
+  /// Los que el mapa de ejemplo pinta "en mantenimiento": un ticket abierto.
+  static const _inMaintenance = {'A-004', 'A-008'};
+
+  /// Los conteos de ejemplo de la historia del activo [i].
+  static AssetHistoryCounts _counts(int i, String id) => AssetHistoryCounts(
+    tickets: _inMaintenance.contains(id)
+        ? const AssetHistoryCount(open: 1, total: 2)
+        : AssetHistoryCount(open: 0, total: i % 3),
+    inspections: AssetHistoryCount(open: i % 4 == 0 ? 1 : 0, total: 1 + i % 3),
+    maintenances: AssetHistoryCount(open: i % 5 == 0 ? 1 : 0, total: i % 4),
+  );
+
   List<InventoryAsset> _load() {
     final cached = _assets;
     if (cached != null) return cached;
@@ -177,6 +194,9 @@ class SampleInventoryRepository with InMemoryInventory {
     return _assets = [
       for (var i = 0; i < _rows.length; i++)
         InventoryAsset(
+          inMaintenance: _inMaintenance.contains(_rows[i].$1),
+          openTicketCount: _inMaintenance.contains(_rows[i].$1) ? 1 : 0,
+          history: _counts(i, _rows[i].$1),
           id: _rows[i].$1,
           name: _rows[i].$2,
           category: _rows[i].$3,
@@ -215,4 +235,61 @@ class SampleInventoryRepository with InMemoryInventory {
   /// Los activos de ejemplo no tienen foto.
   @override
   Future<Uint8List?> mainPhoto(InventoryAsset asset) async => null;
+
+  /// Registros de ejemplo que cuadran con los conteos del activo: primero los
+  /// abiertos y despues los cerrados, uno cada pocas semanas hacia atras.
+  @override
+  Future<AssetHistoryPage> history(
+    String assetId,
+    AssetHistoryKind kind, {
+    int limit = 5,
+  }) async {
+    if (delay > Duration.zero) await Future<void>.delayed(delay);
+    final index = _load().indexWhere((a) => a.id == assetId);
+    if (index < 0) throw const InventoryException(InventoryError.notFound);
+    final count = _load()[index].history?.of(kind);
+    if (count == null) {
+      throw const InventoryException(InventoryError.permissionDenied);
+    }
+    final now = _clock().toUtc();
+    final shown = count.total < limit ? count.total : limit;
+    final (prefix, open, closed, titles) = switch (kind) {
+      AssetHistoryKind.tickets => (
+        'TK',
+        'EN_PROCESO',
+        'CERRADO',
+        const ['Daño en el elemento', 'Limpieza requerida'],
+      ),
+      AssetHistoryKind.inspections => (
+        'IN',
+        'ASIGNADA',
+        'CERRADA',
+        const ['Inspección de rutina', 'Inspección anual'],
+      ),
+      AssetHistoryKind.maintenances => (
+        'MP',
+        'PROGRAMADO',
+        'COMPLETADO',
+        const ['Limpieza y pintura', 'Sustitución de piezas'],
+      ),
+    };
+    return AssetHistoryPage(
+      total: count.total,
+      items: [
+        for (var k = 0; k < shown; k++)
+          AssetHistoryEntry(
+            id: '$assetId-${kind.name}-$k',
+            kind: kind,
+            folio:
+                '$prefix-${now.year}-${(index * 10 + k + 1).toString().padLeft(6, '0')}',
+            status: k < count.open ? open : closed,
+            title: titles[k % titles.length],
+            date: now.subtract(Duration(days: 3 + k * 21)),
+            dateOnly: kind == AssetHistoryKind.maintenances,
+            responsible: 'Equipo de campo',
+            overdue: kind == AssetHistoryKind.tickets && k < count.open,
+          ),
+      ],
+    );
+  }
 }

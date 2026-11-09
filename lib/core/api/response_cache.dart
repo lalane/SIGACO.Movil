@@ -81,8 +81,12 @@ class FileResponseCache implements ResponseCache {
   bool accepts(String path) {
     final clean = path.split('?').first;
     // Las fotos y los archivos pesan y ya tienen su propio cache. Los cercanos
-    // cambian con cada posicion: sin red se calculan en el telefono.
-    if (clean.endsWith('/content') || clean == '/api/assets/nearby') {
+    // cambian con cada posicion: sin red se calculan en el telefono. El mapa de
+    // activos se pide por zona (cada movimiento seria un archivo): sus pines los
+    // guarda el cache del mapa.
+    if (clean.endsWith('/content') ||
+        clean == '/api/assets/nearby' ||
+        clean == '/api/assets/map') {
       return false;
     }
     return _prefixes.any((x) => clean == x || clean.startsWith('$x/'));

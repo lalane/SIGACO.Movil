@@ -91,6 +91,7 @@ import '../features/inventory/presentation/pages/asset_qr_page.dart';
 import '../features/inventory/presentation/pages/inventory_detail_page.dart';
 import '../features/inventory/presentation/pages/inventory_page.dart';
 import '../features/inventory/presentation/pages/new_asset_page.dart';
+import '../features/inventory/presentation/widgets/asset_history_view.dart';
 import 'composition/location_asset_position_source.dart';
 import '../features/maintenance/domain/entities/maintenance.dart';
 import '../features/reports/domain/entities/indicator_report.dart';
@@ -181,6 +182,40 @@ MapRecordActions _mapActions(BuildContext context) {
             await context.push<Object?>(ticketNewRoute(target));
           }
         : null,
+  );
+}
+
+/// Lo que la ficha del activo abre en otros modulos, segun el menu del usuario:
+/// la ficha de cada registro de su historia operativa y el alta de ticket con
+/// el activo elegido. Con datos de ejemplo los registros no existen en sus
+/// modulos: solo se listan.
+AssetRecordActions _assetActions(BuildContext context, {required bool sample}) {
+  final menu = context.read<NavigationBloc>().state.menu;
+  bool has(MobileModule m) => m.isAvailableIn(menu);
+  final tickets = has(MobileModule.tickets);
+  final inspections = has(MobileModule.inspections);
+  final maintenance = has(MobileModule.maintenance);
+  return AssetRecordActions(
+    openRoute: sample
+        ? null
+        : (entry) {
+            final id = Uri.encodeComponent(entry.id);
+            return switch (entry.kind) {
+              AssetHistoryKind.tickets => tickets ? '/tickets/$id' : null,
+              AssetHistoryKind.inspections =>
+                inspections ? '/inspections/$id' : null,
+              // El mantenimiento se abre dentro de su indicador.
+              AssetHistoryKind.maintenances when maintenance =>
+                switch (MaintenanceIndicator.values
+                    .where((i) => i.name == entry.subsystemCode?.toLowerCase())
+                    .firstOrNull) {
+                  final indicator? => '/maintenance/${indicator.name}/$id',
+                  null => null,
+                },
+              AssetHistoryKind.maintenances => null,
+            };
+          },
+    newTicketRoute: tickets ? ticketNewRouteForAsset : null,
   );
 }
 
@@ -376,6 +411,8 @@ GoRouter createRouter(
                 context.read<TicketsRepository>(),
                 // Si viene del mapa o de un activo, ya trae donde se levanta.
                 location: parseTicketLocation(state.uri.queryParameters),
+                // Desde la ficha de un activo puede venir solo el activo.
+                asset: parseTicketAsset(state.uri.queryParameters),
                 // Solo las fallas de los indicadores asignados (reunion 05/11).
                 allowedIndicators: () async {
                   try {
@@ -697,7 +734,12 @@ GoRouter createRouter(
                 context.read<InventoryRepository>(),
                 state.pathParameters['id']!,
               )..load(),
-              child: const InventoryDetailPage(),
+              child: InventoryDetailPage(
+                actions: _assetActions(
+                  context,
+                  sample: sampleInventory || context.read<DemoMode>().on,
+                ),
+              ),
             ),
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'asset_history.dart';
 import 'asset_template.dart';
 
 /// Como esta el activo (estado fisico, de la ultima inspeccion). `unknown` es
@@ -85,6 +86,7 @@ class InventoryAsset extends Equatable {
     this.templateNumber,
     this.attachmentCount,
     this.pendingSync = false,
+    this.history,
   });
 
   /// Identificador del servidor (es el de las rutas y el del mapa). En un
@@ -164,6 +166,10 @@ class InventoryAsset extends Equatable {
   /// Capturado en el telefono sin conexion: espera salir al servidor.
   final bool pendingSync;
 
+  /// Cuantos tickets, inspecciones y mantenimientos tiene (`operationalHistory`
+  /// de la ficha); null si el servidor no los da: no se muestra la historia.
+  final AssetHistoryCounts? history;
+
   bool get hasLocation =>
       latitude != null &&
       longitude != null &&
@@ -229,6 +235,7 @@ class InventoryAsset extends Equatable {
           templateNumber: templateNumber,
           attachmentCount: attachmentCount,
           pendingSync: pendingSync,
+          history: history,
         );
 
   @override
@@ -268,5 +275,6 @@ class InventoryAsset extends Equatable {
     templateNumber,
     attachmentCount,
     pendingSync,
+    history,
   ];
 }

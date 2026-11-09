@@ -20,13 +20,19 @@ import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
 import '../bloc/inventory_detail_cubit.dart';
 import '../inventory_labels.dart';
+import '../widgets/asset_history_view.dart';
 import '../widgets/inventory_widgets.dart';
 
-/// La ficha de un activo: estado (y si esta en mantenimiento), los campos de su
-/// ficha, los datos del WebGIS si nacio ahi, la gestion, las fotos y el boton
-/// para verlo en el mapa.
+/// La ficha de un activo: estado (y si esta en mantenimiento), su historia
+/// operativa (tickets, inspecciones y mantenimientos), los campos de su ficha,
+/// los datos del WebGIS si nacio ahi, la gestion, las fotos y los botones para
+/// verlo en el mapa y levantarle un ticket.
 class InventoryDetailPage extends StatelessWidget {
-  const InventoryDetailPage({super.key});
+  const InventoryDetailPage({super.key, this.actions});
+
+  /// Lo que se abre en otros modulos (la ficha de cada registro y el alta de
+  /// ticket); sin ellas la historia solo se lista.
+  final AssetRecordActions? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +40,9 @@ class InventoryDetailPage extends StatelessWidget {
     return BlocBuilder<InventoryDetailCubit, InventoryDetailState>(
       builder: (context, state) {
         final asset = state.asset;
-        if (asset != null) return _Detail(state: state, asset: asset);
+        if (asset != null) {
+          return _Detail(state: state, asset: asset, actions: actions);
+        }
         final l10n = AppLocalizations.of(context);
         return Scaffold(
           backgroundColor: p.gradientTop,
@@ -64,10 +72,24 @@ class InventoryDetailPage extends StatelessWidget {
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.state, required this.asset});
+  const _Detail({required this.state, required this.asset, this.actions});
 
   final InventoryDetailState state;
   final InventoryAsset asset;
+  final AssetRecordActions? actions;
+
+  /// La ruta del alta de ticket con este activo; null si no se puede: sin el
+  /// modulo de tickets, un activo que aun no sale del telefono o uno dado de
+  /// baja o descartado (el servidor lo rechaza).
+  String? get _newTicketRoute {
+    final route = actions?.newTicketRoute;
+    if (route == null || asset.pendingSync) return null;
+    if (asset.lifecycle == AssetLifecycle.decommissioned ||
+        asset.lifecycle == AssetLifecycle.discarded) {
+      return null;
+    }
+    return route(asset);
+  }
 
   /// La vista en sitio, si el activo tiene foto.
   Uint8List? get photo => state.photo;
@@ -282,6 +304,16 @@ class _Detail extends StatelessWidget {
                         ],
                       ),
                     ),
+                    if (state.history.isNotEmpty) ...[
+                      SizedBox(height: r.s(28)),
+                      _SectionTitle(l10n.invHistoryTitle),
+                      SizedBox(height: r.s(14)),
+                      AssetHistoryView(
+                        history: state.history,
+                        zone: zone,
+                        routeOf: actions?.openRoute,
+                      ),
+                    ],
                     ..._templateSection(context, zone),
                     ..._webGisSection(context),
                     SizedBox(height: r.s(28)),
@@ -338,6 +370,18 @@ class _Detail extends StatelessWidget {
           ),
           ModuleActionBar(
             actions: [
+              if (_newTicketRoute case final route?)
+                ModuleActionButton(
+                  key: const Key('inventory-action-ticket'),
+                  icon: Icons.confirmation_number_outlined,
+                  tooltip: l10n.invCreateTicket,
+                  onTap: () async {
+                    final cubit = context.read<InventoryDetailCubit>();
+                    await context.push<Object?>(route);
+                    // Si se levanto, cambian los conteos y "en mantenimiento".
+                    await cubit.refresh();
+                  },
+                ),
               ModuleActionButton(
                 key: const Key('inventory-action-map'),
                 icon: Icons.map_outlined,

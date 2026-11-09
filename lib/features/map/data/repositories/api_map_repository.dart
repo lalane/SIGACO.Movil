@@ -1,19 +1,24 @@
+import 'package:dio/dio.dart';
+
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/geojson_anchor.dart';
 import '../../../../core/geo/km_label.dart';
+import '../../domain/entities/geo_bounds.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/nearby_pin.dart';
 import '../../domain/repositories/map_repository.dart';
 
 /// El mapa contra el backend. El inventario sale de `/api/assets/map` (GeoJSON
-/// de los activos con geometria de las carreteras autorizadas); los tickets
+/// de los activos con geometria de las carreteras autorizadas) por zona: son
+/// demasiados para bajarlos todos de una vez (ver [pinsIn]). Los tickets
 /// abiertos y las obras en curso, de `/api/map/pins`; el mantenimiento, de las
 /// ordenes de mantenimiento preventivo que siguen abiertas y tienen geometria
 /// (`/api/preventive-maintenance`). Los activos cercanos, de
 /// `/api/assets/nearby`.
-class ApiMapRepository implements MapRepository, NearbyAssetsSource {
+class ApiMapRepository
+    implements MapRepository, NearbyAssetsSource, AreaPinsSource {
   ApiMapRepository(this._api, {required this._language});
 
   final ApiClient _api;
@@ -24,11 +29,82 @@ class ApiMapRepository implements MapRepository, NearbyAssetsSource {
   static const _everywhere = '-180,-90,180,90';
   static const _limit = 10000;
 
+  /// Activos por consulta de zona. El servidor acepta hasta 10 000, pero las
+  /// lineas y los poligonos llegan completos y la respuesta pesa; con el zoom
+  /// minimo del mapa una zona trae bastante menos. Si hay mas, el servidor lo
+  /// avisa (`truncated`) y el mapa pide acercarse.
+  static const areaLimit = 3000;
+
   /// Pines por capa que acepta `/api/map/pins` (1 a 2000).
   static const _pinsLimit = 2000;
 
   Map<String, String>? _typeLabels;
 
+  @override
+  bool loadsByArea(MapLayer layer) => layer == MapLayer.inventory;
+
+  /// Los activos con geometria que tocan [area]. Los filtros del mapa se
+  /// aplican en el telefono sobre lo que baja, como con las demas pestanas.
+  @override
+  Future<AreaPins> pinsIn(
+    MapLayer layer,
+    GeoBounds area, {
+    MapQueryCancel? cancel,
+  }) async {
+    if (layer != MapLayer.inventory) {
+      throw const MapException(MapError.notAvailable);
+    }
+    if (cancel?.isCancelled ?? false) throw const MapQueryCancelled();
+    final token = CancelToken();
+    cancel?.onCancel(token.cancel);
+    try {
+      final labels = await _labels();
+      if (cancel?.isCancelled ?? false) throw const MapQueryCancelled();
+      final json = await _api.getJson(
+        '/api/assets/map',
+        query: {'bbox': bboxOf(area), 'limit': areaLimit},
+        cancelToken: token,
+      );
+      // Llego justo cuando ya no hacia falta.
+      if (cancel?.isCancelled ?? false) throw const MapQueryCancelled();
+      return AreaPins(
+        _inventoryPins(json, labels),
+        truncated: json is Map && json['truncated'] == true,
+      );
+    } on MapQueryCancelled {
+      rethrow;
+    } catch (e) {
+      // Cortada a medias: no es un fallo de red.
+      if (cancel?.isCancelled ?? false) throw const MapQueryCancelled();
+      throw _mapFailure(e);
+    }
+  }
+
+  /// El rectangulo como lo pide el servidor: `minLon,minLat,maxLon,maxLat`, en
+  /// grados con punto decimal y seis decimales (unos 10 cm), dentro del planeta
+  /// y con los minimos menores que los maximos.
+  static String bboxOf(GeoBounds area) {
+    double clamp(double v, double max) => v.clamp(-max, max).toDouble();
+    var west = clamp(area.west, 180);
+    var east = clamp(area.east, 180);
+    var south = clamp(area.south, 90);
+    var north = clamp(area.north, 90);
+    // Un rectangulo sin ancho o sin alto (un punto) el servidor no lo acepta.
+    const epsilon = 0.00001;
+    if (east - west < epsilon) {
+      west = clamp(west - epsilon, 180);
+      east = clamp(east + epsilon, 180);
+    }
+    if (north - south < epsilon) {
+      south = clamp(south - epsilon, 90);
+      north = clamp(north + epsilon, 90);
+    }
+    String f(double v) => v.toStringAsFixed(6);
+    return '${f(west)},${f(south)},${f(east)},${f(north)}';
+  }
+
+  /// La pestana completa. El inventario se pide por zona ([pinsIn]); entero
+  /// solo si quien llama no sabe pedir por zona (tope del servidor).
   @override
   Future<List<MapPin>> pins(MapLayer layer) async {
     try {
@@ -39,28 +115,36 @@ class ApiMapRepository implements MapRepository, NearbyAssetsSource {
         '/api/assets/map',
         query: {'bbox': _everywhere, 'limit': _limit},
       );
-      final features = json is Map ? json['features'] : null;
-      if (features is! List) throw const FormatException('sin features');
-      return [
-        for (final f in features)
-          ?_pin(f is Map<String, dynamic> ? f : const {}, labels),
-      ];
-    } on ApiFailure catch (e) {
-      throw MapException(
-        e.isNetwork
-            ? MapError.network
-            : switch (e.status) {
-                403 => MapError.permissionDenied,
-                404 => MapError.notAvailable,
-                _ => MapError.server,
-              },
-      );
-    } on MapException {
-      rethrow;
-    } catch (_) {
-      throw const MapException(MapError.server);
+      return _inventoryPins(json, labels);
+    } catch (e) {
+      throw _mapFailure(e);
     }
   }
+
+  /// Los pines de inventario de una respuesta de `/api/assets/map`.
+  static List<MapPin> _inventoryPins(
+    Object? json,
+    Map<String, String> labels,
+  ) {
+    final features = json is Map ? json['features'] : null;
+    if (features is! List) throw const FormatException('sin features');
+    return [
+      for (final f in features)
+        ?_pin(f is Map<String, dynamic> ? f : const {}, labels),
+    ];
+  }
+
+  /// Un fallo de la consulta como lo entiende el mapa.
+  static MapException _mapFailure(Object e) => switch (e) {
+    MapException() => e,
+    ApiFailure(isNetwork: true) => const MapException(MapError.network),
+    ApiFailure(:final status) => MapException(switch (status) {
+      403 => MapError.permissionDenied,
+      404 => MapError.notAvailable,
+      _ => MapError.server,
+    }),
+    _ => const MapException(MapError.server),
+  };
 
   static const _maintenancePageSize = 100;
   static const _maintenanceMaxPages = 10;

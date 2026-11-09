@@ -288,6 +288,15 @@ void main() {
       expect(route('ticket', 'T-1'), '/tickets/T-1');
     });
 
+    test('los avisos de inventario llevan al catalogo, con o sin id', () {
+      expect(route('CONCILIACION_ACTIVOS', null), '/inventory');
+      expect(route('CONCILIACION_ACTIVOS', 'sinalizacao_vertical'), '/inventory');
+      expect(
+        route('CONCILIACION_ACTIVOS', null, menu: menuWith(['TICKETS'])),
+        isNull,
+      );
+    });
+
     test('sin el modulo en el menu no lleva a ninguna parte', () {
       expect(route('TICKET', 'T-1', menu: menuWith(['OBRAS'])), isNull);
       expect(route('WORK', 'O-1', menu: menuWith(['TICKETS'])), isNull);

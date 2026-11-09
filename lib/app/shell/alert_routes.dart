@@ -14,8 +14,14 @@ final _safeId = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$');
 String? alertRoute(AppAlert alert, NavigationMenu menu) {
   final type = alert.entityType?.trim().toUpperCase();
   final id = alert.entityId?.trim();
-  if (type == null || id == null || !_safeId.hasMatch(id)) return null;
   bool has(MobileModule m) => m.isAvailableIn(menu);
+  // Avisos de inventario (alta pendiente, inactivados por el origen, capa nueva):
+  // la conciliacion es de la web; en la app llevan al catalogo. El id puede ser
+  // un activo, una carga, una capa o nada, asi que no se usa.
+  if (type == 'CONCILIACION_ACTIVOS') {
+    return has(MobileModule.inventory) ? '/inventory' : null;
+  }
+  if (type == null || id == null || !_safeId.hasMatch(id)) return null;
   return switch (type) {
     'TICKET' => has(MobileModule.tickets) ? '/tickets/$id' : null,
     'ACCIDENT' => has(MobileModule.accidents) ? '/accidents/$id' : null,

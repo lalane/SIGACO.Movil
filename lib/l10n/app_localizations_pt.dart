@@ -1226,6 +1226,29 @@ class AppLocalizationsPt extends AppLocalizations {
   String get mapEmptyFiltered => 'Nenhum item corresponde aos filtros.';
 
   @override
+  String get mapAreaEmpty => 'Não há ativos nesta área.';
+
+  @override
+  String get mapAreaEmptyFiltered =>
+      'Nenhum ativo desta área corresponde aos filtros.';
+
+  @override
+  String get mapAreaZoomIn => 'Aproxime o mapa para ver os ativos.';
+
+  @override
+  String get mapAreaZoomInAction => 'Aproximar';
+
+  @override
+  String get mapAreaTruncated =>
+      'Há mais ativos nesta área do que os exibidos: aproxime o mapa para ver todos.';
+
+  @override
+  String get mapAreaFailed => 'Não foi possível carregar os ativos desta área.';
+
+  @override
+  String get mapAreaLoading => 'Buscando ativos nesta área';
+
+  @override
   String get mapErrorTitle => 'Não foi possível carregar o mapa';
 
   @override
@@ -3799,6 +3822,108 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get invQrCameraError =>
       'Não foi possível abrir a câmera. Você pode digitar o código.';
+
+  @override
+  String get invHistoryTitle => 'Histórico operacional';
+
+  @override
+  String get invHistoryTickets => 'Tickets';
+
+  @override
+  String get invHistoryInspections => 'Inspeções';
+
+  @override
+  String get invHistoryMaintenances => 'Manutenções';
+
+  @override
+  String invHistoryCount(int open, int total) {
+    return '$open em aberto · $total no total';
+  }
+
+  @override
+  String get invHistoryEmptyTickets => 'Este ativo não tem tickets.';
+
+  @override
+  String get invHistoryEmptyInspections => 'Este ativo não tem inspeções.';
+
+  @override
+  String get invHistoryEmptyMaintenances => 'Este ativo não tem manutenções.';
+
+  @override
+  String invHistoryMore(int shown, int total) {
+    return 'Últimos $shown de $total.';
+  }
+
+  @override
+  String get invHistoryFailed =>
+      'Não foi possível carregar os registros. Verifique sua conexão.';
+
+  @override
+  String get invHistoryOverdue => 'Vencido';
+
+  @override
+  String get invCreateTicket => 'Criar ticket';
+
+  @override
+  String get invHistTkNew => 'Novo';
+
+  @override
+  String get invHistTkAssigned => 'Atribuído';
+
+  @override
+  String get invHistTkInProgress => 'Em andamento';
+
+  @override
+  String get invHistTkOnHold => 'Em espera';
+
+  @override
+  String get invHistTkReopened => 'Reaberto';
+
+  @override
+  String get invHistTkResolved => 'Resolvido';
+
+  @override
+  String get invHistTkClosed => 'Fechado';
+
+  @override
+  String get invHistTkCancelled => 'Cancelado';
+
+  @override
+  String get invHistInPending => 'Pendente';
+
+  @override
+  String get invHistInAssigned => 'Atribuída';
+
+  @override
+  String get invHistInInProgress => 'Em andamento';
+
+  @override
+  String get invHistInAttended => 'Atendida';
+
+  @override
+  String get invHistInReview => 'Em revisão';
+
+  @override
+  String get invHistInClosed => 'Fechada';
+
+  @override
+  String get invHistInCancelled => 'Cancelada';
+
+  @override
+  String get invHistMpScheduled => 'Programada';
+
+  @override
+  String get invHistMpInExecution => 'Em execução';
+
+  @override
+  String get invHistMpCompleted => 'Concluída';
+
+  @override
+  String get invHistMpCancelled => 'Cancelada';
+
+  @override
+  String get ticketAssetLocationHint =>
+      'A rodovia, o km, o sentido e a geometria vêm do ativo.';
 
   @override
   String get mapFilterSubsystem => 'Subsistema';

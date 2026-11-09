@@ -103,4 +103,47 @@ void main() {
     expect(cubit.state.usesMatrix, isFalse);
     expect(cubit.state.categories, isNotEmpty);
   });
+
+  group('desde la ficha de un activo', () {
+    const asset = TicketAssetRef(
+      id: 'a-1',
+      code: 'TACHA-000001',
+      kmLabel: 'KM 150+200',
+      kmEndLabel: 'KM 151+000',
+      subsystemCode: 'sgs',
+    );
+
+    test('precarga su km, propone su indicador y manda el activo', () async {
+      final repo = _MatrixRepo();
+      final cubit = NewTicketCubit(repo, asset: asset);
+      expect(cubit.state.kmLabel, 'KM 150+200');
+      expect(cubit.state.kmEndLabel, 'KM 151+000');
+      await cubit.load();
+      expect(cubit.state.indicator, 'SGS');
+
+      cubit
+        ..setGroup('Sinalização horizontal')
+        ..setCategory('SGS_1')
+        ..setTitle('Tacha suelta')
+        ..setDescription('Sobre el carril izquierdo');
+      // Sin punto no hay nada que ubicar ni que avisar del GPS.
+      expect(cubit.location?.issue(30), isNull);
+      expect(cubit.state.issues, isEmpty);
+      await cubit.save();
+      expect(cubit.state.saved, isTrue);
+      expect(repo.created!.assetId, 'a-1');
+      expect(repo.created!.location, isNull);
+      expect(repo.created!.kmEndLabel, 'KM 151+000');
+    });
+
+    test('un indicador que la persona no tiene no se propone', () async {
+      final cubit = NewTicketCubit(
+        _MatrixRepo(),
+        asset: asset,
+        allowedIndicators: () async => {'SGP'},
+      );
+      await cubit.load();
+      expect(cubit.state.indicator, isNull);
+    });
+  });
 }

@@ -70,6 +70,17 @@ void main() {
       expect(inventory.good, 6);
     });
 
+    test('el total del catalogo cuenta tambien los sin evaluar', () {
+      // 09/11: en DEV 6 509 tienen condicion y 9 278 no; la tarjeta mostraba 6 509.
+      const inventory = InventorySummary(
+        good: 3485,
+        regular: 1253,
+        poor: 1771,
+        unassessed: 9278,
+      );
+      expect(inventory.total, 15787);
+    });
+
     test('los accidentes son los de los ultimos 30 dias', () async {
       final summary = await composed().load();
       final accidents = summary.accidents!;

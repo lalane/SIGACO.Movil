@@ -153,16 +153,21 @@ class InventorySummary extends Equatable {
     required this.good,
     required this.regular,
     required this.poor,
+    this.unassessed = 0,
   });
 
   final int good;
   final int regular;
   final int poor;
 
-  int get total => good + regular + poor;
+  /// Los que aun no tienen condicion (ni de la capa ni de inspeccion): cuentan
+  /// en el total del catalogo aunque no tengan semaforo.
+  final int unassessed;
+
+  int get total => good + regular + poor + unassessed;
 
   @override
-  List<Object?> get props => [good, regular, poor];
+  List<Object?> get props => [good, regular, poor, unassessed];
 }
 
 /// El resumen operativo (APP-MOB-04): lo que se pudo resumir de cada modulo y,

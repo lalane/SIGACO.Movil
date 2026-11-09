@@ -134,7 +134,15 @@ class NewTicketPage extends StatelessWidget {
                 child: _LocationBlock(
                   location: cubit.location!,
                   placement: state.placement,
+                  asset: cubit.asset,
                 ),
+              )
+            else if (cubit.asset != null)
+              // Desde la ficha de un activo sin punto: el servidor toma su
+              // ubicacion; no hace falta el GPS.
+              ModuleField(
+                label: l10n.ticketLocationTitle,
+                child: _AssetBlock(asset: cubit.asset!),
               ),
             ModuleField(
               label: l10n.newTicketName,
@@ -447,10 +455,13 @@ String? _placementLine(AppLocalizations l10n, TicketPlacement? p) {
 }
 
 class _LocationBlock extends StatelessWidget {
-  const _LocationBlock({required this.location, this.placement});
+  const _LocationBlock({required this.location, this.placement, this.asset});
 
   final TicketLocation location;
   final TicketPlacement? placement;
+
+  /// El activo, si se sabe su codigo (desde su ficha).
+  final TicketAssetRef? asset;
 
   @override
   Widget build(BuildContext context) {
@@ -474,11 +485,48 @@ class _LocationBlock extends StatelessWidget {
         l10n.ticketLocationAccuracy(
           location.accuracyMeters!.round().toString(),
         ),
-      if (location.assetId != null) l10n.ticketLocationAsset(location.assetId!),
+      if (location.assetId != null)
+        l10n.ticketLocationAsset(
+          asset?.id == location.assetId ? asset!.label : location.assetId!,
+        ),
       ?_placementLine(l10n, placement),
     ];
+    return _InfoBox(key: const Key('ticket-location'), lines: lines);
+  }
+}
+
+/// El activo de la ficha sin punto: su codigo y su km; la ubicacion la toma el
+/// servidor del activo.
+class _AssetBlock extends StatelessWidget {
+  const _AssetBlock({required this.asset});
+
+  final TicketAssetRef asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final km = [?asset.kmLabel, ?asset.kmEndLabel].join(' - ');
+    return _InfoBox(
+      key: const Key('ticket-asset'),
+      lines: [
+        l10n.ticketLocOriginAsset,
+        l10n.ticketLocationAsset(asset.label),
+        if (km.isNotEmpty) km,
+        l10n.ticketAssetLocationHint,
+      ],
+    );
+  }
+}
+
+/// La caja blanca de solo lectura con la ubicacion del registro.
+class _InfoBox extends StatelessWidget {
+  const _InfoBox({super.key, required this.lines});
+
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      key: const Key('ticket-location'),
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(

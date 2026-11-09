@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/map_pack.dart';
+import '../../domain/entities/geo_bounds.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/map_settings.dart';
@@ -51,6 +53,11 @@ class MapState extends Equatable {
     this.focusTick = 0,
     this.offlinePack,
     this.offlineReader,
+    this.byArea = false,
+    this.areaZoomedOut = false,
+    this.areaLoading = false,
+    this.areaTruncated = false,
+    this.areaError,
   });
 
   final MapLayer layer;
@@ -99,14 +106,33 @@ class MapState extends Equatable {
   final InstalledPack? offlinePack;
   final TileReader? offlineReader;
 
+  /// La pestana abierta se pide por zona (el inventario): sus pines son los del
+  /// rectangulo visible y cambian al mover el mapa.
+  final bool byArea;
+
+  /// Pidiendo por zona, el mapa esta mas lejos que [MapCubit.areaMinZoom]: no
+  /// se piden activos sueltos y se pide acercarse.
+  final bool areaZoomedOut;
+
+  /// Hay una consulta de zona en curso; los pines anteriores siguen a la vista.
+  final bool areaLoading;
+
+  /// La ultima zona tenia mas activos de los que trae una consulta.
+  final bool areaTruncated;
+
+  /// La ultima consulta de zona fallo; los pines que ya estaban se conservan.
+  final MapError? areaError;
+
   List<MapPin> get layerPins => pinsByLayer[layer] ?? const [];
 
   /// Cuando se guardaron los pines de la pestana abierta, si son del telefono.
   DateTime? get layerSavedAt => savedAt[layer];
 
-  /// Categorias de la pestana, en orden, para el filtro.
+  /// Categorias de la pestana, en orden, para el filtro. Las marcadas siempre
+  /// estan, aunque la zona que se ve no tenga ninguna: asi se pueden desmarcar.
   List<String> get availableCategories {
     final set = <String>{
+      ...categories,
       for (final p in layerPins)
         if (p.category != null) p.category!,
     };
@@ -119,9 +145,11 @@ class MapState extends Equatable {
       (operatingFilter == null ? 0 : 1) +
       (groupFilter == null ? 0 : 1);
 
-  /// Los grupos de la pestana (subsistemas de los activos), en orden.
+  /// Los grupos de la pestana (subsistemas de los activos), en orden. El elegido
+  /// siempre esta.
   List<String> get availableGroups {
     final set = <String>{
+      ?groupFilter,
       for (final p in layerPins)
         if (p.group != null) p.group!,
     };
@@ -130,7 +158,8 @@ class MapState extends Equatable {
 
   /// Si la pestana abierta tiene equipos con estado operativo (para mostrar su
   /// filtro solo donde aplica).
-  bool get hasOperatingStates => layerPins.any((p) => p.operatingState != null);
+  bool get hasOperatingStates =>
+      operatingFilter != null || layerPins.any((p) => p.operatingState != null);
 
   /// Lo que se dibuja: la pestana con sus filtros.
   List<MapPin> get visiblePins => [
@@ -207,6 +236,12 @@ class MapState extends Equatable {
     InstalledPack? offlinePack,
     TileReader? offlineReader,
     bool clearOffline = false,
+    bool? byArea,
+    bool? areaZoomedOut,
+    bool? areaLoading,
+    bool? areaTruncated,
+    MapError? areaError,
+    bool clearAreaError = false,
   }) => MapState(
     layer: layer ?? this.layer,
     status: status ?? this.status,
@@ -239,6 +274,11 @@ class MapState extends Equatable {
     focusTick: focusTick ?? this.focusTick,
     offlinePack: clearOffline ? null : (offlinePack ?? this.offlinePack),
     offlineReader: clearOffline ? null : (offlineReader ?? this.offlineReader),
+    byArea: byArea ?? this.byArea,
+    areaZoomedOut: areaZoomedOut ?? this.areaZoomedOut,
+    areaLoading: areaLoading ?? this.areaLoading,
+    areaTruncated: areaTruncated ?? this.areaTruncated,
+    areaError: clearAreaError ? null : (areaError ?? this.areaError),
   );
 
   @override
@@ -264,6 +304,35 @@ class MapState extends Equatable {
     focusTick,
     offlinePack,
     offlineReader,
+    byArea,
+    areaZoomedOut,
+    areaLoading,
+    areaTruncated,
+    areaError,
+  ];
+}
+
+/// Los pines de una zona recien consultada sin que parpadeen los que ya se
+/// veian: entran los [fresh] y, de los [previous], se quedan los que siguen en
+/// [visible] (lo que se ve ahora, que pudo moverse mientras llegaba la
+/// respuesta) y que la consulta no desmiente. Dentro de [area] la respuesta
+/// manda, salvo si vino recortada ([truncated]): entonces lo que ya estaba a la
+/// vista se conserva.
+List<MapPin> mergeAreaPins({
+  required List<MapPin> previous,
+  required List<MapPin> fresh,
+  required GeoBounds area,
+  required GeoBounds visible,
+  required bool truncated,
+}) {
+  final ids = {for (final p in fresh) p.id};
+  return [
+    ...fresh,
+    for (final p in previous)
+      if (!ids.contains(p.id) &&
+          visible.contains(p.position) &&
+          (truncated || !area.contains(p.position)))
+        p,
   ];
 }
 
@@ -275,6 +344,7 @@ class MapCubit extends Cubit<MapState> {
     this.packs,
     this.segmentsRepository,
     MapSettings settings = const MapSettings(),
+    this.areaDelay = const Duration(milliseconds: 400),
   }) : super(MapState(settings: settings));
 
   final MapRepository repository;
@@ -286,8 +356,49 @@ class MapCubit extends Cubit<MapState> {
   /// Los tramos de la carretera; sin esto el mapa solo dibuja pines.
   final RoadSegmentsRepository? segmentsRepository;
 
+  /// Cuanto se espera, despues de que el mapa deja de moverse, para pedir la
+  /// zona: arrastrar o acercar con los dedos no dispara una consulta por cuadro.
+  final Duration areaDelay;
+
+  /// Desde que zoom se piden los activos por zona (zoom de teselas de 256 px,
+  /// el mismo que usa el visor de la web). Mas lejos serian miles de pines.
+  static const areaMinZoom = 12.0;
+
+  /// Cuanto se agranda por cada lado el rectangulo visible al pedirlo: mover un
+  /// poco el mapa no obliga a otra consulta.
+  static const areaMargin = 0.25;
+
+  /// Lo minimo que se pide alrededor de la persona para calcular sus cercanos
+  /// sin conexion (metros).
+  static const _aroundMeters = 1000.0;
+
+  /// Lo que se ve del mapa (lo reporta la pantalla) y su zoom.
+  GeoBounds? _viewport;
+  double _viewportZoom = 0;
+  Timer? _areaTimer;
+
+  /// La consulta de zona en curso: una nueva cancela la anterior.
+  MapQueryCancel? _areaQuery;
+
+  /// La ultima zona que se trajo completa o recortada.
+  GeoBounds? _loadedArea;
+  var _loadedTruncated = false;
+
+  /// El centro de lo que se ve, para acercar el mapa sin moverlo de lugar.
+  GeoPoint? get viewportCenter => _viewport?.center;
+
+  /// Si [layer] se pide por zona (el inventario contra el servidor).
+  bool _byArea(MapLayer layer) {
+    final source = repository;
+    return source is AreaPinsSource &&
+        (source as AreaPinsSource).loadsByArea(layer);
+  }
+
   /// Carga la pestana abierta y el paquete de mapa sin conexion, si hay.
   Future<void> load() async {
+    if (_byArea(state.layer) != state.byArea) {
+      emit(state.copyWith(byArea: _byArea(state.layer)));
+    }
     await Future.wait([
       _loadLayer(state.layer, showLoading: true),
       loadSegments(),
@@ -333,6 +444,8 @@ class MapCubit extends Cubit<MapState> {
 
   @override
   Future<void> close() async {
+    _areaTimer?.cancel();
+    _areaQuery?.cancel();
     final reader = state.offlineReader;
     await super.close();
     try {
@@ -340,15 +453,20 @@ class MapCubit extends Cubit<MapState> {
     } catch (_) {}
   }
 
-  /// Vuelve a pedir la pestana abierta (reintento o jalar para actualizar).
+  /// Vuelve a pedir la pestana abierta (reintento o jalar para actualizar). Por
+  /// zona, vuelve a pedir la zona sin quitar lo que se ve.
   Future<void> refresh() => _loadLayer(state.layer, showLoading: true);
 
   Future<void> selectLayer(MapLayer layer) async {
     if (layer == state.layer) return;
-    final known = state.pinsByLayer.containsKey(layer);
+    // Una zona que estaba por pedirse ya no hace falta en otra pestana.
+    _areaTimer?.cancel();
+    final byArea = _byArea(layer);
+    final known = byArea || state.pinsByLayer.containsKey(layer);
     emit(
       state.copyWith(
         layer: layer,
+        byArea: byArea,
         status: known ? MapStatus.ready : MapStatus.loading,
         categories: const {},
         clearStatusFilter: true,
@@ -357,12 +475,21 @@ class MapCubit extends Cubit<MapState> {
         clearSegmentSelection: true,
         clearPickedPoint: true,
         clearError: true,
+        clearAreaError: true,
+        areaLoading: false,
+        areaTruncated: byArea && _loadedTruncated,
+        areaZoomedOut: byArea && _viewport != null && _zoomedOut,
       ),
     );
-    if (!known) await _loadLayer(layer, showLoading: false);
+    if (byArea) {
+      await _loadArea();
+    } else if (!known) {
+      await _loadLayer(layer, showLoading: false);
+    }
   }
 
   Future<void> _loadLayer(MapLayer layer, {required bool showLoading}) async {
+    if (_byArea(layer)) return _loadArea(force: true);
     if (showLoading && layer == state.layer) {
       emit(state.copyWith(status: MapStatus.loading, clearError: true));
     }
@@ -386,6 +513,134 @@ class MapCubit extends Cubit<MapState> {
     } on MapException catch (e) {
       if (isClosed || state.layer != layer) return;
       emit(state.copyWith(status: MapStatus.failure, error: e.error));
+    }
+  }
+
+  bool get _zoomedOut => _viewportZoom < areaMinZoom;
+
+  /// Lo que se ve del mapa cambio (lo llama la pantalla al mover la camara, en
+  /// cada cuadro si hace falta). Si la pestana se pide por zona, se pide la
+  /// nueva cuando el mapa deja de moverse por [areaDelay].
+  void viewportChanged(GeoBounds visible, double zoom) {
+    if (isClosed || !visible.isValid || !zoom.isFinite) return;
+    _viewport = visible;
+    _viewportZoom = zoom;
+    if (!state.byArea) return;
+    _areaTimer?.cancel();
+    _areaTimer = Timer(areaDelay, () {
+      if (!isClosed) unawaited(_loadArea());
+    });
+  }
+
+  void _cancelArea() {
+    _areaTimer?.cancel();
+    _areaQuery?.cancel();
+    _areaQuery = null;
+  }
+
+  /// Trae los activos de la zona que se ve (agrandada por [areaMargin]) o, con
+  /// [around], los de ese rectangulo aunque no se vea (para los cercanos). Si la
+  /// zona ya esta cargada completa no se vuelve a pedir, salvo con [force].
+  Future<void> _loadArea({bool force = false, GeoBounds? around}) async {
+    const layer = MapLayer.inventory;
+    final source = repository;
+    if (source is! AreaPinsSource) return;
+    final view = _viewport;
+    if (around == null) {
+      if (view == null) return; // El mapa aun no dice que se ve.
+      if (_zoomedOut) {
+        _cancelArea();
+        _loadedArea = null;
+        _loadedTruncated = false;
+        // Lejos no se dibuja lo de la ultima zona: seria una parte cualquiera.
+        emit(
+          state.copyWith(
+            pinsByLayer: {...state.pinsByLayer, layer: const []},
+            savedAt: {...state.savedAt}..remove(layer),
+            status: state.layer == layer ? MapStatus.ready : null,
+            clearError: state.layer == layer,
+            areaZoomedOut: true,
+            areaLoading: false,
+            areaTruncated: false,
+            clearAreaError: true,
+          ),
+        );
+        return;
+      }
+      final loaded = _loadedArea;
+      if (!force &&
+          loaded != null &&
+          !_loadedTruncated &&
+          loaded.covers(view) &&
+          state.pinsByLayer.containsKey(layer)) {
+        if (state.areaZoomedOut) emit(state.copyWith(areaZoomedOut: false));
+        return;
+      }
+    }
+    final area = around ?? view!.expanded(areaMargin);
+    _cancelArea();
+    final cancel = MapQueryCancel();
+    _areaQuery = cancel;
+    emit(
+      state.copyWith(
+        areaLoading: true,
+        areaZoomedOut: around == null ? false : null,
+        clearAreaError: true,
+      ),
+    );
+    try {
+      final found = await (source as AreaPinsSource).pinsIn(
+        layer,
+        area,
+        cancel: cancel,
+      );
+      if (isClosed || !identical(_areaQuery, cancel)) return;
+      _areaQuery = null;
+      _loadedArea = area;
+      _loadedTruncated = found.truncated;
+      final pins = mergeAreaPins(
+        previous: state.pinsByLayer[layer] ?? const [],
+        fresh: found.pins,
+        area: area,
+        visible: _viewport ?? area,
+        truncated: found.truncated,
+      );
+      final saved = {...state.savedAt}..remove(layer);
+      if (found.cachedAt case final at?) saved[layer] = at;
+      final current = state.layer == layer;
+      emit(
+        state.copyWith(
+          pinsByLayer: {...state.pinsByLayer, layer: pins},
+          savedAt: saved,
+          status: current ? MapStatus.ready : null,
+          clearError: current,
+          areaLoading: false,
+          areaTruncated: found.truncated,
+          clearAreaError: true,
+        ),
+      );
+    } on MapQueryCancelled {
+      // Otra zona la reemplazo.
+    } on MapException catch (e) {
+      if (isClosed || !identical(_areaQuery, cancel)) return;
+      _areaQuery = null;
+      _loadedArea = null;
+      final current = state.layer == layer;
+      // Sin permiso o sin mapa publicado no hay zona que valga: la pestana
+      // entera lo dice. Un corte o un error del servidor deja lo que ya se ve.
+      if (current &&
+          (e.error == MapError.permissionDenied ||
+              e.error == MapError.notAvailable)) {
+        emit(
+          state.copyWith(
+            status: MapStatus.failure,
+            error: e.error,
+            areaLoading: false,
+          ),
+        );
+        return;
+      }
+      emit(state.copyWith(areaLoading: false, areaError: e.error));
     }
   }
 
@@ -516,12 +771,13 @@ class MapCubit extends Cubit<MapState> {
   }
 
   /// Busca la ubicacion del usuario y pide centrar el mapa en ella. Tambien
-  /// trae el inventario, que es de donde salen los cercanos. Con [silent] (al
-  /// abrir el mapa) un fallo no muestra aviso: el usuario no pidio ubicarse y
-  /// puede hacerlo con el boton.
+  /// trae el inventario, que es de donde salen los cercanos sin conexion (por
+  /// zona: solo los de alrededor). Con [silent] (al abrir el mapa) un fallo no
+  /// muestra aviso: el usuario no pidio ubicarse y puede hacerlo con el boton.
   Future<void> locate({bool silent = false}) async {
     emit(state.copyWith(locate: LocateStatus.locating));
-    if (!state.inventoryLoaded) {
+    final inventoryByArea = _byArea(MapLayer.inventory);
+    if (!state.inventoryLoaded && !inventoryByArea) {
       // Sin esperarlo: los cercanos aparecen cuando llegue.
       _loadLayer(MapLayer.inventory, showLoading: false);
     }
@@ -538,6 +794,19 @@ class MapCubit extends Cubit<MapState> {
         ),
       );
       unawaited(loadServerNearby());
+      // Con la pestana del inventario abierta, la zona sale de centrar el mapa.
+      if (inventoryByArea &&
+          !state.inventoryLoaded &&
+          state.layer != MapLayer.inventory) {
+        unawaited(
+          _loadArea(
+            around: GeoBounds.around(
+              here.position,
+              math.max(_aroundMeters, state.settings.nearbyRadiusMeters),
+            ),
+          ),
+        );
+      }
     } on LocationException catch (e) {
       if (isClosed) return;
       if (silent) {

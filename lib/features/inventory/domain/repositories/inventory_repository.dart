@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import '../entities/asset_capture.dart';
+import '../entities/asset_history.dart';
 import '../entities/asset_template.dart';
 import '../entities/inventory_asset.dart';
 import '../entities/inventory_query.dart';
 
+export '../entities/asset_history.dart';
 export '../entities/inventory_query.dart';
 
 /// Por que no se pudo traer el inventario.
@@ -86,6 +88,18 @@ abstract interface class AssetCatalogSource {
 /// (`notFound` si no es de la concesion activa o no existe).
 abstract interface class AssetQrSource {
   Future<InventoryAsset> byQr(String token);
+}
+
+/// La historia operativa de un activo: los ultimos [limit] registros de un tipo
+/// (los tickets, inspecciones y mantenimientos que lo tienen como activo), del
+/// mas reciente al mas viejo, y cuantos hay en total. Lanza
+/// [InventoryException].
+abstract interface class AssetHistorySource {
+  Future<AssetHistoryPage> history(
+    String assetId,
+    AssetHistoryKind kind, {
+    int limit = 5,
+  });
 }
 
 /// Los activos capturados en el telefono que aun no salen al servidor, para

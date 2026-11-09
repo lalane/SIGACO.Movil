@@ -10,6 +10,28 @@ import '../../domain/repositories/inventory_repository.dart';
 
 enum InventoryDetailStatus { loading, ready, failure }
 
+enum AssetHistoryStatus { loading, ready, failure }
+
+/// Un tipo de la historia operativa en la ficha: sus ultimos registros y
+/// cuantos hay.
+class AssetHistorySection extends Equatable {
+  const AssetHistorySection({
+    required this.count,
+    this.status = AssetHistoryStatus.loading,
+    this.items = const [],
+  });
+
+  /// Abiertos y total, de la ficha del activo.
+  final AssetHistoryCount count;
+  final AssetHistoryStatus status;
+
+  /// Los ultimos registros, del mas reciente al mas viejo.
+  final List<AssetHistoryEntry> items;
+
+  @override
+  List<Object?> get props => [count, status, items];
+}
+
 class InventoryDetailState extends Equatable {
   const InventoryDetailState({
     this.status = InventoryDetailStatus.loading,
@@ -18,6 +40,7 @@ class InventoryDetailState extends Equatable {
     this.photo,
     this.photos = const [],
     this.catalogs = const {},
+    this.history = const {},
   });
 
   final InventoryDetailStatus status;
@@ -32,6 +55,10 @@ class InventoryDetailState extends Equatable {
 
   /// Los valores de catalogo, para nombrar los campos CATALOG de la ficha.
   final Map<String, List<CatalogOption>> catalogs;
+
+  /// La historia operativa, por tipo, solo de los modulos que la persona puede
+  /// ver; vacia si el servidor no da los conteos.
+  final Map<AssetHistoryKind, AssetHistorySection> history;
 
   /// El nombre de un valor de catalogo en el idioma de la app; null si no se
   /// conoce.
@@ -48,6 +75,7 @@ class InventoryDetailState extends Equatable {
     Uint8List? photo,
     List<String>? photos,
     Map<String, List<CatalogOption>>? catalogs,
+    Map<AssetHistoryKind, AssetHistorySection>? history,
   }) => InventoryDetailState(
     status: status,
     asset: asset ?? this.asset,
@@ -55,10 +83,19 @@ class InventoryDetailState extends Equatable {
     photo: photo ?? this.photo,
     photos: photos ?? this.photos,
     catalogs: catalogs ?? this.catalogs,
+    history: history ?? this.history,
   );
 
   @override
-  List<Object?> get props => [status, asset, error, photo, photos, catalogs];
+  List<Object?> get props => [
+    status,
+    asset,
+    error,
+    photo,
+    photos,
+    catalogs,
+    history,
+  ];
 }
 
 /// La ficha de un activo: los datos primero; despues, si hacen falta, la ficha
@@ -127,6 +164,88 @@ class InventoryDetailCubit extends Cubit<InventoryDetailState> {
     }
   }
 
+  /// Cuantos registros de cada tipo se muestran en la ficha.
+  static const historyLimit = 5;
+
+  /// La historia operativa: con los conteos de la ficha se pintan los tipos que
+  /// la persona puede ver y se piden los ultimos registros de los que tienen
+  /// alguno. Un tipo que no baja se queda con su conteo y un aviso.
+  Future<void> _loadHistory(InventoryAsset asset) async {
+    final counts = asset.history;
+    if (counts == null || asset.pendingSync) return;
+    final kinds = counts.visible;
+    if (kinds.isEmpty) return;
+    final source = _repository;
+    final canList = source is AssetHistorySource;
+    emit(
+      state.copyWith(
+        history: {
+          for (final k in kinds)
+            k: AssetHistorySection(
+              count: counts.of(k)!,
+              status: counts.of(k)!.total == 0
+                  ? AssetHistoryStatus.ready
+                  : canList
+                  ? AssetHistoryStatus.loading
+                  : AssetHistoryStatus.failure,
+            ),
+        },
+      ),
+    );
+    if (!canList) return;
+    Future<void> fetch(AssetHistoryKind kind) async {
+      final count = counts.of(kind)!;
+      AssetHistorySection section;
+      try {
+        final page = await (source as AssetHistorySource).history(
+          asset.id,
+          kind,
+          limit: historyLimit,
+        );
+        section = AssetHistorySection(
+          count: AssetHistoryCount(
+            open: count.open,
+            total: page.total < page.items.length
+                ? page.items.length
+                : page.total,
+          ),
+          status: AssetHistoryStatus.ready,
+          items: page.items,
+        );
+      } catch (_) {
+        section = AssetHistorySection(
+          count: count,
+          status: AssetHistoryStatus.failure,
+        );
+      }
+      if (isClosed) return;
+      emit(state.copyWith(history: {...state.history, kind: section}));
+    }
+
+    await Future.wait([
+      for (final k in kinds)
+        if (counts.of(k)!.total > 0) fetch(k),
+    ]);
+  }
+
+  /// Despues de levantar un ticket desde la ficha: el activo (sus conteos y si
+  /// esta en mantenimiento) y su historia, sin volver a pedir la ficha del tipo
+  /// ni las fotos. Si no se puede, la ficha se queda como estaba.
+  Future<void> refresh() async {
+    if (state.asset == null) return;
+    try {
+      final fresh = await _repository.get(assetId);
+      if (isClosed) return;
+      final asset = fresh.template == null
+          ? fresh.withTemplate(state.asset?.template)
+          : fresh;
+      emit(state.copyWith(asset: asset));
+      await _loadHistory(asset);
+    } catch (_) {
+      // Sin red: se queda lo que ya se veia.
+    }
+  }
+
   Future<void> load() async {
     try {
       final asset = await _repository.get(assetId);
@@ -134,10 +253,13 @@ class InventoryDetailCubit extends Cubit<InventoryDetailState> {
       emit(
         InventoryDetailState(status: InventoryDetailStatus.ready, asset: asset),
       );
+      // La historia no espera a la ficha del tipo ni a las fotos.
+      final history = _loadHistory(asset);
       await _loadTemplate(asset);
       await _loadCatalogs();
       await _loadPhoto(asset);
       await _loadGallery(asset);
+      await history;
     } on InventoryException catch (e) {
       if (isClosed) return;
       emit(

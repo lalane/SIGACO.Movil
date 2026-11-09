@@ -16,6 +16,7 @@ import '../../features/inventory/domain/repositories/asset_capture_repository.da
 import '../../features/inventory/domain/repositories/inventory_repository.dart';
 import '../../features/maintenance/domain/entities/maintenance.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/map/domain/entities/geo_bounds.dart';
 import '../../features/map/domain/entities/geo_point.dart';
 import '../../features/map/domain/entities/map_pin.dart';
 import '../../features/map/domain/entities/nearby_pin.dart';
@@ -209,7 +210,8 @@ class DemoAwareInventory
         AssetPhotosSource,
         AssetTemplateSource,
         AssetCatalogSource,
-        AssetQrSource {
+        AssetQrSource,
+        AssetHistorySource {
   const DemoAwareInventory({
     required this.real,
     required this.sample,
@@ -275,6 +277,18 @@ class DemoAwareInventory
         ? (r as AssetQrSource).byQr(token)
         : Future.error(const InventoryException(InventoryError.notFound));
   }
+
+  @override
+  Future<AssetHistoryPage> history(
+    String assetId,
+    AssetHistoryKind kind, {
+    int limit = 5,
+  }) {
+    final r = _r;
+    return r is AssetHistorySource
+        ? (r as AssetHistorySource).history(assetId, kind, limit: limit)
+        : Future.error(const InventoryException(InventoryError.notAvailable));
+  }
 }
 
 /// El alta de activos: con datos de ejemplo no hay servidor donde darlos de
@@ -337,7 +351,8 @@ class DemoAwareAlerts implements AlertsRepository {
   Future<void> markAllRead() => _r.markAllRead();
 }
 
-class DemoAwareMap implements MapRepository, NearbyAssetsSource {
+class DemoAwareMap
+    implements MapRepository, NearbyAssetsSource, AreaPinsSource {
   const DemoAwareMap({
     required this.real,
     required this.sample,
@@ -360,6 +375,26 @@ class DemoAwareMap implements MapRepository, NearbyAssetsSource {
       return Future.error(const MapException(MapError.notAvailable));
     }
     return (r as NearbyAssetsSource).nearbyAssets(from, radiusMeters);
+  }
+
+  /// Los datos de ejemplo son pocos: bajan completos, sin zonas.
+  @override
+  bool loadsByArea(MapLayer layer) {
+    final r = demo() ? sample : real;
+    return r is AreaPinsSource && (r as AreaPinsSource).loadsByArea(layer);
+  }
+
+  @override
+  Future<AreaPins> pinsIn(
+    MapLayer layer,
+    GeoBounds area, {
+    MapQueryCancel? cancel,
+  }) {
+    final r = demo() ? sample : real;
+    if (r is! AreaPinsSource) {
+      return Future.error(const MapException(MapError.notAvailable));
+    }
+    return (r as AreaPinsSource).pinsIn(layer, area, cancel: cancel);
   }
 }
 

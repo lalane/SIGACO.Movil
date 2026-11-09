@@ -8,6 +8,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/theme/status_colors.dart';
+import '../../domain/entities/geo_bounds.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/road_segment.dart';
 import '../bloc/map_cubit.dart';
@@ -34,8 +35,15 @@ class MapLibreEngine extends StatefulWidget {
   final MapTileSource tileSource;
   final MapCameraController camera;
 
-  /// Cambia con la pestana y los filtros: el mapa se vuelve a encuadrar.
-  final String fitKey;
+  /// Cambia con la pestana y los filtros: el mapa se vuelve a encuadrar. Null
+  /// en una pestana que se pide por zona: la camara la mueve la persona y el
+  /// mapa no se encuadra solo (se perseguiria a si mismo).
+  final String? fitKey;
+
+  /// El zoom de MapLibre (teselas de 512 px) equivale al de teselas de 256 px
+  /// (el de `flutter_map` y el del visor de la web) mas uno: asi el zoom minimo
+  /// de los activos es el mismo en los dos motores y en la web.
+  static double rasterZoom(double mapLibreZoom) => mapLibreZoom + 1;
 
   @override
   State<MapLibreEngine> createState() => _MapLibreEngineState();
@@ -428,6 +436,11 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
   /// al moverse el usuario.
   Future<void> _fit() async {
     final map = _map;
+    // Por zona no se encuadra; al volver a otra pestana si.
+    if (widget.fitKey == null) {
+      _fitted = null;
+      return;
+    }
     // Se llama despues de esperar al mapa nativo: puede que ya no este montado.
     if (map == null || !_installed || !mounted || _fitted == widget.fitKey) {
       return;
@@ -551,11 +564,32 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
         onMapLongClick: (_, where) => context.read<MapCubit>().pickPoint(
           GeoPoint(where.latitude, where.longitude),
         ),
-        onCameraIdle: () {
-          final z = _map?.cameraPosition?.zoom;
-          if (z != null) _zoom = z;
-        },
+        onCameraIdle: _onCameraIdle,
       ),
     );
+  }
+
+  /// El mapa dejo de moverse: se le dice al mapa que zona se ve, por si la
+  /// pestana se pide por zona.
+  Future<void> _onCameraIdle() async {
+    final map = _map;
+    final z = map?.cameraPosition?.zoom;
+    if (z != null) _zoom = z;
+    if (map == null || !mounted) return;
+    try {
+      final region = await map.getVisibleRegion();
+      if (!mounted) return;
+      context.read<MapCubit>().viewportChanged(
+        GeoBounds(
+          south: region.southwest.latitude,
+          west: region.southwest.longitude,
+          north: region.northeast.latitude,
+          east: region.northeast.longitude,
+        ),
+        MapLibreEngine.rasterZoom(_zoom),
+      );
+    } catch (_) {
+      // El mapa nativo se esta cerrando.
+    }
   }
 }

@@ -16,6 +16,7 @@ import '../../../../core/ui/module_header.dart';
 import '../../../../core/ui/module_nav.dart';
 import '../../../../core/ui/zone_format.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/entities/geo_bounds.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../../../core/ui/device_navigation.dart';
 import '../../domain/entities/map_pin.dart';
@@ -97,6 +98,9 @@ class _MapPageState extends State<MapPage> {
   /// lineas al probar el toque, antes de que llegue el `onTap` del mapa).
   final LayerHitNotifier<String> _segmentHit = ValueNotifier(null);
 
+  /// Donde quedo la camara de `flutter_map`: una pestana por zona arranca ahi.
+  final _lastCamera = _CameraMemory();
+
   /// Centro y zoom cuando no hay nada que mostrar (Brasil, vista general).
   static const _fallbackCenter = LatLng(-15.78, -47.93);
 
@@ -132,7 +136,11 @@ class _MapPageState extends State<MapPage> {
       }
     }
     final at = widget.initialPosition;
-    if (at != null && at.isValid) _camera.moveTo(at);
+    if (at == null || !at.isValid) return;
+    // Por zona, su pin llega cuando el mapa este sobre el: queda elegido para
+    // que su ficha aparezca entonces.
+    if (cubit.state.byArea) cubit.selectPin(id);
+    _camera.moveTo(at);
   }
 
   @override
@@ -290,8 +298,76 @@ class _MapPageState extends State<MapPage> {
           actions: widget.actions,
           engine: widget.engine,
           camera: _camera,
+          lastCamera: _lastCamera,
         );
     }
+  }
+}
+
+/// La ultima camara de `flutter_map` (centro y zoom).
+class _CameraMemory {
+  LatLng? center;
+  double? zoom;
+}
+
+/// Un aviso arriba del mapa (sin elementos, acercar, zona recortada...), con
+/// una accion opcional.
+class _Notice extends StatelessWidget {
+  const _Notice({
+    super.key,
+    required this.text,
+    this.icon,
+    this.action,
+    this.onAction,
+  });
+
+  final String text;
+  final IconData? icon;
+  final String? action;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.palette;
+    final r = context.responsive;
+    return Positioned(
+      top: r.s(16),
+      left: r.s(24),
+      right: r.s(24),
+      child: Card(
+        color: solidCard(p),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: r.s(12), vertical: r.s(8)),
+          child: Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: r.s(20), color: p.hint),
+                SizedBox(width: r.s(8)),
+              ],
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: r.s(4)),
+                  child: Text(
+                    text,
+                    textAlign: icon == null && action == null
+                        ? TextAlign.center
+                        : TextAlign.start,
+                  ),
+                ),
+              ),
+              if (action != null && onAction != null) ...[
+                SizedBox(width: r.s(8)),
+                TextButton(
+                  key: const Key('map-notice-action'),
+                  onPressed: onAction,
+                  child: Text(action!),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -370,11 +446,13 @@ class _MapArea extends StatelessWidget {
     required this.actions,
     required this.engine,
     required this.camera,
+    required this.lastCamera,
   });
 
   final MapRecordActions actions;
   final MapEngine engine;
   final MapCameraController camera;
+  final _CameraMemory lastCamera;
   final MapState state;
   final MapTileSource tileSource;
   final MapController controller;
@@ -478,6 +556,37 @@ class _MapArea extends StatelessWidget {
     if (q != zoom.value) zoom.value = q;
   }
 
+  /// Le dice al mapa que zona se ve (la pide si la pestana va por zona) y la
+  /// recuerda para la proxima vez que se arme el mapa.
+  void _syncViewport(BuildContext context, [MapCamera? given]) {
+    final MapCamera camera;
+    try {
+      camera = given ?? controller.camera;
+    } catch (_) {
+      return;
+    }
+    lastCamera
+      ..center = camera.center
+      ..zoom = camera.zoom;
+    final b = camera.visibleBounds;
+    context.read<MapCubit>().viewportChanged(
+      GeoBounds(south: b.south, west: b.west, north: b.north, east: b.east),
+      camera.zoom,
+    );
+  }
+
+  /// Acerca el mapa sin moverlo de lugar hasta el zoom en que se ven los
+  /// activos.
+  void _zoomToAssets(BuildContext context) {
+    final center = context.read<MapCubit>().viewportCenter;
+    if (center == null) return;
+    // MapLibre cuenta el zoom con teselas de 512 px: uno menos que el resto.
+    final target = engine == MapEngine.maplibre
+        ? MapCubit.areaMinZoom - 1
+        : MapCubit.areaMinZoom;
+    camera.moveTo(center, minZoom: target + 0.5);
+  }
+
   /// Desde que zoom se escribe el codigo de cada tramo sobre la linea.
   static const _segmentLabelZoom = 15.0;
 
@@ -574,15 +683,20 @@ class _MapArea extends StatelessWidget {
         (selected != null &&
             selected.segmentCode == s.code &&
             selected.direction == s.direction);
-    // Sin pines que encuadrar se encuadra la carretera.
-    final fitKey =
-        '${state.layer.name}|${pins.map((e) => e.id).join(',')}|${pins.isEmpty ? segments.length : 0}';
+    // Sin pines que encuadrar se encuadra la carretera. Una pestana por zona no
+    // se encuadra: sus pines dependen de donde esta la camara.
+    final byArea = state.byArea;
+    final fitKey = byArea
+        ? null
+        : '${state.layer.name}|${pins.map((e) => e.id).join(',')}|${pins.isEmpty ? segments.length : 0}';
     final points = pins.isNotEmpty
         ? [for (final pin in pins) _ll(pin.position)]
         : [
             for (final s in segments)
               for (final point in s.points) _ll(point),
           ];
+    // Por zona, `flutter_map` arranca donde quedo la camara.
+    final keepCamera = byArea && lastCamera.center != null;
 
     return Stack(
       children: [
@@ -596,14 +710,20 @@ class _MapArea extends StatelessWidget {
         else
           ClipRect(
             child: FlutterMap(
-              key: ValueKey(fitKey),
+              key: ValueKey(fitKey ?? 'area'),
               mapController: controller,
               options: MapOptions(
-                initialCenter: points.isEmpty
+                initialCenter: keepCamera
+                    ? lastCamera.center!
+                    : points.isEmpty
                     ? _MapPageState._fallbackCenter
                     : points.first,
-                initialZoom: points.isEmpty ? 4 : 14,
-                initialCameraFit: points.length > 1
+                initialZoom: keepCamera
+                    ? (lastCamera.zoom ?? 14)
+                    : points.isEmpty
+                    ? 4
+                    : 14,
+                initialCameraFit: !keepCamera && points.length > 1
                     ? CameraFit.coordinates(
                         coordinates: points,
                         padding: EdgeInsets.fromLTRB(
@@ -636,11 +756,15 @@ class _MapArea extends StatelessWidget {
                 // Mantener presionado elige un punto (para registrar o navegar).
                 onLongPress: (_, point) =>
                     cubit.pickPoint(GeoPoint(point.latitude, point.longitude)),
-                onMapReady: () => _syncZoom(),
+                onMapReady: () {
+                  _syncZoom();
+                  _syncViewport(context);
+                },
                 onPositionChanged: (camera, hasGesture) {
                   // Un arrastre que empezo sobre una linea no es un toque en ella.
                   if (hasGesture) segmentHit.value = null;
                   _syncZoom(camera.zoom);
+                  _syncViewport(context, camera);
                 },
               ),
               children: [
@@ -756,24 +880,57 @@ class _MapArea extends StatelessWidget {
               ],
             ),
           ),
-        if (pins.isEmpty)
+        // Por zona: una barra fina mientras llega la zona (lo anterior sigue a
+        // la vista) y un aviso si hay que acercarse, si la zona vino recortada
+        // o si no se pudo traer.
+        if (byArea && state.areaLoading)
           Positioned(
-            top: r.s(16),
-            left: r.s(24),
-            right: r.s(24),
-            child: Card(
-              key: const Key('map-empty'),
-              color: solidCard(p),
-              child: Padding(
-                padding: EdgeInsets.all(r.s(12)),
-                child: Text(
-                  state.activeFilterCount > 0
-                      ? l10n.mapEmptyFiltered
-                      : l10n.mapEmpty,
-                  textAlign: TextAlign.center,
-                ),
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Semantics(
+              label: l10n.mapAreaLoading,
+              child: const LinearProgressIndicator(
+                key: Key('map-area-loading'),
+                minHeight: 3,
               ),
             ),
+          ),
+        if (byArea && state.areaZoomedOut)
+          _Notice(
+            key: const Key('map-area-zoom'),
+            text: l10n.mapAreaZoomIn,
+            icon: Icons.zoom_in,
+            action: l10n.mapAreaZoomInAction,
+            onAction: () => _zoomToAssets(context),
+          )
+        else if (byArea && state.areaError != null)
+          _Notice(
+            key: const Key('map-area-error'),
+            text: l10n.mapAreaFailed,
+            icon: Icons.cloud_off_outlined,
+            action: l10n.mapRetry,
+            onAction: cubit.refresh,
+          )
+        else if (pins.isEmpty &&
+            (!byArea ||
+                (!state.areaLoading &&
+                    state.pinsByLayer.containsKey(state.layer))))
+          _Notice(
+            key: const Key('map-empty'),
+            text: byArea
+                ? (state.activeFilterCount > 0
+                      ? l10n.mapAreaEmptyFiltered
+                      : l10n.mapAreaEmpty)
+                : (state.activeFilterCount > 0
+                      ? l10n.mapEmptyFiltered
+                      : l10n.mapEmpty),
+          )
+        else if (byArea && state.areaTruncated)
+          _Notice(
+            key: const Key('map-area-truncated'),
+            text: l10n.mapAreaTruncated,
+            icon: Icons.zoom_in,
           ),
         Positioned(
           top: r.s(8),

@@ -540,6 +540,13 @@
   "mapLoading": "Cargando el mapa",
   "mapEmpty": "No hay elementos en esta pestaña.",
   "mapEmptyFiltered": "Ningún elemento coincide con los filtros.",
+  "mapAreaEmpty": "No hay activos en esta zona.",
+  "mapAreaEmptyFiltered": "Ningún activo de esta zona coincide con los filtros.",
+  "mapAreaZoomIn": "Acerca el mapa para ver los activos.",
+  "mapAreaZoomInAction": "Acercar",
+  "mapAreaTruncated": "Hay más activos en esta zona de los que se muestran: acerca el mapa para verlos todos.",
+  "mapAreaFailed": "No se pudieron traer los activos de esta zona.",
+  "mapAreaLoading": "Buscando activos en esta zona",
   "mapErrorTitle": "No se pudo cargar el mapa",
   "mapErrorBody": "Revisa tu conexión e inténtalo de nuevo.",
   "mapRetry": "Reintentar",
@@ -1894,5 +1901,57 @@
   "invQrManualHint": "Código del QR",
   "invQrManualGo": "Buscar",
   "invQrCameraError": "No se pudo abrir la cámara. Puede escribir el código.",
+  "invHistoryTitle": "Historia operativa",
+  "invHistoryTickets": "Tickets",
+  "invHistoryInspections": "Inspecciones",
+  "invHistoryMaintenances": "Mantenimientos",
+  "invHistoryCount": "{open} sin cerrar · {total} en total",
+  "@invHistoryCount": {
+    "placeholders": {
+      "open": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "invHistoryEmptyTickets": "Este activo no tiene tickets.",
+  "invHistoryEmptyInspections": "Este activo no tiene inspecciones.",
+  "invHistoryEmptyMaintenances": "Este activo no tiene mantenimientos.",
+  "invHistoryMore": "Últimos {shown} de {total}.",
+  "@invHistoryMore": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "invHistoryFailed": "No se pudieron traer los registros. Revise su conexión.",
+  "invHistoryOverdue": "Vencido",
+  "invCreateTicket": "Crear ticket",
+  "invHistTkNew": "Nuevo",
+  "invHistTkAssigned": "Asignado",
+  "invHistTkInProgress": "En proceso",
+  "invHistTkOnHold": "En espera",
+  "invHistTkReopened": "Reabierto",
+  "invHistTkResolved": "Resuelto",
+  "invHistTkClosed": "Cerrado",
+  "invHistTkCancelled": "Cancelado",
+  "invHistInPending": "Pendiente",
+  "invHistInAssigned": "Asignada",
+  "invHistInInProgress": "En proceso",
+  "invHistInAttended": "Atendida",
+  "invHistInReview": "En revisión",
+  "invHistInClosed": "Cerrada",
+  "invHistInCancelled": "Cancelada",
+  "invHistMpScheduled": "Programado",
+  "invHistMpInExecution": "En ejecución",
+  "invHistMpCompleted": "Completado",
+  "invHistMpCancelled": "Cancelado",
+  "ticketAssetLocationHint": "La carretera, el km, el sentido y la geometría salen del activo.",
   "mapFilterSubsystem": "Subsistema"
 }

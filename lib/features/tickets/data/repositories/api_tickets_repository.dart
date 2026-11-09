@@ -330,7 +330,8 @@ class ApiTicketsRepository
     if (code == null) throw const TicketsException(TicketsError.server);
 
     final location = draft.location;
-    final assetId = location?.assetId;
+    // Con activo, la carretera (y lo que no se indique) la pone el servidor.
+    final assetId = draft.assetId ?? location?.assetId;
     String? road;
     if (assetId == null) {
       road = await roadId() ?? _road;

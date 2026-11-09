@@ -2264,6 +2264,48 @@ abstract class AppLocalizations {
   /// **'Ningún elemento coincide con los filtros.'**
   String get mapEmptyFiltered;
 
+  /// No description provided for @mapAreaEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay activos en esta zona.'**
+  String get mapAreaEmpty;
+
+  /// No description provided for @mapAreaEmptyFiltered.
+  ///
+  /// In es, this message translates to:
+  /// **'Ningún activo de esta zona coincide con los filtros.'**
+  String get mapAreaEmptyFiltered;
+
+  /// No description provided for @mapAreaZoomIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Acerca el mapa para ver los activos.'**
+  String get mapAreaZoomIn;
+
+  /// No description provided for @mapAreaZoomInAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Acercar'**
+  String get mapAreaZoomInAction;
+
+  /// No description provided for @mapAreaTruncated.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay más activos en esta zona de los que se muestran: acerca el mapa para verlos todos.'**
+  String get mapAreaTruncated;
+
+  /// No description provided for @mapAreaFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron traer los activos de esta zona.'**
+  String get mapAreaFailed;
+
+  /// No description provided for @mapAreaLoading.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscando activos en esta zona'**
+  String get mapAreaLoading;
+
   /// No description provided for @mapErrorTitle.
   ///
   /// In es, this message translates to:
@@ -6907,6 +6949,198 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No se pudo abrir la cámara. Puede escribir el código.'**
   String get invQrCameraError;
+
+  /// No description provided for @invHistoryTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Historia operativa'**
+  String get invHistoryTitle;
+
+  /// No description provided for @invHistoryTickets.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets'**
+  String get invHistoryTickets;
+
+  /// No description provided for @invHistoryInspections.
+  ///
+  /// In es, this message translates to:
+  /// **'Inspecciones'**
+  String get invHistoryInspections;
+
+  /// No description provided for @invHistoryMaintenances.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimientos'**
+  String get invHistoryMaintenances;
+
+  /// No description provided for @invHistoryCount.
+  ///
+  /// In es, this message translates to:
+  /// **'{open} sin cerrar · {total} en total'**
+  String invHistoryCount(int open, int total);
+
+  /// No description provided for @invHistoryEmptyTickets.
+  ///
+  /// In es, this message translates to:
+  /// **'Este activo no tiene tickets.'**
+  String get invHistoryEmptyTickets;
+
+  /// No description provided for @invHistoryEmptyInspections.
+  ///
+  /// In es, this message translates to:
+  /// **'Este activo no tiene inspecciones.'**
+  String get invHistoryEmptyInspections;
+
+  /// No description provided for @invHistoryEmptyMaintenances.
+  ///
+  /// In es, this message translates to:
+  /// **'Este activo no tiene mantenimientos.'**
+  String get invHistoryEmptyMaintenances;
+
+  /// No description provided for @invHistoryMore.
+  ///
+  /// In es, this message translates to:
+  /// **'Últimos {shown} de {total}.'**
+  String invHistoryMore(int shown, int total);
+
+  /// No description provided for @invHistoryFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron traer los registros. Revise su conexión.'**
+  String get invHistoryFailed;
+
+  /// No description provided for @invHistoryOverdue.
+  ///
+  /// In es, this message translates to:
+  /// **'Vencido'**
+  String get invHistoryOverdue;
+
+  /// No description provided for @invCreateTicket.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear ticket'**
+  String get invCreateTicket;
+
+  /// No description provided for @invHistTkNew.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo'**
+  String get invHistTkNew;
+
+  /// No description provided for @invHistTkAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignado'**
+  String get invHistTkAssigned;
+
+  /// No description provided for @invHistTkInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'En proceso'**
+  String get invHistTkInProgress;
+
+  /// No description provided for @invHistTkOnHold.
+  ///
+  /// In es, this message translates to:
+  /// **'En espera'**
+  String get invHistTkOnHold;
+
+  /// No description provided for @invHistTkReopened.
+  ///
+  /// In es, this message translates to:
+  /// **'Reabierto'**
+  String get invHistTkReopened;
+
+  /// No description provided for @invHistTkResolved.
+  ///
+  /// In es, this message translates to:
+  /// **'Resuelto'**
+  String get invHistTkResolved;
+
+  /// No description provided for @invHistTkClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrado'**
+  String get invHistTkClosed;
+
+  /// No description provided for @invHistTkCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get invHistTkCancelled;
+
+  /// No description provided for @invHistInPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente'**
+  String get invHistInPending;
+
+  /// No description provided for @invHistInAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignada'**
+  String get invHistInAssigned;
+
+  /// No description provided for @invHistInInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'En proceso'**
+  String get invHistInInProgress;
+
+  /// No description provided for @invHistInAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendida'**
+  String get invHistInAttended;
+
+  /// No description provided for @invHistInReview.
+  ///
+  /// In es, this message translates to:
+  /// **'En revisión'**
+  String get invHistInReview;
+
+  /// No description provided for @invHistInClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrada'**
+  String get invHistInClosed;
+
+  /// No description provided for @invHistInCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelada'**
+  String get invHistInCancelled;
+
+  /// No description provided for @invHistMpScheduled.
+  ///
+  /// In es, this message translates to:
+  /// **'Programado'**
+  String get invHistMpScheduled;
+
+  /// No description provided for @invHistMpInExecution.
+  ///
+  /// In es, this message translates to:
+  /// **'En ejecución'**
+  String get invHistMpInExecution;
+
+  /// No description provided for @invHistMpCompleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Completado'**
+  String get invHistMpCompleted;
+
+  /// No description provided for @invHistMpCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get invHistMpCancelled;
+
+  /// No description provided for @ticketAssetLocationHint.
+  ///
+  /// In es, this message translates to:
+  /// **'La carretera, el km, el sentido y la geometría salen del activo.'**
+  String get ticketAssetLocationHint;
 
   /// No description provided for @mapFilterSubsystem.
   ///

@@ -483,6 +483,28 @@ void main() {
       });
     });
 
+    test(
+      'desde la ficha de un activo sin punto solo manda el activo',
+      () async {
+        await repo.create(
+          const NewTicket(
+            title: 'Defensa rota',
+            category: 'Bache',
+            assetId: 'asset-2',
+            kmLabel: 'KM 100+500',
+            kmEndLabel: 'KM 101+000',
+          ),
+        );
+        final body = api.to('POST /api/tickets').single.data as Map;
+        expect(body['assetId'], 'asset-2');
+        // Carretera, sentido y geometria los pone el servidor con el activo.
+        expect(body.containsKey('roadId'), isFalse);
+        expect(body.containsKey('geometry'), isFalse);
+        expect(body['kmStart'], 100.5);
+        expect(body['kmEnd'], 101.0);
+      },
+    );
+
     test('un punto elegido en el mapa manda su geometria', () async {
       await repo.create(
         const NewTicket(

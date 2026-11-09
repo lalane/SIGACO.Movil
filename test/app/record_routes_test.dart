@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sigaco_movil/app/shell/record_routes.dart';
+import 'package:sigaco_movil/features/inventory/domain/entities/inventory_asset.dart';
 import 'package:sigaco_movil/features/map/domain/entities/map_record_target.dart';
 import 'package:sigaco_movil/features/tickets/domain/entities/ticket.dart';
 
@@ -7,6 +8,58 @@ import 'package:sigaco_movil/features/tickets/domain/entities/ticket.dart';
 /// tickets no se importan entre si.
 void main() {
   final readAt = DateTime.utc(2026, 10, 19, 15, 30, 12);
+
+  group('desde la ficha de un activo', () {
+    test('viaja el activo aunque no tenga punto, con su km e indicador', () {
+      final uri = Uri.parse(
+        ticketNewRouteForAsset(
+          const InventoryAsset(
+            id: 'a-1',
+            code: 'DEFENSA-000001',
+            name: 'Defensa',
+            category: 'Defensa metálica',
+            condition: AssetCondition.good,
+            kmLabel: 'KM 150+200 - 151+000',
+            subsystemCode: 'SGS',
+          ),
+        ),
+      );
+      expect(uri.path, '/tickets/new');
+      // Sin punto no hay ubicacion de GPS ni del mapa...
+      expect(parseTicketLocation(uri.queryParameters), isNull);
+      // ...pero si el activo, que da la ubicacion en el servidor.
+      expect(
+        parseTicketAsset(uri.queryParameters),
+        const TicketAssetRef(
+          id: 'a-1',
+          code: 'DEFENSA-000001',
+          kmLabel: 'KM 150+200',
+          kmEndLabel: 'KM 151+000',
+          subsystemCode: 'SGS',
+        ),
+      );
+    });
+
+    test('sin codigo ni km queda el id', () {
+      final asset = parseTicketAsset(
+        Uri.parse(
+          ticketNewRouteForAsset(
+            const InventoryAsset(
+              id: 'a-9',
+              name: 'x',
+              category: 'x',
+              condition: AssetCondition.unknown,
+            ),
+          ),
+        ).queryParameters,
+      )!;
+      expect(asset.label, 'a-9');
+      expect(asset.kmLabel, isNull);
+      expect(asset.kmEndLabel, isNull);
+      expect(parseTicketAsset({}), isNull);
+      expect(parseTicketAsset({'asset': ' '}), isNull);
+    });
+  });
 
   test('un lugar con todo sobrevive a la ruta', () {
     final route = ticketNewRoute(

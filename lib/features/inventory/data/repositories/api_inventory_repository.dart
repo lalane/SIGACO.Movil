@@ -27,7 +27,8 @@ class ApiInventoryRepository
         AssetPhotosSource,
         AssetTemplateSource,
         AssetCatalogSource,
-        AssetQrSource {
+        AssetQrSource,
+        AssetHistorySource {
   ApiInventoryRepository(this._api, {Future<Directory> Function()? cacheDir})
     : _cacheDir = cacheDir ?? _defaultCacheDir;
 
@@ -242,6 +243,128 @@ class ApiInventoryRepository
     return fromDetailResponse(_asMap(json));
   });
 
+  /// Los registros que tienen al activo, con las listas de cada modulo (el
+  /// servidor filtra por `assetId` y aplica los permisos y el ambito de la
+  /// persona): los tickets con los cerrados, los mantenimientos del mas
+  /// reciente al mas viejo.
+  @override
+  Future<AssetHistoryPage> history(
+    String assetId,
+    AssetHistoryKind kind, {
+    int limit = 5,
+  }) => _guard(() async {
+    final (path, extra) = switch (kind) {
+      AssetHistoryKind.tickets => (
+        '/api/tickets',
+        const <String, Object?>{'includeClosed': true},
+      ),
+      AssetHistoryKind.inspections => (
+        '/api/inspections',
+        const <String, Object?>{},
+      ),
+      AssetHistoryKind.maintenances => (
+        '/api/preventive-maintenance',
+        const <String, Object?>{'sort': 'recent'},
+      ),
+    };
+    final json = _asMap(
+      await _api.getJson(
+        path,
+        query: {'assetId': assetId, 'page': 1, 'pageSize': limit, ...extra},
+      ),
+    );
+    final items = json['items'];
+    if (items is! List) throw const FormatException('sin items');
+    return AssetHistoryPage(
+      items: [
+        for (final item in items)
+          ?historyEntry(kind, InventoryJson.map(item) ?? const {}),
+      ],
+      total: InventoryJson.integer(json['total']) ?? items.length,
+    );
+  });
+
+  /// Un renglon de la lista de su modulo (`TicketDto`, `InspectionDto` o
+  /// `PreventiveMaintenanceDto`) resumido para la ficha; null si no trae id.
+  static AssetHistoryEntry? historyEntry(
+    AssetHistoryKind kind,
+    Map<String, dynamic> m,
+  ) {
+    final id = _text(m['id']);
+    if (id == null) return null;
+    final folio = _text(m['folio']) ?? id;
+    final status = _text(m['status'])?.toUpperCase() ?? '';
+    DateTime? moment(Object? v) => DateTime.tryParse(_text(v) ?? '')?.toUtc();
+    switch (kind) {
+      case AssetHistoryKind.tickets:
+        return AssetHistoryEntry(
+          id: id,
+          kind: kind,
+          folio: folio,
+          status: status,
+          title:
+              _text(m['ticketTypeLabel']) ??
+              _text(m['description'])?.split('\n').first.trim(),
+          date: moment(m['detectedAt']) ?? moment(m['createdAt']),
+          responsible: _text(m['responsibleName']),
+          overdue: m['isOverdue'] == true,
+          subsystemCode: _text(m['subsystemCode']),
+        );
+      case AssetHistoryKind.inspections:
+        final executed = moment(m['executedAt']);
+        return AssetHistoryEntry(
+          id: id,
+          kind: kind,
+          folio: folio,
+          status: status,
+          title:
+              _text(m['inspectionTypeLabel']) ?? _text(m['inspectionTypeCode']),
+          date: executed ?? _day(m['scheduledOn']),
+          dateOnly: executed == null,
+          responsible: _text(m['inspectorName']),
+        );
+      case AssetHistoryKind.maintenances:
+        return AssetHistoryEntry(
+          id: id,
+          kind: kind,
+          folio: folio,
+          status: status,
+          title: _text(m['activity']),
+          date:
+              _day(m['actualEnd']) ??
+              _day(m['actualStart']) ??
+              _day(m['plannedStart']),
+          dateOnly: true,
+          responsible: _text(m['responsibleName']),
+          overdue: m['isOverdue'] == true,
+          subsystemCode: _text(m['subsystemCode']),
+        );
+    }
+  }
+
+  /// `operationalHistory` de la ficha: cuantos registros de cada tipo tiene
+  /// el activo. Un tipo en null es un modulo que la persona no puede ver; sin
+  /// el campo (servidor anterior), null.
+  static AssetHistoryCounts? historyCounts(Object? json) {
+    final m = InventoryJson.map(json);
+    if (m == null) return null;
+    AssetHistoryCount? count(Object? v) {
+      final c = InventoryJson.map(v);
+      final total = InventoryJson.integer(c?['total']);
+      if (c == null || total == null) return null;
+      return AssetHistoryCount(
+        open: InventoryJson.integer(c['open']) ?? 0,
+        total: total,
+      );
+    }
+
+    return AssetHistoryCounts(
+      tickets: count(m['tickets']),
+      inspections: count(m['inspections']),
+      maintenances: count(m['maintenances']),
+    );
+  }
+
   @override
   Future<AssetTemplate?> template(String typeCode) async {
     try {
@@ -386,6 +509,7 @@ class ApiInventoryRepository
       template: template,
       externalAttributes: external,
       attachmentCount: InventoryJson.integer(json['attachmentCount']),
+      history: historyCounts(json['operationalHistory']),
     );
   }
 
@@ -395,6 +519,7 @@ class ApiInventoryRepository
     AssetTemplate? template,
     Map<String, dynamic>? externalAttributes,
     int? attachmentCount,
+    AssetHistoryCounts? history,
   }) {
     final code = (m['code'] as String?)?.trim() ?? '';
     final description = _text(m['description']);
@@ -434,6 +559,7 @@ class ApiInventoryRepository
       template: template,
       templateNumber: InventoryJson.integer(m['templateNumber']),
       attachmentCount: attachmentCount,
+      history: history,
     );
   }
 

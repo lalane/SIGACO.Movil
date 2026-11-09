@@ -191,11 +191,14 @@ class NewTicketCubit extends Cubit<NewTicketState> {
     this.location,
     String Function()? clientIdGenerator,
     this.allowedIndicators,
+    this.asset,
   }) : _clock = clock ?? DateTime.now,
        super(
          NewTicketState(
-           // El cadenamiento ya conocido se rellena solo (FRM-02).
-           kmLabel: location?.kmLabel ?? '',
+           // El cadenamiento ya conocido se rellena solo (FRM-02): el del punto
+           // o el del activo.
+           kmLabel: location?.kmLabel ?? asset?.kmLabel ?? '',
+           kmEndLabel: location?.kmLabel == null ? asset?.kmEndLabel ?? '' : '',
          ),
        ) {
     _clientId = (clientIdGenerator ?? newClientId)();
@@ -213,6 +216,9 @@ class NewTicketCubit extends Cubit<NewTicketState> {
 
   /// Donde se levanta el ticket, si viene del mapa o de un activo.
   final TicketLocation? location;
+
+  /// El activo, si se levanta desde su ficha (puede no tener punto).
+  final TicketAssetRef? asset;
 
   /// Identificador unico de este registro (`cliente_uuid`).
   String get clientId => _clientId;
@@ -266,6 +272,15 @@ class NewTicketCubit extends Cubit<NewTicketState> {
         failures = const [];
       }
     }
+    // Desde la ficha de un activo se propone su indicador, si es de los que la
+    // persona puede usar.
+    final wanted = asset?.subsystemCode?.toUpperCase();
+    final indicator = state.indicator != null || wanted == null
+        ? null
+        : failures
+              .where((f) => f.subsystemCode.toUpperCase() == wanted)
+              .firstOrNull
+              ?.subsystemCode;
     try {
       final categories = await _repository.categories();
       if (isClosed) return;
@@ -274,11 +289,18 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           failures: failures,
           categories: categories,
           categoriesLoaded: true,
+          indicator: indicator,
         ),
       );
     } catch (_) {
       if (isClosed) return;
-      emit(state.copyWith(failures: failures, categoriesLoaded: true));
+      emit(
+        state.copyWith(
+          failures: failures,
+          categoriesLoaded: true,
+          indicator: indicator,
+        ),
+      );
     }
   }
 
@@ -337,6 +359,7 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           capturedAt: _capturedAt,
           deviceClockAt: _clock().toUtc(),
           location: location,
+          assetId: asset?.id,
           clientId: _clientId,
           fixedAttention: state.failure != null,
           kmEndLabel: state.kmEndLabel.trim().isEmpty

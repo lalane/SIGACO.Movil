@@ -44,7 +44,8 @@ void main() {
         '/api/tickets?page=1',
         '/api/tickets/9/follow-ups',
         '/api/preventive-maintenance',
-        '/api/assets/map',
+        '/api/assets',
+        '/api/assets/a-1',
         '/api/inspections/4/findings',
         '/api/works',
         '/api/app-configuration',
@@ -60,6 +61,10 @@ void main() {
         '/api/documents',
         '/api/uploads',
         '/api/map/pins',
+        // Por zona: cada movimiento del mapa seria un archivo; lo guarda el
+        // cache del mapa.
+        '/api/assets/map',
+        '/api/assets/nearby',
         '/api/sync/operations',
       ]) {
         expect(cache.accepts(path), isFalse, reason: path);

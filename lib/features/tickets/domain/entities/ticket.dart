@@ -261,6 +261,36 @@ class TicketLocation extends Equatable {
   ];
 }
 
+/// El activo del inventario sobre el que se levanta el ticket, cuando se hace
+/// desde su ficha: puede no tener punto; el servidor toma de el la carretera,
+/// el km, el sentido y la geometria (`assetId`).
+class TicketAssetRef extends Equatable {
+  const TicketAssetRef({
+    required this.id,
+    this.code,
+    this.kmLabel,
+    this.kmEndLabel,
+    this.subsystemCode,
+  });
+
+  final String id;
+
+  /// El codigo que ve el negocio (`DEFENSA-000001`); sin el se muestra [id].
+  final String? code;
+
+  /// Donde esta (`KM 150+200`) y, si ocupa un tramo, donde termina.
+  final String? kmLabel;
+  final String? kmEndLabel;
+
+  /// Su indicador (`SGS`): se propone en la Matriz de falhas.
+  final String? subsystemCode;
+
+  String get label => code ?? id;
+
+  @override
+  List<Object?> get props => [id, code, kmLabel, kmEndLabel, subsystemCode];
+}
+
 /// Lo que la persona captura para levantar un ticket nuevo.
 /// Una falla de la Matriz de falhas (reunion con TEKIA del 05/11/2026): el
 /// ticket se levanta eligiendo indicador, subclasificacion y falla, y el plazo
@@ -329,7 +359,12 @@ class NewTicket extends Equatable {
     this.fixedAttention = false,
     this.direction,
     this.kmEndLabel,
+    this.assetId,
   });
+
+  /// El activo, si se levanta desde su ficha aunque no tenga punto (si viene
+  /// del mapa, va en [location]).
+  final String? assetId;
 
   /// El km final, si la falla ocupa un tramo (`KM 150+400`).
   final String? kmEndLabel;
@@ -378,6 +413,7 @@ class NewTicket extends Equatable {
     fixedAttention,
     direction,
     kmEndLabel,
+    assetId,
   ];
 }
 

@@ -5,6 +5,7 @@ import '../../../core/theme/status_colors.dart';
 import '../../../core/time/concession_zone.dart';
 import '../../../core/ui/module_format.dart';
 import '../../../l10n/app_localizations.dart';
+import '../domain/entities/asset_history.dart';
 import '../domain/entities/asset_template.dart';
 import '../domain/entities/inventory_asset.dart';
 
@@ -53,6 +54,80 @@ Color lifecycleColor(AssetLifecycle s) => switch (s) {
 
 /// "En mantenimiento": tiene un ticket abierto (no es un estado).
 const maintenanceColor = Color(0xFF60A5FA);
+
+/// El nombre de un tipo de la historia operativa.
+String historyKindLabel(AppLocalizations l10n, AssetHistoryKind k) =>
+    switch (k) {
+      AssetHistoryKind.tickets => l10n.invHistoryTickets,
+      AssetHistoryKind.inspections => l10n.invHistoryInspections,
+      AssetHistoryKind.maintenances => l10n.invHistoryMaintenances,
+    };
+
+/// "Este activo no tiene ..." de un tipo de la historia.
+String historyEmptyLabel(AppLocalizations l10n, AssetHistoryKind k) =>
+    switch (k) {
+      AssetHistoryKind.tickets => l10n.invHistoryEmptyTickets,
+      AssetHistoryKind.inspections => l10n.invHistoryEmptyInspections,
+      AssetHistoryKind.maintenances => l10n.invHistoryEmptyMaintenances,
+    };
+
+IconData historyKindIcon(AssetHistoryKind k) => switch (k) {
+  AssetHistoryKind.tickets => Icons.confirmation_number_outlined,
+  AssetHistoryKind.inspections => Icons.fact_check_outlined,
+  AssetHistoryKind.maintenances => Icons.build_outlined,
+};
+
+/// El estado de un registro de la historia, con los codigos del servidor de su
+/// modulo; uno que no se conoce se muestra legible (`EN_PROCESO` -> "En
+/// proceso").
+String historyStatusLabel(
+  AppLocalizations l10n,
+  AssetHistoryKind kind,
+  String code,
+) {
+  final label = switch ((kind, code)) {
+    (AssetHistoryKind.tickets, 'NUEVO') => l10n.invHistTkNew,
+    (AssetHistoryKind.tickets, 'ASIGNADO') => l10n.invHistTkAssigned,
+    (AssetHistoryKind.tickets, 'EN_PROCESO') => l10n.invHistTkInProgress,
+    (AssetHistoryKind.tickets, 'EN_ESPERA') => l10n.invHistTkOnHold,
+    (AssetHistoryKind.tickets, 'REABIERTO') => l10n.invHistTkReopened,
+    (AssetHistoryKind.tickets, 'RESUELTO') => l10n.invHistTkResolved,
+    (AssetHistoryKind.tickets, 'CERRADO') => l10n.invHistTkClosed,
+    (AssetHistoryKind.tickets, 'CANCELADO') => l10n.invHistTkCancelled,
+    (AssetHistoryKind.inspections, 'PENDIENTE') => l10n.invHistInPending,
+    (AssetHistoryKind.inspections, 'ASIGNADA') => l10n.invHistInAssigned,
+    (AssetHistoryKind.inspections, 'EN_PROCESO') => l10n.invHistInInProgress,
+    (AssetHistoryKind.inspections, 'ATENDIDA') => l10n.invHistInAttended,
+    (AssetHistoryKind.inspections, 'EN_REVISION') => l10n.invHistInReview,
+    (AssetHistoryKind.inspections, 'CERRADA') => l10n.invHistInClosed,
+    (AssetHistoryKind.inspections, 'CANCELADA') => l10n.invHistInCancelled,
+    (AssetHistoryKind.maintenances, 'PROGRAMADO') => l10n.invHistMpScheduled,
+    (AssetHistoryKind.maintenances, 'EN_EJECUCION') =>
+      l10n.invHistMpInExecution,
+    (AssetHistoryKind.maintenances, 'COMPLETADO') => l10n.invHistMpCompleted,
+    (AssetHistoryKind.maintenances, 'CANCELADO') => l10n.invHistMpCancelled,
+    _ => null,
+  };
+  if (label != null) return label;
+  final text = code.replaceAll('_', ' ').toLowerCase();
+  return text.isEmpty ? '—' : text[0].toUpperCase() + text.substring(1);
+}
+
+/// Los colores de estatus son del sistema: lo que nadie ha empezado es rojo,
+/// lo que se esta trabajando o espera revision es ambar, lo terminado verde y
+/// lo cancelado gris.
+Color historyStatusColor(String code) => switch (code) {
+  'NUEVO' || 'ASIGNADO' || 'REABIERTO' || 'PROGRAMADO' => StatusColors.open,
+  'PENDIENTE' || 'ASIGNADA' => StatusColors.open,
+  'EN_PROCESO' ||
+  'EN_ESPERA' ||
+  'RESUELTO' ||
+  'ATENDIDA' ||
+  'EN_REVISION' ||
+  'EN_EJECUCION' => StatusColors.attended,
+  'CERRADO' || 'CERRADA' || 'COMPLETADO' => StatusColors.closed,
+  _ => const Color(0xFF94A3B8),
+};
 
 String? statusReasonLabel(AppLocalizations l10n, String? reason) =>
     switch (reason?.toUpperCase()) {

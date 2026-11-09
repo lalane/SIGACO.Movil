@@ -158,10 +158,13 @@ class ComposedDashboardRepository implements DashboardRepository {
   /// Los conteos del catalogo los da el servidor: no se baja la lista.
   Future<InventorySummary> _inventory() async {
     final counts = await inventory.counts(const InventoryQuery());
+    final unassessed =
+        counts.total - counts.good - counts.regular - counts.poor;
     return InventorySummary(
       good: counts.good,
       regular: counts.regular,
       poor: counts.poor,
+      unassessed: unassessed < 0 ? 0 : unassessed,
     );
   }
 

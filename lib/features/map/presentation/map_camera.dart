@@ -10,16 +10,30 @@ enum MapEngine { flutterMap, maplibre }
 class MapCameraController {
   Future<void> Function(GeoPoint point, double minZoom)? _moveTo;
 
-  void attach(Future<void> Function(GeoPoint point, double minZoom) moveTo) =>
-      _moveTo = moveTo;
+  /// Lo pedido antes de que hubiera un mapa conectado.
+  (GeoPoint, double)? _pending;
+
+  /// Conecta el motor y, si se pidio ir a algun lado antes, va ahi.
+  void attach(Future<void> Function(GeoPoint point, double minZoom) moveTo) {
+    _moveTo = moveTo;
+    final pending = _pending;
+    _pending = null;
+    if (pending != null) moveTo(pending.$1, pending.$2).catchError((_) {});
+  }
 
   void detach() => _moveTo = null;
 
-  /// Centra el mapa en [point] con al menos [minZoom]. Si el mapa todavia no
-  /// esta listo no hace nada: la siguiente peticion lo centrara.
+  /// Centra el mapa en [point] con al menos [minZoom]. Si todavia no hay un
+  /// mapa conectado (MapLibre se crea despues de la pantalla), se hace al
+  /// conectarse: abrir el mapa sobre un activo no debe perder su punto.
   Future<void> moveTo(GeoPoint point, {double minZoom = 16}) async {
+    final moveTo = _moveTo;
+    if (moveTo == null) {
+      _pending = (point, minZoom);
+      return;
+    }
     try {
-      await _moveTo?.call(point, minZoom);
+      await moveTo(point, minZoom);
     } catch (_) {
       // El mapa se esta reconstruyendo.
     }
