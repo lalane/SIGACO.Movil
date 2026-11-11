@@ -21,6 +21,13 @@ class UnavailableMaintenanceRepository implements MaintenanceRepository {
   Future<MaintenanceOrder> get(String id) => Future.error(_error);
 
   @override
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  }) async => null;
+
+  @override
   Future<MaintenanceOrder> addProgress(
     String id, {
     double? executedVolume,

@@ -11,6 +11,7 @@ import '../../../../core/theme/status_colors.dart';
 import '../../domain/entities/geo_bounds.dart';
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/road_segment.dart';
+import '../../domain/entities/segment_pavement.dart';
 import '../bloc/map_cubit.dart';
 import '../map_camera.dart';
 import '../map_labels.dart';
@@ -164,12 +165,29 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
       _segSource,
       _segLine,
       LineLayerProperties(
+        // Con la capa de pavimento (propiedad lv) el color es el del nivel del
+        // tramo; sin ella, el del sentido.
         lineColor: [
-          'match',
-          ['get', 'dir'],
-          'inc',
-          hexColor(segmentColor(TravelDirection.increasing)),
-          hexColor(segmentColor(TravelDirection.decreasing)),
+          'case',
+          ['has', 'lv'],
+          [
+            'match',
+            ['get', 'lv'],
+            'good',
+            hexColor(pavementColor(PavementLevel.good)),
+            'fair',
+            hexColor(pavementColor(PavementLevel.fair)),
+            'bad',
+            hexColor(pavementColor(PavementLevel.bad)),
+            hexColor(pavementColor(null)),
+          ],
+          [
+            'match',
+            ['get', 'dir'],
+            'inc',
+            hexColor(segmentColor(TravelDirection.increasing)),
+            hexColor(segmentColor(TravelDirection.decreasing)),
+          ],
         ],
         lineWidth: [
           'case',
@@ -398,8 +416,13 @@ class _MapLibreEngineState extends State<MapLibreEngine> {
         selectedSegment?.id,
         selected?.segmentCode,
         selected?.direction,
+        s.shownPavement,
       ),
-      () => segmentsGeoJson(segments, highlighted: highlighted),
+      () => segmentsGeoJson(
+        segments,
+        highlighted: highlighted,
+        pavement: s.shownPavement,
+      ),
     );
     await push(
       _labelSource,

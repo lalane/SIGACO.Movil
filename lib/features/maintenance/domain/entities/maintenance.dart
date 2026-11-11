@@ -134,3 +134,48 @@ class MaintenanceOrder extends Equatable {
     sense,
   ];
 }
+
+/// Los conteos del indicador en el periodo (HU-MC-15): los tickets de M11
+/// (total, abiertos, atendidos y cerrados) y la ultima evaluacion del PER, los
+/// mismos numeros que la web (`/api/maintenance/subsystems/{code}/summary`).
+class MaintenanceIndicatorSummary extends Equatable {
+  const MaintenanceIndicatorSummary({
+    required this.ticketsTotal,
+    required this.ticketsOpen,
+    required this.ticketsAttended,
+    required this.ticketsClosed,
+    this.compliancePercent,
+    this.evaluationYear,
+    this.openProposals = 0,
+  });
+
+  final int ticketsTotal;
+
+  /// Sin resolver.
+  final int ticketsOpen;
+
+  /// Resueltos que esperan el cierre.
+  final int ticketsAttended;
+  final int ticketsClosed;
+
+  /// Parametros que cumplen sobre los evaluados en la ultima evaluacion; null
+  /// sin evaluacion o sin parametros evaluables.
+  final double? compliancePercent;
+
+  /// Año de concesion de esa evaluacion.
+  final int? evaluationYear;
+
+  /// Propuestas de ticket de la evaluacion que nadie ha atendido.
+  final int openProposals;
+
+  @override
+  List<Object?> get props => [
+    ticketsTotal,
+    ticketsOpen,
+    ticketsAttended,
+    ticketsClosed,
+    compliancePercent,
+    evaluationYear,
+    openProposals,
+  ];
+}

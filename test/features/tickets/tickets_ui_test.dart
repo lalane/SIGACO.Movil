@@ -87,6 +87,19 @@ void main() {
     matching: find.byType(Text),
   );
 
+  /// Las pestanas de estado son mas de tres y se deslizan: lleva hasta [id].
+  Future<void> showChip(WidgetTester tester, String id) async {
+    await tester.scrollUntilVisible(
+      find.byKey(Key('tickets-filter-$id')),
+      120,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('tickets-chips')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   Future<void> search(WidgetTester tester, String text) async {
     await tester.enterText(find.byKey(const Key('tickets-search')), text);
     await tester.pumpAndSettle();
@@ -101,8 +114,18 @@ void main() {
       expect(find.byKey(const Key('tickets-sample-banner')), findsOneWidget);
       expect(find.text('Historial de registros'), findsOneWidget);
       expect(tester.widget<Text>(count('all')).data, '8');
-      expect(tester.widget<Text>(count('open')).data, '4');
-      expect(tester.widget<Text>(count('attended')).data, '4');
+      // Los cinco estados del DTF M11 v0.3.
+      // Las pestanas se deslizan de lado: se va hasta cada una.
+      for (final (id, n) in [
+        ('unvalidated', '2'),
+        ('open', '2'),
+        ('attended', '3'),
+        ('closed', '1'),
+        ('cancelled', '0'),
+      ]) {
+        await showChip(tester, id);
+        expect(tester.widget<Text>(count(id)).data, n, reason: id);
+      }
       // Lo mas reciente primero.
       expect(card('T-0036'), findsOneWidget);
     });
@@ -126,6 +149,7 @@ void main() {
         find.text('Ningún registro coincide con los filtros.'),
         findsOneWidget,
       );
+      await showChip(tester, 'attended');
       await tester.tap(find.byKey(const Key('tickets-filter-attended')));
       await tester.pumpAndSettle();
       expect(card('T-0035'), findsOneWidget);
@@ -393,7 +417,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Registro creado.'), findsOneWidget);
       expect(tester.widget<Text>(count('all')).data, '9');
-      expect(tester.widget<Text>(count('open')).data, '5');
+      // Nace sin validar: lo asigna el Supervisor.
+      expect(tester.widget<Text>(count('unvalidated')).data, '3');
       expect((await repo.list()).first.title, 'Cuneta tapada km 160');
     });
   });

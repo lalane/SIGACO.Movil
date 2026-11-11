@@ -10,6 +10,7 @@ import '../core/demo/demo_mode.dart';
 import '../features/map/presentation/map_camera.dart';
 import 'composition/map_base_source.dart';
 import '../core/device/device_unlock.dart';
+import '../core/session/active_concession.dart';
 import '../core/files/file_source.dart';
 import '../core/pdf/pdf_renderer.dart';
 import '../core/push/push_registrar.dart';
@@ -22,6 +23,7 @@ import '../core/ui/logo_store.dart';
 import '../features/auth/domain/repositories/auth_repository.dart';
 import '../features/auth/domain/repositories/credential_store.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../features/auth/presentation/bloc/auth_state.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/auth/presentation/session/session_lock_cubit.dart';
 import '../features/branding/presentation/bloc/branding_cubit.dart';
@@ -36,13 +38,16 @@ import '../features/alerts/presentation/bloc/alerts_cubit.dart';
 import '../features/navigation/presentation/bloc/navigation_bloc.dart';
 import '../features/accidents/domain/repositories/accidents_repository.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/inspections/domain/repositories/inspection_capture_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
 import '../core/scan/qr_scanner.dart';
 import '../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
+import '../features/maintenance/domain/repositories/indicator_events_repository.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../features/reports/domain/repositories/reports_repository.dart';
 import '../features/works/domain/repositories/works_repository.dart';
+import '../features/definitions/domain/repositories/definitions_repository.dart';
 import '../features/tickets/domain/repositories/tickets_repository.dart';
 import '../l10n/app_localizations.dart';
 import 'dependencies.dart';
@@ -175,6 +180,9 @@ class _SigacoAppState extends State<SigacoApp> {
         RepositoryProvider<MaintenanceRepository>.value(
           value: widget.dependencies.maintenanceRepository,
         ),
+        RepositoryProvider<IndicatorEventsRepository>.value(
+          value: widget.dependencies.indicatorEventsRepository,
+        ),
         RepositoryProvider<InventoryRepository>.value(
           value: widget.dependencies.inventoryRepository,
         ),
@@ -187,8 +195,14 @@ class _SigacoAppState extends State<SigacoApp> {
         RepositoryProvider<WorksRepository>.value(
           value: widget.dependencies.worksRepository,
         ),
+        RepositoryProvider<DefinitionsRepository>.value(
+          value: widget.dependencies.definitionsRepository,
+        ),
         RepositoryProvider<InspectionsRepository>.value(
           value: widget.dependencies.inspectionsRepository,
+        ),
+        RepositoryProvider<InspectionCaptureRepository>.value(
+          value: widget.dependencies.inspectionCaptureRepository,
         ),
         RepositoryProvider<PushRegistrar>.value(
           value: widget.dependencies.pushRegistrar,
@@ -258,11 +272,20 @@ class _SigacoAppState extends State<SigacoApp> {
                 return const Locale('es');
               },
               routerConfig: _router,
-              builder: (context, child) => SessionLifecycle(
-                router: _router,
-                scope: widget.dependencies.sessionScope,
-                child: child ?? const SizedBox.shrink(),
-              ),
+              // La concesion activa queda a la mano de los modulos (fichas)
+              // sin que importen el modulo de acceso.
+              builder: (context, child) =>
+                  BlocSelector<AuthBloc, AuthState, String?>(
+                    selector: (s) => s.activeConcessionName,
+                    builder: (context, concession) => ActiveConcessionScope(
+                      name: concession,
+                      child: SessionLifecycle(
+                        router: _router,
+                        scope: widget.dependencies.sessionScope,
+                        child: child ?? const SizedBox.shrink(),
+                      ),
+                    ),
+                  ),
             ),
           ),
         ),

@@ -12,5 +12,8 @@ abstract final class StatusColors {
   /// Cerrado, correcto.
   static const closed = Color(0xFF4ADE80);
 
+  /// Cancelado: ya no cuenta.
+  static const cancelled = Color(0xFF94A3B8);
+
   static const all = [open, attended, closed];
 }

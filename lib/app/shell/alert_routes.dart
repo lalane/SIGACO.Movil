@@ -29,6 +29,8 @@ String? alertRoute(AppAlert alert, NavigationMenu menu) {
     'WORK' => has(MobileModule.works) ? '/works/$id' : null,
     'ASSET' => has(MobileModule.inventory) ? '/inventory/$id' : null,
     'MAINTENANCE' => has(MobileModule.maintenance) ? '/maintenance' : null,
+    // Alguien respondio una definicion pendiente (tanda 4): son de todos.
+    'DEFINICION' => '/definitions/$id',
     _ => null,
   };
 }

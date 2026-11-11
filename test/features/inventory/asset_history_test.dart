@@ -13,6 +13,10 @@ import 'package:sigaco_movil/features/inventory/data/repositories/sample_invento
 import 'package:sigaco_movil/features/inventory/domain/entities/inventory_asset.dart';
 import 'package:sigaco_movil/features/inventory/domain/repositories/inventory_repository.dart';
 import 'package:sigaco_movil/features/inventory/presentation/bloc/inventory_detail_cubit.dart';
+import 'package:sigaco_movil/features/inventory/presentation/inventory_labels.dart';
+import 'package:sigaco_movil/core/theme/status_colors.dart';
+import 'package:sigaco_movil/l10n/app_localizations_es.dart';
+import 'package:sigaco_movil/l10n/app_localizations_pt.dart';
 import 'package:sigaco_movil/features/map/data/repositories/sample_map_repository.dart';
 import 'package:sigaco_movil/features/tickets/data/repositories/sample_tickets_repository.dart';
 
@@ -398,6 +402,26 @@ void main() {
         find.byKey(const Key('new-ticket-km')),
       );
       expect(km.initialValue, 'KM 150+200');
+    });
+  });
+
+  group('estados de ticket del DTF M11 v0.3 en la historia', () {
+    test('SIN_VALIDAR, ABIERTO y ATENDIDO tienen su etiqueta en cada idioma', () {
+      const kind = AssetHistoryKind.tickets;
+      final es = AppLocalizationsEs();
+      final pt = AppLocalizationsPt();
+      expect(historyStatusLabel(es, kind, 'SIN_VALIDAR'), 'Sin validar');
+      expect(historyStatusLabel(es, kind, 'ABIERTO'), 'Abierto');
+      expect(historyStatusLabel(es, kind, 'ATENDIDO'), 'Atendido');
+      expect(historyStatusLabel(pt, kind, 'SIN_VALIDAR'), 'Não validado');
+      expect(historyStatusLabel(pt, kind, 'ABIERTO'), 'Aberto');
+    });
+
+    test('lo que falta atender es abierto y ATENDIDO espera la validacion', () {
+      expect(historyStatusColor('SIN_VALIDAR'), StatusColors.open);
+      expect(historyStatusColor('ABIERTO'), StatusColors.open);
+      expect(historyStatusColor('ATENDIDO'), StatusColors.attended);
+      expect(historyStatusColor('CERRADO'), StatusColors.closed);
     });
   });
 }

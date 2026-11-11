@@ -187,7 +187,7 @@ class _EntryRow extends StatelessWidget {
     final date = entry.date;
     final detail = [
       if (date != null)
-        entry.dateOnly ? moduleDay(date, zone) : moduleDate(date, zone),
+        entry.dateOnly ? moduleCalendarDay(date) : moduleDate(date, zone),
       ?entry.responsible,
     ].join(' · ');
     final tap = route;

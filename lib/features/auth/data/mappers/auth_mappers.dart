@@ -20,6 +20,7 @@ CurrentUser userFromJson(Map<String, dynamic> j) => CurrentUser(
   jobTitle: _text(j['jobTitle']),
   companyName: _text(j['companyName']),
   teamName: _text(j['teamName']),
+  accessValidUntil: _text(j['accessValidUntil']),
 );
 
 /// Un texto vacio o de espacios cuenta como ausente.

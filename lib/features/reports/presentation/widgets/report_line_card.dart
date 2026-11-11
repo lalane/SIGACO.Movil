@@ -86,7 +86,7 @@ class ReportLineCard extends StatelessWidget {
                     const Spacer(),
                     if (line.startDate != null)
                       Text(
-                        moduleDay(line.startDate!, zone),
+                        moduleCalendarDay(line.startDate!),
                         style: TextStyle(color: moduleMuted, fontSize: r.s(14)),
                       ),
                   ],

@@ -12,11 +12,13 @@ import '../../support/fake_api.dart';
 
 Map<String, Object?> _dto(
   String id, {
-  String status = 'NUEVO',
+  String status = 'SIN_VALIDAR',
   String description = 'Bache en carril derecho\n\nCerca del puente',
   int rowVersion = 3,
+  List<String> actions = const [],
 }) => {
   'id': id,
+  'actions': actions,
   'folio': 'TK-2026-000$id',
   'ticketTypeLabel': 'Bache',
   'status': status,
@@ -126,15 +128,21 @@ void main() {
       expect(t.dueAt, DateTime.utc(2026, 10, 25, 15));
     });
 
-    test('abierto es lo que nadie ha atendido; lo demas, atendido', () {
-      for (final s in ['NUEVO', 'ASIGNADO', 'REABIERTO']) {
+    test('abierto es lo que falta atender; lo demas, atendido', () {
+      for (final s in [
+        'SIN_VALIDAR',
+        'ABIERTO',
+        'NUEVO',
+        'ASIGNADO',
+        'REABIERTO',
+      ]) {
         expect(
           ApiTicketsRepository.statusFromCode(s),
           TicketStatus.open,
           reason: s,
         );
       }
-      for (final s in ['EN_PROCESO', 'EN_ESPERA', 'RESUELTO', 'CERRADO']) {
+      for (final s in ['ATENDIDO', 'CERRADO', 'CANCELADO', 'RESUELTO']) {
         expect(
           ApiTicketsRepository.statusFromCode(s),
           TicketStatus.attended,
@@ -185,6 +193,9 @@ void main() {
   group('lista y ficha', () {
     test('trae todas las paginas', () async {
       api.reply('GET /api/tickets', (o) {
+        if (o.queryParameters['status'] != null) {
+          return FakeReply(200, _page(const []));
+        }
         final page = o.queryParameters['page'];
         return page == 1
             ? FakeReply(200, _page([_dto('1'), _dto('2')], total: 3))
@@ -192,7 +203,45 @@ void main() {
       });
       final tickets = await repo.list();
       expect(tickets.map((t) => t.id), ['1', '2', '3']);
-      expect(api.to('GET /api/tickets'), hasLength(2));
+      // Dos paginas de los vivos, y los cerrados y los cancelados aparte.
+      expect(api.to('GET /api/tickets'), hasLength(4));
+    });
+
+    test('suma los cerrados y cancelados mas recientes, sin repetir', () async {
+      api.reply('GET /api/tickets', (o) {
+        return switch (o.queryParameters['status']) {
+          'CERRADO' => FakeReply(
+            200,
+            _page([_dto('9', status: 'CERRADO'), _dto('1')]),
+          ),
+          'CANCELADO' => FakeReply(
+            200,
+            _page([_dto('8', status: 'CANCELADO')]),
+          ),
+          _ => FakeReply(200, _page([_dto('1')])),
+        };
+      });
+      final tickets = await repo.list();
+      expect(tickets.map((t) => t.id), ['1', '9', '8']);
+      expect(tickets.map((t) => t.stage), [
+        TicketStage.unvalidated,
+        TicketStage.closed,
+        TicketStage.cancelled,
+      ]);
+      final finished = api
+          .to('GET /api/tickets')
+          .where((r) => r.queryParameters['status'] != null);
+      expect(finished.map((r) => r.queryParameters['pageSize']), [50, 50]);
+    });
+
+    test('si los cerrados no llegan, la lista sale con los vivos', () async {
+      api.reply(
+        'GET /api/tickets',
+        (o) => o.queryParameters['status'] == null
+            ? FakeReply(200, _page([_dto('1')]))
+            : const FakeReply(500),
+      );
+      expect((await repo.list()).map((t) => t.id), ['1']);
     });
 
     test('una respuesta sin items es un error del servidor', () async {
@@ -203,17 +252,17 @@ void main() {
     test('la ficha trae el seguimiento', () async {
       api.on(
         'GET /api/tickets/1',
-        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+        FakeReply(200, _dto('1', status: 'ATENDIDO')),
       );
       api.on(
         'GET /api/tickets/1/follow-ups',
         const FakeReply(200, [
           {
             'id': 'f1',
-            'kind': 'AVANCE',
+            'kind': 'ATENCION',
             'description': 'Se tapo el bache',
-            'previousStatus': 'NUEVO',
-            'newStatus': 'EN_PROCESO',
+            'previousStatus': 'ABIERTO',
+            'newStatus': 'ATENDIDO',
             'createdAt': '2026-10-23T18:00:00Z',
           },
           {
@@ -604,54 +653,64 @@ void main() {
           description: text,
         );
 
-    void server({required String status}) {
+    void server({required String status, List<String> actions = const []}) {
       api.on(
         'POST /api/tickets/1/follow-ups',
         const FakeReply(200, {'id': 'f9'}),
       );
       api.on(
         'GET /api/tickets/1',
-        FakeReply(200, _dto('1', status: status, rowVersion: 5)),
+        FakeReply(
+          200,
+          _dto('1', status: status, rowVersion: 5, actions: actions),
+        ),
       );
       api.on('GET /api/tickets/1/follow-ups', const FakeReply(200, <Object>[]));
       api.on(
-        'POST /api/tickets/1/status',
-        FakeReply(200, _dto('1', status: 'EN_PROCESO')),
+        'POST /api/tickets/1/attend',
+        FakeReply(200, _dto('1', status: 'ATENDIDO')),
       );
     }
 
-    test('un comentario no cambia el estado', () async {
-      server(status: 'NUEVO');
+    test('un comentario no cambia el estado y lleva la hora', () async {
+      server(status: 'ABIERTO', actions: ['SEGUIMIENTO', 'ATENDER']);
       await repo.addFollowUp('1', followUp(TicketStatus.open));
       final body = api.to('POST /api/tickets/1/follow-ups').single.data as Map;
-      expect(body, {'kind': 'AVANCE', 'description': 'Se reviso'});
-      expect(api.to('POST /api/tickets/1/status'), isEmpty);
+      expect(body, {
+        'kind': 'AVANCE',
+        'description': 'Se reviso',
+        'attendedAt': '2026-10-23T18:00:00.000Z',
+      });
+      expect(api.to('POST /api/tickets/1/attend'), isEmpty);
     });
 
-    test('atender un ticket nuevo lo pone en proceso', () async {
-      server(status: 'ASIGNADO');
+    test('atendido deja el ticket ATENDIDO con su seguimiento', () async {
+      server(status: 'ABIERTO', actions: ['SEGUIMIENTO', 'ATENDER']);
       await repo.addFollowUp('1', followUp(TicketStatus.attended));
-      final status = api.to('POST /api/tickets/1/status').single.data as Map;
-      expect(status, {'status': 'EN_PROCESO', 'rowVersion': 5});
+      final attend = api.to('POST /api/tickets/1/attend').single.data as Map;
+      expect(attend, {'followUpId': 'f9', 'rowVersion': 5});
     });
 
-    test('si ya estaba en proceso, el seguimiento basta', () async {
-      server(status: 'EN_PROCESO');
-      await repo.addFollowUp('1', followUp(TicketStatus.attended));
-      expect(api.to('POST /api/tickets/1/status'), isEmpty);
-    });
+    test(
+      'sin ATENDER (sin validar u otro equipo) basta el seguimiento',
+      () async {
+        server(status: 'SIN_VALIDAR', actions: ['SEGUIMIENTO']);
+        await repo.addFollowUp('1', followUp(TicketStatus.attended));
+        expect(api.to('POST /api/tickets/1/attend'), isEmpty);
+      },
+    );
 
     test('sin texto manda una nota para que el servidor lo acepte', () async {
-      server(status: 'NUEVO');
+      server(status: 'ABIERTO');
       await repo.addFollowUp('1', followUp(TicketStatus.open, text: '  '));
       final body = api.to('POST /api/tickets/1/follow-ups').single.data as Map;
       expect(body['description'], isNotEmpty);
     });
 
     test('un cambio de estado que el servidor niega es un error', () async {
-      server(status: 'NUEVO');
+      server(status: 'ABIERTO', actions: ['ATENDER']);
       api.on(
-        'POST /api/tickets/1/status',
+        'POST /api/tickets/1/attend',
         const FakeReply(409, {'code': 'TRANSITION_NOT_ALLOWED'}),
       );
       await expectLater(
@@ -661,7 +720,7 @@ void main() {
     });
 
     test('las fotos del seguimiento van ligadas a el', () async {
-      server(status: 'EN_PROCESO');
+      server(status: 'ABIERTO');
       api.on(
         'POST /api/tickets/1/attachments',
         const FakeReply(200, {'id': 'a1'}),

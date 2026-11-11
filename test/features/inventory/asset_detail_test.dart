@@ -166,6 +166,66 @@ void main() {
       ]);
       expect(a.template!.field('longitud_m')!.origin, AttributeOrigin.layer);
       expect(a.externalAttributes!['identific'], 'OAE 381 MG 146+900');
+      // Un servidor anterior a M13 Parte 2 no manda la condicion: no se inventa.
+      expect(a.conditionInfo, isNull);
+    });
+
+    test('M13 Parte 2: condicion con su origen, marcas y ultimo monitoreo', () {
+      final a = ApiInventoryRepository.fromDetailResponse({
+        'asset': {..._asset(), 'conservationState': 'MALO'},
+        'children': [],
+        'condition': {
+          'applies': true,
+          'state': 'MALO',
+          'nativeValue': 'Precário',
+          'source': 'INSPECCION',
+          'sourceRef': 'IN-2026-000007',
+          'executedAt': '2026-10-02T14:00:00Z',
+          'cycle': 2,
+        },
+        'marks': {
+          'openFindings': 3,
+          'notLocatedAt': '2026-11-01T10:00:00Z',
+          'notLocatedNote': 'No está en el km',
+        },
+        'schedule': {
+          'lastInspectionAt': '2026-10-02T14:00:00Z',
+          'nextInspectionOn': '2027-01-15',
+        },
+      });
+
+      expect(a.condition, AssetCondition.poor);
+      final c = a.conditionInfo!;
+      expect(c.applies, isTrue);
+      expect(
+        (c.nativeValue, c.source, c.sourceRef, c.cycle),
+        ('Precário', 'INSPECCION', 'IN-2026-000007', 2),
+      );
+      expect(c.executedAt, DateTime.utc(2026, 10, 2, 14));
+      expect(c.openFindings, 3);
+      expect(c.notLocated, isTrue);
+      expect(c.nextInspectionOn, DateTime.utc(2027, 1, 15));
+      expect(a.lastInspectionAt, DateTime.utc(2026, 10, 2, 14));
+
+      // Un tipo sin condicion fisica se marca "No aplica", tambien en la lista.
+      final notApplicable = ApiInventoryRepository.fromDetailResponse({
+        'asset': _asset(),
+        'children': [],
+        'condition': {'applies': false, 'state': null},
+        'marks': {'openFindings': 0},
+      });
+      expect(notApplicable.conditionInfo!.applies, isFalse);
+      expect(
+        ApiInventoryRepository.fromListItem({
+          ..._asset(),
+          'conditionApplies': false,
+        }).conditionInfo!.applies,
+        isFalse,
+      );
+      expect(
+        ApiInventoryRepository.fromListItem(_asset()).conditionInfo,
+        isNull,
+      );
     });
 
     test('un servidor anterior al contrato sigue funcionando', () {

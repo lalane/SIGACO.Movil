@@ -60,6 +60,47 @@ class ApiMaintenanceRepository implements MaintenanceRepository {
   });
 
   @override
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final json = _asMap(
+        await _api.getJson(
+          '/api/maintenance/subsystems/${subsystemCode(indicator)}/summary',
+          query: {
+            if (from != null)
+              'from': DateTime(from.year, from.month, from.day).toUtc().toIso8601String(),
+            if (to != null)
+              'to': DateTime(to.year, to.month, to.day, 23, 59, 59).toUtc().toIso8601String(),
+          },
+        ),
+      );
+      return summaryFromDto(json);
+    } catch (_) {
+      // Un servidor sin el endpoint, sin red o sin permiso: la lista sigue sin conteos.
+      return null;
+    }
+  }
+
+  /// El resumen del servidor; la evaluacion es la mas reciente del año mas reciente.
+  static MaintenanceIndicatorSummary summaryFromDto(Map<String, Object?> json) {
+    int n(Object? v) => (v as num?)?.toInt() ?? 0;
+    final latest = json['latestEvaluation'];
+    final evaluation = latest is Map ? latest.cast<String, Object?>() : null;
+    return MaintenanceIndicatorSummary(
+      ticketsTotal: n(json['ticketsTotal']),
+      ticketsOpen: n(json['ticketsOpen']),
+      ticketsAttended: n(json['ticketsAttended']),
+      ticketsClosed: n(json['ticketsClosed']),
+      compliancePercent: (evaluation?['compliancePercent'] as num?)?.toDouble(),
+      evaluationYear: (evaluation?['concessionYear'] as num?)?.toInt(),
+      openProposals: n(json['openNonConformities']),
+    );
+  }
+
+  @override
   Future<List<MaintenanceIndicator>> visibleIndicators() async {
     try {
       final json = _asMap(await _api.getJson('/api/maintenance/navigation'));

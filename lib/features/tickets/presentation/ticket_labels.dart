@@ -5,6 +5,7 @@ import '../../../core/theme/status_colors.dart';
 import '../../../core/time/concession_zone.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/ticket.dart';
+import '../domain/entities/ticket_supervision.dart';
 import 'bloc/tickets_cubit.dart';
 
 String statusLabel(AppLocalizations l10n, TicketStatus s) => switch (s) {
@@ -20,9 +21,62 @@ Color statusColor(TicketStatus s) => switch (s) {
 
 String filterLabel(AppLocalizations l10n, TicketFilter f) => switch (f) {
   TicketFilter.all => l10n.ticketsFilterAll,
+  TicketFilter.unvalidated => l10n.ticketsFilterUnvalidated,
   TicketFilter.open => l10n.ticketsFilterOpen,
   TicketFilter.attended => l10n.ticketsFilterAttended,
+  TicketFilter.closed => l10n.ticketsFilterClosed,
+  TicketFilter.cancelled => l10n.ticketsFilterCancelled,
 };
+
+/// Los cinco estados del DTF M11 v0.3.
+String stageLabel(AppLocalizations l10n, TicketStage s) => switch (s) {
+  TicketStage.unvalidated => l10n.ticketStageUnvalidated,
+  TicketStage.open => l10n.ticketStatusOpen,
+  TicketStage.attended => l10n.ticketStatusAttended,
+  TicketStage.closed => l10n.ticketStageClosed,
+  TicketStage.cancelled => l10n.ticketStageCancelled,
+};
+
+/// Como en la web: lo que falta atender en rojo, lo atendido en ambar, lo
+/// cerrado en verde; lo cancelado en gris, porque ya no cuenta (RB-11-16).
+Color stageColor(TicketStage s) => switch (s) {
+  TicketStage.unvalidated || TicketStage.open => StatusColors.open,
+  TicketStage.attended => StatusColors.attended,
+  TicketStage.closed => StatusColors.closed,
+  TicketStage.cancelled => StatusColors.cancelled,
+};
+
+String assetConditionLabel(AppLocalizations l10n, TicketAssetCondition c) =>
+    switch (c) {
+      TicketAssetCondition.unchanged => l10n.ticketConditionUnchanged,
+      TicketAssetCondition.good => l10n.ticketConditionGood,
+      TicketAssetCondition.fair => l10n.ticketConditionFair,
+      TicketAssetCondition.poor => l10n.ticketConditionPoor,
+      TicketAssetCondition.veryPoor => l10n.ticketConditionVeryPoor,
+    };
+
+/// La condicion que llego del servidor, legible; el codigo si no se conoce.
+String assetConditionCodeLabel(AppLocalizations l10n, String code) {
+  for (final c in TicketAssetCondition.values) {
+    if (c.code == code) return assetConditionLabel(l10n, c);
+  }
+  return code;
+}
+
+String cancelReasonLabel(AppLocalizations l10n, TicketCancelReason r) =>
+    switch (r) {
+      TicketCancelReason.duplicate => l10n.ticketCancelDuplicate,
+      TicketCancelReason.improper => l10n.ticketCancelImproper,
+      TicketCancelReason.other => l10n.ticketCancelOther,
+    };
+
+/// El motivo de cancelacion que llego del servidor, legible.
+String cancelReasonCodeLabel(AppLocalizations l10n, String code) {
+  for (final r in TicketCancelReason.values) {
+    if (r.code == code) return cancelReasonLabel(l10n, r);
+  }
+  return code;
+}
 
 /// Cuanto falta (o cuanto se paso) del vencimiento: horas hasta dos dias y
 /// dias despues.

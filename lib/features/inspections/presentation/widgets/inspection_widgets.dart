@@ -108,7 +108,7 @@ class InspectionCard extends StatelessWidget {
                       ),
                       SizedBox(width: r.s(6)),
                       Text(
-                        moduleDay(inspection.scheduledAt!, zone),
+                        moduleCalendarDay(inspection.scheduledAt!),
                         style: TextStyle(color: moduleMuted, fontSize: r.s(14)),
                       ),
                     ],

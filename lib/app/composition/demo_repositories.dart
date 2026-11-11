@@ -21,9 +21,12 @@ import '../../features/map/domain/entities/geo_point.dart';
 import '../../features/map/domain/entities/map_pin.dart';
 import '../../features/map/domain/entities/nearby_pin.dart';
 import '../../features/map/domain/entities/road_segment.dart';
+import '../../features/map/domain/entities/segment_pavement.dart';
 import '../../features/map/domain/repositories/map_repository.dart';
 import '../../features/map/domain/repositories/road_segments_repository.dart';
+import '../../features/map/domain/repositories/segment_pavement_source.dart';
 import '../../features/tickets/domain/entities/ticket.dart';
+import '../../features/tickets/domain/entities/ticket_supervision.dart';
 import '../../features/tickets/domain/repositories/tickets_repository.dart';
 import '../../features/works/domain/entities/public_work.dart';
 import '../../features/works/domain/repositories/works_repository.dart';
@@ -33,7 +36,12 @@ import '../../features/works/domain/repositories/works_repository.dart';
 /// otra al momento, sin reiniciar la app ni cerrar la sesion.
 
 class DemoAwareTickets
-    implements TicketsRepository, TicketFailureSource, TicketPlacementSource {
+    implements
+        TicketsRepository,
+        TicketFailureSource,
+        TicketPlacementSource,
+        TicketRoadSource,
+        TicketSupervision {
   const DemoAwareTickets({
     required this.real,
     required this.sample,
@@ -77,6 +85,45 @@ class DemoAwareTickets
         ? (r as TicketPlacementSource).place(longitude, latitude)
         : const TicketPlacement.unknown();
   }
+
+  @override
+  Future<List<TicketRoad>> roads() async {
+    final r = _r;
+    return r is TicketRoadSource
+        ? (r as TicketRoadSource).roads()
+        : const <TicketRoad>[];
+  }
+
+  /// La fuente activa, si sabe hacer las acciones del Supervisor.
+  TicketSupervision get _supervision {
+    final r = _r;
+    if (r is TicketSupervision) return r as TicketSupervision;
+    throw const TicketsException(TicketsError.notAvailable);
+  }
+
+  @override
+  Future<List<TicketAssignableCompany>> assignableTeams() async =>
+      _supervision.assignableTeams();
+
+  @override
+  Future<Ticket> assign(Ticket ticket, TicketAssignment assignment) async =>
+      _supervision.assign(ticket, assignment);
+
+  @override
+  Future<Ticket> close(Ticket ticket, TicketClosing closing) async =>
+      _supervision.close(ticket, closing);
+
+  @override
+  Future<Ticket> returnToOpen(Ticket ticket, String reason) async =>
+      _supervision.returnToOpen(ticket, reason);
+
+  @override
+  Future<Ticket> reopen(Ticket ticket, String reason) async =>
+      _supervision.reopen(ticket, reason);
+
+  @override
+  Future<Ticket> cancel(Ticket ticket, TicketCancellation cancellation) async =>
+      _supervision.cancel(ticket, cancellation);
 }
 
 class DemoAwareWorks implements WorksRepository {
@@ -160,6 +207,13 @@ class DemoAwareMaintenance implements MaintenanceRepository {
   @override
   Future<List<MaintenanceIndicator>> visibleIndicators() =>
       _r.visibleIndicators();
+
+  @override
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  }) => _r.summary(indicator, from: from, to: to);
 
   @override
   Future<MaintenanceOrder> addProgress(
@@ -398,7 +452,8 @@ class DemoAwareMap
   }
 }
 
-class DemoAwareRoadSegments implements RoadSegmentsRepository {
+class DemoAwareRoadSegments
+    implements RoadSegmentsRepository, SegmentPavementSource {
   const DemoAwareRoadSegments({
     required this.real,
     required this.sample,
@@ -411,6 +466,16 @@ class DemoAwareRoadSegments implements RoadSegmentsRepository {
 
   @override
   Future<List<RoadSegment>> segments() => (demo() ? sample : real).segments();
+
+  /// Con datos de ejemplo no hay pavimento: el boton no se muestra.
+  @override
+  Future<PavementLayer> pavement() {
+    final r = demo() ? sample : real;
+    if (r is! SegmentPavementSource) {
+      return Future.error(const MapException(MapError.notAvailable));
+    }
+    return (r as SegmentPavementSource).pavement();
+  }
 }
 
 class DemoAwareCompliance implements ComplianceSource {

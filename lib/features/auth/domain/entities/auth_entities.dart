@@ -30,6 +30,7 @@ class CurrentUser extends Equatable {
     this.jobTitle,
     this.companyName,
     this.teamName,
+    this.accessValidUntil,
   });
 
   final String id;
@@ -43,8 +44,12 @@ class CurrentUser extends Equatable {
   final String? jobTitle;
   final String? companyName;
 
-  /// El equipo (team) de la empresa al que pertenece, en la concesion activa.
+  /// Los equipos de la empresa a los que pertenece en la concesion activa,
+  /// separados por coma (acuerdo A2: puede estar en varios).
   final String? teamName;
+
+  /// Ultimo dia de su acceso a la concesion activa (AAAA-MM-DD); nulo: no vence.
+  final String? accessValidUntil;
 
   @override
   List<Object?> get props => [
@@ -56,6 +61,7 @@ class CurrentUser extends Equatable {
     jobTitle,
     companyName,
     teamName,
+    accessValidUntil,
   ];
 }
 
@@ -268,6 +274,10 @@ enum AuthError {
   validation,
   passwordMismatch,
   biometricNotConfigured,
+
+  /// Todos sus accesos vencieron (acuerdo A8): sigue registrado, pero no entra
+  /// hasta que un administrador renueve su vigencia.
+  accessExpired,
 }
 
 class AuthException implements Exception {

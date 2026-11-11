@@ -9,6 +9,7 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_failure.dart';
 import '../../../../core/geo/geojson_anchor.dart';
 import '../../domain/entities/asset_capture.dart';
+import '../../domain/entities/asset_condition_info.dart';
 import '../../domain/entities/asset_template.dart';
 import '../../domain/entities/inventory_asset.dart';
 import '../../domain/repositories/inventory_repository.dart';
@@ -489,6 +490,11 @@ class ApiInventoryRepository
       direction: _text(m['direction']),
       latitude: anchor?.$1,
       longitude: anchor?.$2,
+      lastInspectionAt: _moment(m['lastInspectionAt']),
+      // En la lista basta saber si el tipo lleva condicion ("No aplica").
+      conditionInfo: m['conditionApplies'] == false
+          ? const AssetConditionInfo(applies: false)
+          : null,
     );
   }
 
@@ -510,6 +516,40 @@ class ApiInventoryRepository
       externalAttributes: external,
       attachmentCount: InventoryJson.integer(json['attachmentCount']),
       history: historyCounts(json['operationalHistory']),
+      conditionInfo: conditionInfo(json, asset),
+      lastInspectionAt: _moment(
+        InventoryJson.map(json['schedule'])?['lastInspectionAt'],
+      ),
+    );
+  }
+
+  /// La condicion de la ficha (M13 Parte 2: `condition`, `marks` y `schedule`);
+  /// null si el servidor es anterior y no la manda.
+  static AssetConditionInfo? conditionInfo(
+    Map<String, dynamic> json,
+    Map<String, dynamic> asset,
+  ) {
+    final condition = InventoryJson.map(json['condition']);
+    final marks = InventoryJson.map(json['marks']);
+    final schedule = InventoryJson.map(json['schedule']);
+    if (condition == null && marks == null) return null;
+    return AssetConditionInfo(
+      applies: (condition?['applies'] ?? asset['conditionApplies']) != false,
+      nativeValue: _text(
+        condition?['nativeValue'] ?? asset['conservationNative'],
+      ),
+      source: _text(condition?['source'] ?? asset['conservationStateSource']),
+      sourceRef: _text(condition?['sourceRef']),
+      executedAt: _moment(
+        condition?['executedAt'] ?? asset['conservationStateAt'],
+      ),
+      cycle: InventoryJson.integer(condition?['cycle']),
+      openFindings: InventoryJson.integer(marks?['openFindings']) ?? 0,
+      notLocatedAt: _moment(marks?['notLocatedAt'] ?? asset['notLocatedAt']),
+      notLocatedNote: _text(
+        marks?['notLocatedNote'] ?? asset['notLocatedNote'],
+      ),
+      nextInspectionOn: _day(schedule?['nextInspectionOn']),
     );
   }
 
@@ -520,6 +560,8 @@ class ApiInventoryRepository
     Map<String, dynamic>? externalAttributes,
     int? attachmentCount,
     AssetHistoryCounts? history,
+    AssetConditionInfo? conditionInfo,
+    DateTime? lastInspectionAt,
   }) {
     final code = (m['code'] as String?)?.trim() ?? '';
     final description = _text(m['description']);
@@ -560,6 +602,8 @@ class ApiInventoryRepository
       templateNumber: InventoryJson.integer(m['templateNumber']),
       attachmentCount: attachmentCount,
       history: history,
+      conditionInfo: conditionInfo,
+      lastInspectionAt: lastInspectionAt,
     );
   }
 
@@ -599,6 +643,10 @@ class ApiInventoryRepository
   }
 
   static double? _num(Object? v) => v is num ? v.toDouble() : null;
+
+  /// Un instante ISO del servidor, en UTC.
+  static DateTime? _moment(Object? v) =>
+      v is String ? DateTime.tryParse(v)?.toUtc() : null;
 
   static DateTime? _day(Object? v) {
     if (v is! String) return null;

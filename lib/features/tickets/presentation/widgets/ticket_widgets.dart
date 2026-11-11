@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/responsive/responsive.dart';
+import '../../../../core/session/active_concession.dart';
 import '../../../../core/ui/module_style.dart';
 import '../../../../core/ui/module_widgets.dart';
 import '../../../../core/time/concession_zone.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/ticket.dart';
 import '../ticket_labels.dart';
 
-/// La etiqueta de estado de un ticket.
+/// La etiqueta del estado de un ticket en el flujo del DTF (sin validar,
+/// abierto, atendido, cerrado o cancelado).
+class TicketStagePill extends StatelessWidget {
+  const TicketStagePill({super.key, required this.stage, this.large = false});
+
+  final TicketStage stage;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) => ModuleStatusPill(
+    label: stageLabel(AppLocalizations.of(context), stage),
+    color: stageColor(stage),
+    large: large,
+  );
+}
+
+/// La etiqueta de estado de un seguimiento (abierto o atendido).
 class TicketStatusPill extends StatelessWidget {
   const TicketStatusPill({super.key, required this.status, this.large = false});
 
@@ -28,13 +43,8 @@ class TicketStatusPill extends StatelessWidget {
 /// La tarjeta del historial: estado, vencimiento, foto con el titulo encima y
 /// quien lo levanto.
 /// La concesion activa de la sesion, o null si no hay sesion en el arbol.
-String? activeConcessionOf(BuildContext context) {
-  try {
-    return context.watch<AuthBloc>().state.activeConcessionName;
-  } on ProviderNotFoundException {
-    return null;
-  }
-}
+String? activeConcessionOf(BuildContext context) =>
+    ActiveConcessionScope.nameOf(context);
 
 class TicketCard extends StatelessWidget {
   const TicketCard({
@@ -54,8 +64,9 @@ class TicketCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final r = context.responsive;
-    final color = statusColor(ticket.status);
-    final due = ticket.timeToDue(now);
+    final color = stageColor(ticket.stage);
+    // El vencimiento solo cuenta mientras falta atenderlo (el SLA corre).
+    final due = ticket.stage.pending ? ticket.timeToDue(now) : null;
     final overdue = due != null && due.isNegative;
     final dueColor = overdue ? Colors.redAccent.shade100 : color;
     final radius = BorderRadius.circular(r.s(28));
@@ -116,7 +127,7 @@ class TicketCard extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              TicketStatusPill(status: ticket.status),
+                              TicketStagePill(stage: ticket.stage),
                             ],
                           ),
                         ),

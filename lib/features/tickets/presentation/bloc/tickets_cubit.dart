@@ -6,17 +6,22 @@ import '../../domain/repositories/tickets_repository.dart';
 
 enum TicketsStatus { loading, ready, failure }
 
-/// Las pestanas de estado del historial.
+/// Las pestanas de estado del historial: todos y los cinco estados del DTF M11
+/// v0.3 (HU-11-24).
 enum TicketFilter {
-  all,
-  open,
-  attended;
+  all(null),
+  unvalidated(TicketStage.unvalidated),
+  open(TicketStage.open),
+  attended(TicketStage.attended),
+  closed(TicketStage.closed),
+  cancelled(TicketStage.cancelled);
 
-  bool accepts(Ticket t) => switch (this) {
-    TicketFilter.all => true,
-    TicketFilter.open => t.status == TicketStatus.open,
-    TicketFilter.attended => t.status == TicketStatus.attended,
-  };
+  const TicketFilter(this.stage);
+
+  /// El estado que deja ver; null = todos.
+  final TicketStage? stage;
+
+  bool accepts(Ticket t) => stage == null || t.stage == stage;
 }
 
 class TicketsState extends Equatable {

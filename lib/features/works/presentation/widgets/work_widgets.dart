@@ -118,9 +118,9 @@ class WorkCard extends StatelessWidget {
                       Text(
                         [
                           if (work.startDate != null)
-                            moduleDay(work.startDate!, zone),
+                            moduleCalendarDay(work.startDate!),
                           if (work.endDate != null)
-                            moduleDay(work.endDate!, zone),
+                            moduleCalendarDay(work.endDate!),
                         ].join(' → '),
                         style: TextStyle(color: moduleMuted, fontSize: r.s(14)),
                       ),

@@ -296,6 +296,12 @@ abstract class AppLocalizations {
   /// **'No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.'**
   String get errNetwork;
 
+  /// No description provided for @errAccessExpired.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu acceso a SIGACO venció. Pide a tu administrador que lo renueve.'**
+  String get errAccessExpired;
+
   /// No description provided for @errValidation.
   ///
   /// In es, this message translates to:
@@ -2456,6 +2462,72 @@ abstract class AppLocalizations {
   /// **'{value} km'**
   String mapDistanceKm(String value);
 
+  /// No description provided for @mapLayerPavement.
+  ///
+  /// In es, this message translates to:
+  /// **'Pavimento (IRI) por tramo'**
+  String get mapLayerPavement;
+
+  /// No description provided for @mapPavementGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Bueno'**
+  String get mapPavementGood;
+
+  /// No description provided for @mapPavementFair.
+  ///
+  /// In es, this message translates to:
+  /// **'Regular'**
+  String get mapPavementFair;
+
+  /// No description provided for @mapPavementBad.
+  ///
+  /// In es, this message translates to:
+  /// **'Malo'**
+  String get mapPavementBad;
+
+  /// No description provided for @mapPavementNoData.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin mediciones'**
+  String get mapPavementNoData;
+
+  /// No description provided for @mapPavementLegend.
+  ///
+  /// In es, this message translates to:
+  /// **'{label} por tramo · {cycle} · umbrales provisionales'**
+  String mapPavementLegend(String label, String cycle);
+
+  /// No description provided for @mapPavementSavedAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Pavimento guardado el {date}'**
+  String mapPavementSavedAt(String date);
+
+  /// No description provided for @mapPavementUnavailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Su perfil no ve la capa de indicadores y pavimento.'**
+  String get mapPavementUnavailable;
+
+  /// No description provided for @mapPavementFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar el pavimento. Intente de nuevo.'**
+  String get mapPavementFailed;
+
+  /// No description provided for @mapPavementSegment.
+  ///
+  /// In es, this message translates to:
+  /// **'{label}: {value} {unit} · {level} · {coverage} % del tramo medido'**
+  String mapPavementSegment(
+    String label,
+    String value,
+    String unit,
+    String level,
+    String coverage,
+  );
+
   /// No description provided for @mapDetailReference.
   ///
   /// In es, this message translates to:
@@ -3434,6 +3506,12 @@ abstract class AppLocalizations {
   /// **'Equipo'**
   String get fieldTeam;
 
+  /// No description provided for @fieldAccessValidUntil.
+  ///
+  /// In es, this message translates to:
+  /// **'Acceso vigente hasta'**
+  String get fieldAccessValidUntil;
+
   /// No description provided for @profilePhotoChange.
   ///
   /// In es, this message translates to:
@@ -3661,6 +3739,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{percent}% del total'**
   String maintStatShare(String percent);
+
+  /// No description provided for @maintTicketsTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets'**
+  String get maintTicketsTotal;
+
+  /// No description provided for @maintTicketsPeriod.
+  ///
+  /// In es, this message translates to:
+  /// **'Del periodo'**
+  String get maintTicketsPeriod;
+
+  /// No description provided for @maintTicketsOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abiertos'**
+  String get maintTicketsOpen;
+
+  /// No description provided for @maintTicketsAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendidos'**
+  String get maintTicketsAttended;
+
+  /// No description provided for @maintTicketsClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrados'**
+  String get maintTicketsClosed;
+
+  /// No description provided for @maintTicketsCaption.
+  ///
+  /// In es, this message translates to:
+  /// **'Tickets (M11)'**
+  String get maintTicketsCaption;
+
+  /// No description provided for @maintPerCompliance.
+  ///
+  /// In es, this message translates to:
+  /// **'PER {percent}% · año {year}'**
+  String maintPerCompliance(String percent, String year);
 
   /// No description provided for @maintFilterState.
   ///
@@ -4237,6 +4357,72 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Último monitoreo'**
   String get invLastInspection;
+
+  /// No description provided for @invNextInspection.
+  ///
+  /// In es, this message translates to:
+  /// **'Próximo monitoreo'**
+  String get invNextInspection;
+
+  /// No description provided for @invConditionNotApplicable.
+  ///
+  /// In es, this message translates to:
+  /// **'No aplica'**
+  String get invConditionNotApplicable;
+
+  /// No description provided for @invConditionOrigin.
+  ///
+  /// In es, this message translates to:
+  /// **'Origen de la condición'**
+  String get invConditionOrigin;
+
+  /// No description provided for @invOpenFindings.
+  ///
+  /// In es, this message translates to:
+  /// **'Hallazgos abiertos'**
+  String get invOpenFindings;
+
+  /// No description provided for @invNotLocated.
+  ///
+  /// In es, this message translates to:
+  /// **'Reportado no localizado en campo el {date}'**
+  String invNotLocated(String date);
+
+  /// No description provided for @invConditionSourceWebgis.
+  ///
+  /// In es, this message translates to:
+  /// **'WebGIS'**
+  String get invConditionSourceWebgis;
+
+  /// No description provided for @invConditionSourceInspection.
+  ///
+  /// In es, this message translates to:
+  /// **'Monitoreo'**
+  String get invConditionSourceInspection;
+
+  /// No description provided for @invConditionSourceManual.
+  ///
+  /// In es, this message translates to:
+  /// **'Ajuste a mano'**
+  String get invConditionSourceManual;
+
+  /// No description provided for @invConditionSourceTicket.
+  ///
+  /// In es, this message translates to:
+  /// **'Cierre de registro'**
+  String get invConditionSourceTicket;
+
+  /// No description provided for @invConditionSourceMaintenance.
+  ///
+  /// In es, this message translates to:
+  /// **'Mantenimiento'**
+  String get invConditionSourceMaintenance;
+
+  /// No description provided for @invConditionSourceInitial.
+  ///
+  /// In es, this message translates to:
+  /// **'Carga inicial'**
+  String get invConditionSourceInitial;
 
   /// No description provided for @invCoordinates.
   ///
@@ -7070,6 +7256,24 @@ abstract class AppLocalizations {
   /// **'Cancelado'**
   String get invHistTkCancelled;
 
+  /// No description provided for @invHistTkUnvalidated.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin validar'**
+  String get invHistTkUnvalidated;
+
+  /// No description provided for @invHistTkOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abierto'**
+  String get invHistTkOpen;
+
+  /// No description provided for @invHistTkAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendido'**
+  String get invHistTkAttended;
+
   /// No description provided for @invHistInPending.
   ///
   /// In es, this message translates to:
@@ -7147,6 +7351,1122 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Subsistema'**
   String get mapFilterSubsystem;
+
+  /// No description provided for @defTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Definiciones pendientes'**
+  String get defTitle;
+
+  /// No description provided for @defSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Supuestos con los que SIGACO ya funciona y TEKIA debe confirmar'**
+  String get defSubtitle;
+
+  /// No description provided for @defFilterPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin veredicto'**
+  String get defFilterPending;
+
+  /// No description provided for @defFilterAll.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas'**
+  String get defFilterAll;
+
+  /// No description provided for @defFilterModule.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo de este módulo'**
+  String get defFilterModule;
+
+  /// No description provided for @defSearchHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Código, pregunta o supuesto'**
+  String get defSearchHint;
+
+  /// No description provided for @defSearchTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get defSearchTooltip;
+
+  /// No description provided for @defEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay definiciones con este filtro.'**
+  String get defEmpty;
+
+  /// No description provided for @defEmptyAll.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay definiciones pendientes.'**
+  String get defEmptyAll;
+
+  /// No description provided for @defQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta'**
+  String get defQuestion;
+
+  /// No description provided for @defAssumption.
+  ///
+  /// In es, this message translates to:
+  /// **'Lo que hace hoy SIGACO'**
+  String get defAssumption;
+
+  /// No description provided for @defIfVetoed.
+  ///
+  /// In es, this message translates to:
+  /// **'Si TEKIA dice otra cosa'**
+  String get defIfVetoed;
+
+  /// No description provided for @defSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Fuente'**
+  String get defSource;
+
+  /// No description provided for @defHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial'**
+  String get defHistory;
+
+  /// No description provided for @defNoAnswers.
+  ///
+  /// In es, this message translates to:
+  /// **'Nadie la ha contestado todavía.'**
+  String get defNoAnswers;
+
+  /// No description provided for @defAgree.
+  ///
+  /// In es, this message translates to:
+  /// **'De acuerdo'**
+  String get defAgree;
+
+  /// No description provided for @defChange.
+  ///
+  /// In es, this message translates to:
+  /// **'No: así es…'**
+  String get defChange;
+
+  /// No description provided for @defComment.
+  ///
+  /// In es, this message translates to:
+  /// **'Comentar'**
+  String get defComment;
+
+  /// No description provided for @defChangeHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Así es como debe funcionar'**
+  String get defChangeHint;
+
+  /// No description provided for @defCommentHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Comentario'**
+  String get defCommentHint;
+
+  /// No description provided for @defSend.
+  ///
+  /// In es, this message translates to:
+  /// **'Enviar'**
+  String get defSend;
+
+  /// No description provided for @defSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta guardada'**
+  String get defSaved;
+
+  /// No description provided for @defDecideHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Aceptar el supuesto o pedir el cambio lo hace quien administra; usted puede comentarla.'**
+  String get defDecideHint;
+
+  /// No description provided for @defRetiredNote.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirada: ya no aplica y no se contesta.'**
+  String get defRetiredNote;
+
+  /// No description provided for @defTextRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escriba el texto.'**
+  String get defTextRequired;
+
+  /// No description provided for @defStatusOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'Abierta'**
+  String get defStatusOpen;
+
+  /// No description provided for @defStatusAnswered.
+  ///
+  /// In es, this message translates to:
+  /// **'Respondida'**
+  String get defStatusAnswered;
+
+  /// No description provided for @defStatusAccepted.
+  ///
+  /// In es, this message translates to:
+  /// **'Aceptada'**
+  String get defStatusAccepted;
+
+  /// No description provided for @defStatusChangeRequested.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambio solicitado'**
+  String get defStatusChangeRequested;
+
+  /// No description provided for @defStatusRetired.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirada'**
+  String get defStatusRetired;
+
+  /// No description provided for @defPriorityHigh.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta'**
+  String get defPriorityHigh;
+
+  /// No description provided for @defPriorityMedium.
+  ///
+  /// In es, this message translates to:
+  /// **'Media'**
+  String get defPriorityMedium;
+
+  /// No description provided for @defPriorityLow.
+  ///
+  /// In es, this message translates to:
+  /// **'Baja'**
+  String get defPriorityLow;
+
+  /// No description provided for @defKindAgree.
+  ///
+  /// In es, this message translates to:
+  /// **'De acuerdo con el supuesto'**
+  String get defKindAgree;
+
+  /// No description provided for @defKindChange.
+  ///
+  /// In es, this message translates to:
+  /// **'No: así es…'**
+  String get defKindChange;
+
+  /// No description provided for @defKindComment.
+  ///
+  /// In es, this message translates to:
+  /// **'Comentario'**
+  String get defKindComment;
+
+  /// No description provided for @defKindReopen.
+  ///
+  /// In es, this message translates to:
+  /// **'Reabierta'**
+  String get defKindReopen;
+
+  /// No description provided for @defKindUpdated.
+  ///
+  /// In es, this message translates to:
+  /// **'Supuesto actualizado'**
+  String get defKindUpdated;
+
+  /// No description provided for @defKindRetired.
+  ///
+  /// In es, this message translates to:
+  /// **'Retirada'**
+  String get defKindRetired;
+
+  /// No description provided for @defKindRestored.
+  ///
+  /// In es, this message translates to:
+  /// **'Reincorporada'**
+  String get defKindRestored;
+
+  /// No description provided for @defSystem.
+  ///
+  /// In es, this message translates to:
+  /// **'Sistema'**
+  String get defSystem;
+
+  /// No description provided for @defFromApp.
+  ///
+  /// In es, this message translates to:
+  /// **'desde la app'**
+  String get defFromApp;
+
+  /// No description provided for @defModuleNotice.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay {count} definiciones sin veredicto de este módulo'**
+  String defModuleNotice(int count);
+
+  /// No description provided for @defView.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver'**
+  String get defView;
+
+  /// No description provided for @defErrorNetwork.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión con SIGACO. Revise su red e intente de nuevo.'**
+  String get defErrorNetwork;
+
+  /// No description provided for @defErrorPermission.
+  ///
+  /// In es, this message translates to:
+  /// **'Su perfil no puede hacer eso.'**
+  String get defErrorPermission;
+
+  /// No description provided for @defErrorNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'La definición ya no existe.'**
+  String get defErrorNotFound;
+
+  /// No description provided for @defErrorRetired.
+  ///
+  /// In es, this message translates to:
+  /// **'La definición está retirada: ya no se contesta.'**
+  String get defErrorRetired;
+
+  /// No description provided for @defErrorServer.
+  ///
+  /// In es, this message translates to:
+  /// **'SIGACO no pudo responder. Intente de nuevo.'**
+  String get defErrorServer;
+
+  /// No description provided for @maintPerformanceAction.
+  ///
+  /// In es, this message translates to:
+  /// **'Desempeño del indicador'**
+  String get maintPerformanceAction;
+
+  /// No description provided for @maintPerformanceTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Desempeño'**
+  String get maintPerformanceTitle;
+
+  /// No description provided for @maintPerformanceHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Cálculo del indicador a hoy con los datos de SIGACO. Aprobar eventos, expurgos y cierres se hace en la web.'**
+  String get maintPerformanceHint;
+
+  /// No description provided for @maintEventsTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Eventos de indisponibilidad'**
+  String get maintEventsTitle;
+
+  /// No description provided for @maintEventsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin eventos registrados.'**
+  String get maintEventsEmpty;
+
+  /// No description provided for @maintEventsOpen.
+  ///
+  /// In es, this message translates to:
+  /// **'abierto'**
+  String get maintEventsOpen;
+
+  /// No description provided for @maintEventsCreate.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar indisponibilidad'**
+  String get maintEventsCreate;
+
+  /// No description provided for @maintEventsAsset.
+  ///
+  /// In es, this message translates to:
+  /// **'Equipo o sistema (código)'**
+  String get maintEventsAsset;
+
+  /// No description provided for @maintEventsStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicio de la indisponibilidad'**
+  String get maintEventsStart;
+
+  /// No description provided for @maintEventsCause.
+  ///
+  /// In es, this message translates to:
+  /// **'Causa'**
+  String get maintEventsCause;
+
+  /// No description provided for @maintEventsApprovalHint.
+  ///
+  /// In es, this message translates to:
+  /// **'El evento queda pendiente hasta que el supervisor lo apruebe con la evidencia en la web.'**
+  String get maintEventsApprovalHint;
+
+  /// No description provided for @maintEventsRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Elija el equipo y escriba la causa.'**
+  String get maintEventsRequired;
+
+  /// No description provided for @maintEventsFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo registrar el evento.'**
+  String get maintEventsFailed;
+
+  /// No description provided for @maintEventsSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get maintEventsSave;
+
+  /// No description provided for @maintStatusComplies.
+  ///
+  /// In es, this message translates to:
+  /// **'Cumple'**
+  String get maintStatusComplies;
+
+  /// No description provided for @maintStatusNotComplies.
+  ///
+  /// In es, this message translates to:
+  /// **'No cumple'**
+  String get maintStatusNotComplies;
+
+  /// No description provided for @maintStatusPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de validación'**
+  String get maintStatusPending;
+
+  /// No description provided for @maintStatusNotYet.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no exigible'**
+  String get maintStatusNotYet;
+
+  /// No description provided for @maintStatusNotEvaluated.
+  ///
+  /// In es, this message translates to:
+  /// **'No evaluado'**
+  String get maintStatusNotEvaluated;
+
+  /// No description provided for @captSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar borrador'**
+  String get captSave;
+
+  /// No description provided for @captFinalize.
+  ///
+  /// In es, this message translates to:
+  /// **'Finalizar'**
+  String get captFinalize;
+
+  /// No description provided for @captStart.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciar captura'**
+  String get captStart;
+
+  /// No description provided for @captAccept.
+  ///
+  /// In es, this message translates to:
+  /// **'Aceptar'**
+  String get captAccept;
+
+  /// No description provided for @captReject.
+  ///
+  /// In es, this message translates to:
+  /// **'Rechazar'**
+  String get captReject;
+
+  /// No description provided for @captRejectReason.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo del rechazo'**
+  String get captRejectReason;
+
+  /// No description provided for @captMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Falta para finalizar ({count})'**
+  String captMissing(int count);
+
+  /// No description provided for @captCondition.
+  ///
+  /// In es, this message translates to:
+  /// **'Condición'**
+  String get captCondition;
+
+  /// No description provided for @captUnrated.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin evaluar'**
+  String get captUnrated;
+
+  /// No description provided for @captPrevious.
+  ///
+  /// In es, this message translates to:
+  /// **'Anterior: {value}'**
+  String captPrevious(String value);
+
+  /// No description provided for @captFromAsset.
+  ///
+  /// In es, this message translates to:
+  /// **'Dato del activo'**
+  String get captFromAsset;
+
+  /// No description provided for @captAddPhoto.
+  ///
+  /// In es, this message translates to:
+  /// **'Tomar foto'**
+  String get captAddPhoto;
+
+  /// No description provided for @captPhotoPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Por enviar'**
+  String get captPhotoPending;
+
+  /// No description provided for @captNoPhotos.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fotos'**
+  String get captNoPhotos;
+
+  /// No description provided for @captAddRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar fila'**
+  String get captAddRow;
+
+  /// No description provided for @captRemoveRow.
+  ///
+  /// In es, this message translates to:
+  /// **'Quitar'**
+  String get captRemoveRow;
+
+  /// No description provided for @captFindings.
+  ///
+  /// In es, this message translates to:
+  /// **'Hallazgos'**
+  String get captFindings;
+
+  /// No description provided for @captAddFinding.
+  ///
+  /// In es, this message translates to:
+  /// **'Registrar hallazgo'**
+  String get captAddFinding;
+
+  /// No description provided for @captFindingDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get captFindingDescription;
+
+  /// No description provided for @captFindingFailure.
+  ///
+  /// In es, this message translates to:
+  /// **'Falla de la Matriz'**
+  String get captFindingFailure;
+
+  /// No description provided for @captFindingNoFailure.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin falla (elige la severidad)'**
+  String get captFindingNoFailure;
+
+  /// No description provided for @captFindingSeverity.
+  ///
+  /// In es, this message translates to:
+  /// **'Severidad'**
+  String get captFindingSeverity;
+
+  /// No description provided for @captImmediate.
+  ///
+  /// In es, this message translates to:
+  /// **'Plazo «Imediato»: al finalizar se crea el ticket.'**
+  String get captImmediate;
+
+  /// No description provided for @captPendingSync.
+  ///
+  /// In es, this message translates to:
+  /// **'Hay cambios guardados en el teléfono: se envían solos al volver la señal.'**
+  String get captPendingSync;
+
+  /// No description provided for @captSavedOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardado en el teléfono: se enviará al volver la señal.'**
+  String get captSavedOffline;
+
+  /// No description provided for @captSaved.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrador guardado.'**
+  String get captSaved;
+
+  /// No description provided for @captFinalized.
+  ///
+  /// In es, this message translates to:
+  /// **'Inspección finalizada.'**
+  String get captFinalized;
+
+  /// No description provided for @captFinalizedOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Finalizada en el teléfono: se enviará al volver la señal.'**
+  String get captFinalizedOffline;
+
+  /// No description provided for @captJustifyTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ubicación fuera de la tolerancia'**
+  String get captJustifyTitle;
+
+  /// No description provided for @captConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'Confirmar'**
+  String get captConfirm;
+
+  /// No description provided for @captCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get captCancel;
+
+  /// No description provided for @captYes.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get captYes;
+
+  /// No description provided for @captNo.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get captNo;
+
+  /// No description provided for @captError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar la acción.'**
+  String get captError;
+
+  /// No description provided for @captOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión y sin copia en el teléfono: abre la inspección una vez con señal.'**
+  String get captOffline;
+
+  /// No description provided for @captTemplateVersion.
+  ///
+  /// In es, this message translates to:
+  /// **'Plantilla v{version}'**
+  String captTemplateVersion(int version);
+
+  /// No description provided for @captCorrection.
+  ///
+  /// In es, this message translates to:
+  /// **'Corrección pedida: {reason}'**
+  String captCorrection(String reason);
+
+  /// No description provided for @captNotEditable.
+  ///
+  /// In es, this message translates to:
+  /// **'La inspección ya no se puede modificar.'**
+  String get captNotEditable;
+
+  /// No description provided for @captPermission.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no permite esta acción.'**
+  String get captPermission;
+
+  /// No description provided for @captDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo.'**
+  String get captDone;
+
+  /// No description provided for @captRejected.
+  ///
+  /// In es, this message translates to:
+  /// **'Rechazaste la inspección: vuelve a pendiente.'**
+  String get captRejected;
+
+  /// No description provided for @captRetry.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get captRetry;
+
+  /// No description provided for @captRoadSection.
+  ///
+  /// In es, this message translates to:
+  /// **'Inspección de tramo'**
+  String get captRoadSection;
+
+  /// No description provided for @captConform.
+  ///
+  /// In es, this message translates to:
+  /// **'Conforme'**
+  String get captConform;
+
+  /// No description provided for @captNonConform.
+  ///
+  /// In es, this message translates to:
+  /// **'No conforme'**
+  String get captNonConform;
+
+  /// No description provided for @captNotApplicable.
+  ///
+  /// In es, this message translates to:
+  /// **'No aplica'**
+  String get captNotApplicable;
+
+  /// No description provided for @captWithTicket.
+  ///
+  /// In es, this message translates to:
+  /// **'Con ticket'**
+  String get captWithTicket;
+
+  /// No description provided for @captStatusPending.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente'**
+  String get captStatusPending;
+
+  /// No description provided for @captStatusAssigned.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignada'**
+  String get captStatusAssigned;
+
+  /// No description provided for @captStatusInProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'En proceso'**
+  String get captStatusInProgress;
+
+  /// No description provided for @captStatusAttended.
+  ///
+  /// In es, this message translates to:
+  /// **'Atendida'**
+  String get captStatusAttended;
+
+  /// No description provided for @captStatusInReview.
+  ///
+  /// In es, this message translates to:
+  /// **'En revisión'**
+  String get captStatusInReview;
+
+  /// No description provided for @captStatusClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrada'**
+  String get captStatusClosed;
+
+  /// No description provided for @captStatusCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelada'**
+  String get captStatusCancelled;
+
+  /// No description provided for @ticketsFilterUnvalidated.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin validar'**
+  String get ticketsFilterUnvalidated;
+
+  /// No description provided for @ticketsFilterClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrados'**
+  String get ticketsFilterClosed;
+
+  /// No description provided for @ticketsFilterCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelados'**
+  String get ticketsFilterCancelled;
+
+  /// No description provided for @ticketStageUnvalidated.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin validar'**
+  String get ticketStageUnvalidated;
+
+  /// No description provided for @ticketStageClosed.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrado'**
+  String get ticketStageClosed;
+
+  /// No description provided for @ticketStageCancelled.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado'**
+  String get ticketStageCancelled;
+
+  /// No description provided for @ticketInfoAssignedCompany.
+  ///
+  /// In es, this message translates to:
+  /// **'Empresa asignada'**
+  String get ticketInfoAssignedCompany;
+
+  /// No description provided for @ticketInfoAssignedTeam.
+  ///
+  /// In es, this message translates to:
+  /// **'Equipo asignado'**
+  String get ticketInfoAssignedTeam;
+
+  /// No description provided for @ticketSupervisionTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Supervisión'**
+  String get ticketSupervisionTitle;
+
+  /// No description provided for @ticketActionAssign.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignar'**
+  String get ticketActionAssign;
+
+  /// No description provided for @ticketActionReassign.
+  ///
+  /// In es, this message translates to:
+  /// **'Reasignar'**
+  String get ticketActionReassign;
+
+  /// No description provided for @ticketActionClose.
+  ///
+  /// In es, this message translates to:
+  /// **'Validar y cerrar'**
+  String get ticketActionClose;
+
+  /// No description provided for @ticketActionReturn.
+  ///
+  /// In es, this message translates to:
+  /// **'Regresar a Abierto'**
+  String get ticketActionReturn;
+
+  /// No description provided for @ticketActionReopen.
+  ///
+  /// In es, this message translates to:
+  /// **'Reabrir'**
+  String get ticketActionReopen;
+
+  /// No description provided for @ticketActionCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar registro'**
+  String get ticketActionCancel;
+
+  /// No description provided for @ticketActionSave.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get ticketActionSave;
+
+  /// No description provided for @ticketAssignTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Asignar a empresa y equipo'**
+  String get ticketAssignTitle;
+
+  /// No description provided for @ticketReassignTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Reasignar a otra empresa o equipo'**
+  String get ticketReassignTitle;
+
+  /// No description provided for @ticketAssignCompany.
+  ///
+  /// In es, this message translates to:
+  /// **'Empresa'**
+  String get ticketAssignCompany;
+
+  /// No description provided for @ticketAssignTeam.
+  ///
+  /// In es, this message translates to:
+  /// **'Equipo'**
+  String get ticketAssignTeam;
+
+  /// No description provided for @ticketAssignPerson.
+  ///
+  /// In es, this message translates to:
+  /// **'Persona de referencia (opcional)'**
+  String get ticketAssignPerson;
+
+  /// No description provided for @ticketAssignNoPerson.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin persona de referencia'**
+  String get ticketAssignNoPerson;
+
+  /// No description provided for @ticketAssignSelect.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona'**
+  String get ticketAssignSelect;
+
+  /// No description provided for @ticketAssignNoTeams.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay empresas con equipos activos para asignar.'**
+  String get ticketAssignNoTeams;
+
+  /// No description provided for @ticketAssignLoadFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron traer las empresas y los equipos.'**
+  String get ticketAssignLoadFailed;
+
+  /// No description provided for @ticketAssignMissing.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la empresa y el equipo.'**
+  String get ticketAssignMissing;
+
+  /// No description provided for @ticketReasonLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo'**
+  String get ticketReasonLabel;
+
+  /// No description provided for @ticketReasonHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Explica el motivo'**
+  String get ticketReasonHint;
+
+  /// No description provided for @ticketReasonRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe el motivo.'**
+  String get ticketReasonRequired;
+
+  /// No description provided for @ticketCloseTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Validar y cerrar el registro'**
+  String get ticketCloseTitle;
+
+  /// No description provided for @ticketCloseCondition.
+  ///
+  /// In es, this message translates to:
+  /// **'Condición del activo'**
+  String get ticketCloseCondition;
+
+  /// No description provided for @ticketCloseNotes.
+  ///
+  /// In es, this message translates to:
+  /// **'Observación (opcional)'**
+  String get ticketCloseNotes;
+
+  /// No description provided for @ticketConditionUnchanged.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin cambio'**
+  String get ticketConditionUnchanged;
+
+  /// No description provided for @ticketConditionGood.
+  ///
+  /// In es, this message translates to:
+  /// **'Bueno'**
+  String get ticketConditionGood;
+
+  /// No description provided for @ticketConditionFair.
+  ///
+  /// In es, this message translates to:
+  /// **'Regular'**
+  String get ticketConditionFair;
+
+  /// No description provided for @ticketConditionPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'Malo'**
+  String get ticketConditionPoor;
+
+  /// No description provided for @ticketConditionVeryPoor.
+  ///
+  /// In es, this message translates to:
+  /// **'Pésimo'**
+  String get ticketConditionVeryPoor;
+
+  /// No description provided for @ticketReturnTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Regresar a Abierto'**
+  String get ticketReturnTitle;
+
+  /// No description provided for @ticketReopenTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Reabrir el registro'**
+  String get ticketReopenTitle;
+
+  /// No description provided for @ticketCancelTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar el registro'**
+  String get ticketCancelTitle;
+
+  /// No description provided for @ticketCancelReason.
+  ///
+  /// In es, this message translates to:
+  /// **'Motivo de cancelación'**
+  String get ticketCancelReason;
+
+  /// No description provided for @ticketCancelDuplicate.
+  ///
+  /// In es, this message translates to:
+  /// **'Duplicado'**
+  String get ticketCancelDuplicate;
+
+  /// No description provided for @ticketCancelImproper.
+  ///
+  /// In es, this message translates to:
+  /// **'Improcedente'**
+  String get ticketCancelImproper;
+
+  /// No description provided for @ticketCancelOther.
+  ///
+  /// In es, this message translates to:
+  /// **'Otro'**
+  String get ticketCancelOther;
+
+  /// No description provided for @ticketCancelFolio.
+  ///
+  /// In es, this message translates to:
+  /// **'Folio del registro original'**
+  String get ticketCancelFolio;
+
+  /// No description provided for @ticketCancelFolioRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe el folio del registro original.'**
+  String get ticketCancelFolioRequired;
+
+  /// No description provided for @ticketCancelNotes.
+  ///
+  /// In es, this message translates to:
+  /// **'Detalle del motivo'**
+  String get ticketCancelNotes;
+
+  /// No description provided for @ticketCancelNotesRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Con «Otro», explica el motivo.'**
+  String get ticketCancelNotesRequired;
+
+  /// No description provided for @ticketDoneAssign.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro asignado.'**
+  String get ticketDoneAssign;
+
+  /// No description provided for @ticketDoneReassign.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro reasignado.'**
+  String get ticketDoneReassign;
+
+  /// No description provided for @ticketDoneClose.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro validado y cerrado.'**
+  String get ticketDoneClose;
+
+  /// No description provided for @ticketDoneReturn.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro regresado a Abierto.'**
+  String get ticketDoneReturn;
+
+  /// No description provided for @ticketDoneReopen.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro reabierto.'**
+  String get ticketDoneReopen;
+
+  /// No description provided for @ticketDoneCancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Registro cancelado.'**
+  String get ticketDoneCancel;
+
+  /// No description provided for @ticketActionRejected.
+  ///
+  /// In es, this message translates to:
+  /// **'No se aplicó el cambio: {reason}'**
+  String ticketActionRejected(String reason);
+
+  /// No description provided for @ticketActionOffline.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin conexión: esta acción necesita red.'**
+  String get ticketActionOffline;
+
+  /// No description provided for @ticketActionDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu perfil no puede hacer esta acción.'**
+  String get ticketActionDenied;
+
+  /// No description provided for @ticketActionFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar la acción. Inténtalo de nuevo.'**
+  String get ticketActionFailed;
+
+  /// No description provided for @ticketCancelledInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelado: {reason}'**
+  String ticketCancelledInfo(String reason);
+
+  /// No description provided for @ticketCancelledDuplicateOf.
+  ///
+  /// In es, this message translates to:
+  /// **'Duplicado de {folio}'**
+  String ticketCancelledDuplicateOf(String folio);
+
+  /// No description provided for @ticketClosedCondition.
+  ///
+  /// In es, this message translates to:
+  /// **'Condición del activo al cerrar: {condition}'**
+  String ticketClosedCondition(String condition);
+
+  /// No description provided for @newTicketRoad.
+  ///
+  /// In es, this message translates to:
+  /// **'Carretera'**
+  String get newTicketRoad;
+
+  /// No description provided for @newTicketErrorRoad.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige la carretera: la concesión tiene varias.'**
+  String get newTicketErrorRoad;
+
+  /// No description provided for @maintEventsRejected.
+  ///
+  /// In es, this message translates to:
+  /// **'No se registró el evento: {reason}'**
+  String maintEventsRejected(String reason);
 }
 
 class _AppLocalizationsDelegate

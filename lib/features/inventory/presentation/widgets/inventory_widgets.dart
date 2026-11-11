@@ -53,8 +53,8 @@ class InventoryCard extends StatelessWidget {
                   children: [
                     ModuleStatusPill(
                       key: Key('inventory-condition-${asset.id}'),
-                      label: conditionLabel(l10n, asset.condition),
-                      color: conditionColor(asset.condition),
+                      label: assetConditionLabel(l10n, asset),
+                      color: assetConditionColor(asset),
                     ),
                     SizedBox(width: r.s(12)),
                     Expanded(

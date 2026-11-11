@@ -79,6 +79,9 @@ import 'composition/location_finding_position_source.dart';
 import '../features/inspections/presentation/bloc/inspections_cubit.dart';
 import '../features/inspections/presentation/pages/inspection_detail_page.dart';
 import '../features/inspections/presentation/pages/inspections_page.dart';
+import '../features/inspections/domain/repositories/inspection_capture_repository.dart';
+import '../features/inspections/presentation/bloc/inspection_capture_cubit.dart';
+import '../features/inspections/presentation/pages/inspection_capture_page.dart';
 import '../core/permissions/permission_keys.dart';
 import '../core/scan/qr_scanner.dart';
 import '../features/inventory/domain/repositories/asset_capture_repository.dart';
@@ -108,6 +111,7 @@ import '../features/maintenance/domain/repositories/maintenance_repository.dart'
 import '../features/maintenance/presentation/bloc/maintenance_cubit.dart';
 import '../features/maintenance/presentation/bloc/maintenance_detail_cubit.dart';
 import '../features/maintenance/presentation/bloc/maintenance_progress_cubit.dart';
+import '../features/maintenance/presentation/pages/indicator_events_page.dart';
 import '../features/maintenance/presentation/pages/maintenance_detail_page.dart';
 import '../features/maintenance/presentation/pages/maintenance_indicators_page.dart';
 import '../features/maintenance/presentation/pages/maintenance_page.dart';
@@ -125,6 +129,12 @@ import '../features/tickets/presentation/pages/tickets_page.dart';
 import '../features/sync/presentation/conflict_page.dart';
 import '../features/sync/presentation/sync_page.dart';
 import 'shell/home_page.dart';
+import '../features/definitions/domain/repositories/definitions_repository.dart';
+import '../features/definitions/presentation/bloc/definition_detail_cubit.dart';
+import '../features/definitions/presentation/bloc/definitions_cubit.dart';
+import '../features/definitions/presentation/pages/definition_detail_page.dart';
+import '../features/definitions/presentation/pages/definitions_page.dart';
+import '../features/definitions/presentation/widgets/definitions_notice.dart';
 
 String _routeFor(AuthStep step) => switch (step) {
   AuthStep.signedOut => '/login',
@@ -236,6 +246,20 @@ bool _canCreateAssets(BuildContext context) {
   return PermissionKeys.inventoryCreate.any(permissions.contains);
 }
 
+/// La pantalla de un modulo con el aviso de sus definiciones sin veredicto
+/// (tanda 4), una vez por sesion. Sin el repositorio (algunas pruebas), tal cual.
+Widget _withDefinitions(BuildContext context, String module, Widget page) {
+  try {
+    return DefinitionsNotice(
+      repository: context.read<DefinitionsRepository>(),
+      mobileModule: module,
+      child: page,
+    );
+  } on ProviderNotFoundException {
+    return page;
+  }
+}
+
 GoRouter createRouter(
   AuthBloc auth, {
   bool sampleMap = false,
@@ -272,6 +296,7 @@ GoRouter createRouter(
                 loc.startsWith('/works') ||
                 loc.startsWith('/alerts') ||
                 loc.startsWith('/inspections') ||
+                loc.startsWith('/definitions') ||
                 loc.startsWith('/documents'))
             ? null
             : '/home';
@@ -304,7 +329,12 @@ GoRouter createRouter(
         ),
       ),
       GoRoute(path: '/concession', builder: (_, _) => const ConcessionPage()),
-      GoRoute(path: '/home', builder: (_, _) => const HomePage()),
+      // El inicio lleva el aviso de las definiciones del tablero (`dashboard`).
+      GoRoute(
+        path: '/home',
+        builder: (context, _) =>
+            _withDefinitions(context, 'dashboard', const HomePage()),
+      ),
       GoRoute(
         path: '/documents',
         builder: (context, _) => BlocProvider(
@@ -372,16 +402,20 @@ GoRouter createRouter(
             segmentsRepository: context.read<RoadSegmentsRepository>(),
             settings: context.read<MapSettings>(),
           ),
-          child: MapPage(
-            tileSource: context.read<MapTileSource>(),
-            sampleData: sampleMap || context.read<DemoMode>().on,
-            initialLayer: MapLayer.values
-                .where((l) => l.name == state.uri.queryParameters['layer'])
-                .firstOrNull,
-            initialPinId: state.uri.queryParameters['pin'],
-            initialPosition: _queryPoint(state.uri.queryParameters),
-            actions: _mapActions(context),
-            engine: context.read<MapEngine>(),
+          child: _withDefinitions(
+            context,
+            'map',
+            MapPage(
+              tileSource: context.read<MapTileSource>(),
+              sampleData: sampleMap || context.read<DemoMode>().on,
+              initialLayer: MapLayer.values
+                  .where((l) => l.name == state.uri.queryParameters['layer'])
+                  .firstOrNull,
+              initialPinId: state.uri.queryParameters['pin'],
+              initialPosition: _queryPoint(state.uri.queryParameters),
+              actions: _mapActions(context),
+              engine: context.read<MapEngine>(),
+            ),
           ),
         ),
         routes: [
@@ -398,8 +432,12 @@ GoRouter createRouter(
         path: '/tickets',
         builder: (context, _) => BlocProvider(
           create: (_) => TicketsCubit(context.read<TicketsRepository>()),
-          child: TicketsPage(
-            sampleData: sampleTickets || context.read<DemoMode>().on,
+          child: _withDefinitions(
+            context,
+            'tickets',
+            TicketsPage(
+              sampleData: sampleTickets || context.read<DemoMode>().on,
+            ),
           ),
         ),
         routes: [
@@ -465,8 +503,12 @@ GoRouter createRouter(
         path: '/accidents',
         builder: (context, _) => BlocProvider(
           create: (_) => AccidentsCubit(context.read<AccidentsRepository>()),
-          child: AccidentsPage(
-            sampleData: sampleAccidents || context.read<DemoMode>().on,
+          child: _withDefinitions(
+            context,
+            'accidents',
+            AccidentsPage(
+              sampleData: sampleAccidents || context.read<DemoMode>().on,
+            ),
           ),
         ),
         routes: [
@@ -497,7 +539,11 @@ GoRouter createRouter(
       ),
       GoRoute(
         path: '/maintenance',
-        builder: (_, _) => const MaintenanceIndicatorsPage(),
+        builder: (context, _) => _withDefinitions(
+          context,
+          'maintenance',
+          const MaintenanceIndicatorsPage(),
+        ),
         routes: [
           GoRoute(
             path: ':indicator',
@@ -523,6 +569,15 @@ GoRouter createRouter(
               ),
             ),
             routes: [
+              // Desempeño y eventos de los indicadores de MC2 (antes de ':id').
+              GoRoute(
+                path: 'performance',
+                builder: (context, state) => IndicatorEventsPage(
+                  indicator: MaintenanceIndicator.values.byName(
+                    state.pathParameters['indicator']!,
+                  ),
+                ),
+              ),
               GoRoute(
                 path: ':id',
                 builder: (context, state) => BlocProvider(
@@ -562,9 +617,13 @@ GoRouter createRouter(
         path: '/alerts',
         builder: (context, _) {
           final menu = context.read<NavigationBloc>().state.menu;
-          return AlertsPage(
-            sampleData: sampleAlerts || context.read<DemoMode>().on,
-            routeFor: (alert) => alertRoute(alert, menu),
+          return _withDefinitions(
+            context,
+            'alerts',
+            AlertsPage(
+              sampleData: sampleAlerts || context.read<DemoMode>().on,
+              routeFor: (alert) => alertRoute(alert, menu),
+            ),
           );
         },
         routes: [
@@ -580,8 +639,10 @@ GoRouter createRouter(
         path: '/works',
         builder: (context, _) => BlocProvider(
           create: (_) => WorksCubit(context.read<WorksRepository>()),
-          child: WorksPage(
-            sampleData: sampleWorks || context.read<DemoMode>().on,
+          child: _withDefinitions(
+            context,
+            'works',
+            WorksPage(sampleData: sampleWorks || context.read<DemoMode>().on),
           ),
         ),
         routes: [
@@ -602,8 +663,12 @@ GoRouter createRouter(
         builder: (context, _) => BlocProvider(
           create: (_) =>
               InspectionsCubit(context.read<InspectionsRepository>()),
-          child: InspectionsPage(
-            sampleData: sampleInspections || context.read<DemoMode>().on,
+          child: _withDefinitions(
+            context,
+            'inspections',
+            InspectionsPage(
+              sampleData: sampleInspections || context.read<DemoMode>().on,
+            ),
           ),
         ),
         routes: [
@@ -623,7 +688,17 @@ GoRouter createRouter(
           ),
           GoRoute(
             path: ':id',
-            builder: (context, state) => BlocProvider(
+            // Con servidor, la captura por plantilla (M08); con datos de ejemplo, la ficha de antes.
+            builder: (context, state) => context.read<InspectionCaptureRepository>().available && !context.read<DemoMode>().on
+                ? BlocProvider(
+                    create: (_) => InspectionCaptureCubit(
+                      context.read<InspectionCaptureRepository>(),
+                      state.pathParameters['id']!,
+                      positionSource: LocationFindingPositionSource(context.read<LocationSource>()),
+                    )..load(),
+                    child: const InspectionCapturePage(),
+                  )
+                : BlocProvider(
               create: (_) => InspectionDetailCubit(
                 context.read<InspectionsRepository>(),
                 state.pathParameters['id']!,
@@ -690,9 +765,13 @@ GoRouter createRouter(
                   : null,
             ),
             child: Builder(
-              builder: (context) => InventoryPage(
-                sampleData: sampleInventory || context.read<DemoMode>().on,
-                canCreate: _canCreateAssets(context),
+              builder: (context) => _withDefinitions(
+                context,
+                'inventory',
+                InventoryPage(
+                  sampleData: sampleInventory || context.read<DemoMode>().on,
+                  canCreate: _canCreateAssets(context),
+                ),
               ),
             ),
           );
@@ -740,6 +819,30 @@ GoRouter createRouter(
                   sample: sampleInventory || context.read<DemoMode>().on,
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+      // Definiciones pendientes (tanda 4): lista por modulo (`?module=` llega
+      // desde el aviso de un modulo) y detalle con la respuesta.
+      GoRoute(
+        path: '/definitions',
+        builder: (context, state) => BlocProvider(
+          create: (_) => DefinitionsCubit(
+            context.read<DefinitionsRepository>(),
+            mobileModule: state.uri.queryParameters['module'],
+          ),
+          child: const DefinitionsPage(),
+        ),
+        routes: [
+          GoRoute(
+            path: ':code',
+            builder: (context, state) => BlocProvider(
+              create: (_) => DefinitionDetailCubit(
+                context.read<DefinitionsRepository>(),
+                state.pathParameters['code']!,
+              )..load(),
+              child: const DefinitionDetailPage(),
             ),
           ),
         ],

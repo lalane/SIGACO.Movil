@@ -5,6 +5,7 @@ import '../../../../core/offline/operation.dart';
 import '../../../../core/offline/operation_queue.dart';
 import '../../../../core/session/session_scope.dart';
 import '../../domain/entities/ticket.dart';
+import '../../domain/entities/ticket_supervision.dart';
 import '../../domain/repositories/tickets_repository.dart';
 import 'api_tickets_repository.dart';
 
@@ -20,6 +21,8 @@ class OfflineTicketsRepository
         TicketsRepository,
         TicketFailureSource,
         TicketPlacementSource,
+        TicketRoadSource,
+        TicketSupervision,
         ScopeBound {
   OfflineTicketsRepository(this._online, this._queue, this._files);
 
@@ -62,6 +65,36 @@ class OfflineTicketsRepository
   @override
   Future<TicketPlacement> place(double longitude, double latitude) =>
       _online.place(longitude, latitude);
+
+  @override
+  Future<List<TicketRoad>> roads() => _online.roads();
+
+  // Las acciones del Supervisor no se encolan: el servidor valida el estado y la
+  // version del ticket en ese momento, y sin red la pantalla lo avisa.
+
+  @override
+  Future<List<TicketAssignableCompany>> assignableTeams() =>
+      _online.assignableTeams();
+
+  @override
+  Future<Ticket> assign(Ticket ticket, TicketAssignment assignment) =>
+      _online.assign(ticket, assignment);
+
+  @override
+  Future<Ticket> close(Ticket ticket, TicketClosing closing) =>
+      _online.close(ticket, closing);
+
+  @override
+  Future<Ticket> returnToOpen(Ticket ticket, String reason) =>
+      _online.returnToOpen(ticket, reason);
+
+  @override
+  Future<Ticket> reopen(Ticket ticket, String reason) =>
+      _online.reopen(ticket, reason);
+
+  @override
+  Future<Ticket> cancel(Ticket ticket, TicketCancellation cancellation) =>
+      _online.cancel(ticket, cancellation);
 
   @override
   Future<List<String>> categories() async {

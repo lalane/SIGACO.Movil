@@ -133,13 +133,13 @@ class MaintenanceCard extends StatelessWidget {
                           if (order.startDate != null)
                             _DateLine(
                               icon: Icons.calendar_today_outlined,
-                              text: moduleDay(order.startDate!, zone),
+                              text: moduleCalendarDay(order.startDate!),
                             ),
                           if (order.endDate != null) ...[
                             SizedBox(height: r.s(4)),
                             _DateLine(
                               icon: Icons.schedule,
-                              text: moduleDay(order.endDate!, zone),
+                              text: moduleCalendarDay(order.endDate!),
                             ),
                           ],
                         ],

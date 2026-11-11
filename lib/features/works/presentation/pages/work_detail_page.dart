@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/sigaco_palette.dart';
-import '../../../../core/time/concession_zone_cubit.dart';
 import '../../../../core/ui/module_detail.dart';
 import '../../../../core/ui/module_format.dart';
 import '../../../../core/ui/module_header.dart';
@@ -66,7 +65,6 @@ class _Detail extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final p = context.palette;
     final r = context.responsive;
-    final zone = context.watch<ConcessionZoneCubit>().state;
     final locale = Localizations.localeOf(context).toString();
     const none = '—';
     return Scaffold(
@@ -241,14 +239,14 @@ class _Detail extends StatelessWidget {
                             l10n.workStartDate,
                             work.startDate == null
                                 ? none
-                                : moduleDay(work.startDate!, zone),
+                                : moduleCalendarDay(work.startDate!),
                           ),
                           ModuleInfo(
                             Icons.event_available_outlined,
                             l10n.workEndDate,
                             work.endDate == null
                                 ? none
-                                : moduleDay(work.endDate!, zone),
+                                : moduleCalendarDay(work.endDate!),
                           ),
                         ],
                       ),

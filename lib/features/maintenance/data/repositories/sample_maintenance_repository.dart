@@ -329,4 +329,12 @@ class SampleMaintenanceRepository implements MaintenanceRepository {
   @override
   Future<List<MaintenanceIndicator>> visibleIndicators() async =>
       MaintenanceIndicator.values;
+
+  /// Los datos de ejemplo no inventan conteos de tickets ni evaluaciones.
+  @override
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  }) async => null;
 }

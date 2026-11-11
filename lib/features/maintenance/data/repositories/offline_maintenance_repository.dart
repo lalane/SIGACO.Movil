@@ -56,6 +56,13 @@ class OfflineMaintenanceRepository
   Future<MaintenanceOrder> get(String id) => _online.get(id);
 
   @override
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  }) => _online.summary(indicator, from: from, to: to);
+
+  @override
   Future<MaintenanceOrder> addProgress(
     String id, {
     double? executedVolume,

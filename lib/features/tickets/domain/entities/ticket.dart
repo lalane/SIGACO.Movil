@@ -5,6 +5,69 @@ import 'package:equatable/equatable.dart';
 /// colores de estatus son del sistema (COL-05).
 enum TicketStatus { open, attended }
 
+/// El estado del ticket en el flujo del DTF M11 v0.3 (§4.2): sin validar (nadie
+/// lo ha asignado), abierto (asignado a una empresa y un equipo), atendido (el
+/// equipo termino y espera la validacion del Supervisor), cerrado o cancelado.
+/// [TicketStatus] sigue siendo la vista corta (falta atenderlo o no).
+enum TicketStage {
+  unvalidated('SIN_VALIDAR'),
+  open('ABIERTO'),
+  attended('ATENDIDO'),
+  closed('CERRADO'),
+  cancelled('CANCELADO');
+
+  const TicketStage(this.code);
+
+  /// El codigo del servidor.
+  final String code;
+
+  /// El estado que manda el servidor. Los codigos del BBP se leen como su
+  /// equivalente (tabla de equivalencias del DTF), por si llega un dato viejo.
+  static TicketStage? fromCode(String? code) =>
+      switch (code?.trim().toUpperCase()) {
+        'SIN_VALIDAR' || 'NUEVO' => unvalidated,
+        'ABIERTO' ||
+        'ASIGNADO' ||
+        'EN_PROCESO' ||
+        'EN_ESPERA' ||
+        'REABIERTO' => open,
+        'ATENDIDO' || 'RESUELTO' => attended,
+        'CERRADO' => closed,
+        'CANCELADO' => cancelled,
+        _ => null,
+      };
+
+  /// Falta atenderlo: el SLA corre.
+  bool get pending => this == unvalidated || this == open;
+}
+
+/// Lo que el usuario puede hacer hoy con un ticket. Lo decide el servidor
+/// (`actions` del ticket, segun su estado, el perfil y el equipo): la app solo
+/// muestra esas.
+enum TicketAction {
+  edit('EDITAR'),
+  assign('ASIGNAR'),
+  reassign('REASIGNAR'),
+  followUp('SEGUIMIENTO'),
+  attend('ATENDER'),
+  close('CERRAR'),
+  returnToOpen('REGRESAR'),
+  reopen('REABRIR'),
+  cancel('CANCELAR');
+
+  const TicketAction(this.code);
+
+  final String code;
+
+  static TicketAction? fromCode(String? code) {
+    final c = code?.trim().toUpperCase();
+    for (final a in values) {
+      if (a.code == c) return a;
+    }
+    return null;
+  }
+}
+
 /// La prioridad con la que se levanta un ticket; `code` es el del catalogo
 /// PRIORIDAD del servidor.
 enum TicketPriority {
@@ -73,6 +136,18 @@ class Ticket extends Equatable {
     this.carriageway,
     this.photoPaths = const [],
     this.followUps = const [],
+    this._stage,
+    this.actions,
+    this.rowVersion,
+    this.assignedCompanyId,
+    this.assignedCompanyName,
+    this.assignedTeamId,
+    this.assignedTeamName,
+    this.responsibleName,
+    this.cancelReason,
+    this.duplicateOfFolio,
+    this.closingAssetCondition,
+    this.assetId,
   });
 
   final String id;
@@ -106,6 +181,48 @@ class Ticket extends Equatable {
   final List<String> photoPaths;
   final List<TicketFollowUp> followUps;
 
+  final TicketStage? _stage;
+
+  /// El estado del DTF M11 v0.3. Si el servidor no lo dijo (datos de ejemplo o
+  /// capturados sin red), sale de [status].
+  TicketStage get stage =>
+      _stage ??
+      (status == TicketStatus.open ? TicketStage.open : TicketStage.attended);
+
+  /// Lo que el usuario puede hacer hoy segun el servidor; null si no lo dijo
+  /// (datos de ejemplo o capturados sin red).
+  final Set<TicketAction>? actions;
+
+  /// Version del registro: el servidor la pide para no pisar un cambio ajeno.
+  final int? rowVersion;
+
+  /// A quien esta asignado: empresa y equipo (RB-11-09).
+  final String? assignedCompanyId;
+  final String? assignedCompanyName;
+  final String? assignedTeamId;
+  final String? assignedTeamName;
+
+  /// La persona de referencia del equipo, si se eligio.
+  final String? responsibleName;
+
+  /// Por que se cancelo (DUPLICADO, IMPROCEDENTE u OTRO) y, si es duplicado,
+  /// el folio del original.
+  final String? cancelReason;
+  final String? duplicateOfFolio;
+
+  /// La condicion del activo que dejo el Supervisor al cerrar.
+  final String? closingAssetCondition;
+
+  /// El activo del inventario al que se refiere; sin el, cerrar no pide la
+  /// condicion (el servidor solo la guarda con activo).
+  final String? assetId;
+
+  /// El servidor ofrece [action] para este ticket.
+  bool offers(TicketAction action) => actions?.contains(action) ?? false;
+
+  /// Se puede dar seguimiento: lo dice el servidor o, si no dijo nada, si.
+  bool get offersFollowUp => actions == null || offers(TicketAction.followUp);
+
   /// Cuanto falta para el vencimiento (negativo si ya vencio).
   Duration? timeToDue(DateTime now) => dueAt?.difference(now);
 
@@ -126,6 +243,16 @@ class Ticket extends Equatable {
     TicketStatus? status,
     List<TicketFollowUp>? followUps,
     List<String>? photoPaths,
+    TicketStage? stage,
+    Set<TicketAction>? actions,
+    int? rowVersion,
+    String? assignedCompanyId,
+    String? assignedCompanyName,
+    String? assignedTeamId,
+    String? assignedTeamName,
+    String? cancelReason,
+    String? duplicateOfFolio,
+    String? closingAssetCondition,
   }) => Ticket(
     id: id,
     code: code,
@@ -145,6 +272,18 @@ class Ticket extends Equatable {
     carriageway: carriageway,
     photoPaths: photoPaths ?? this.photoPaths,
     followUps: followUps ?? this.followUps,
+    stage: stage ?? _stage,
+    actions: actions ?? this.actions,
+    rowVersion: rowVersion ?? this.rowVersion,
+    assignedCompanyId: assignedCompanyId ?? this.assignedCompanyId,
+    assignedCompanyName: assignedCompanyName ?? this.assignedCompanyName,
+    assignedTeamId: assignedTeamId ?? this.assignedTeamId,
+    assignedTeamName: assignedTeamName ?? this.assignedTeamName,
+    responsibleName: responsibleName,
+    cancelReason: cancelReason ?? this.cancelReason,
+    duplicateOfFolio: duplicateOfFolio ?? this.duplicateOfFolio,
+    closingAssetCondition: closingAssetCondition ?? this.closingAssetCondition,
+    assetId: assetId,
   );
 
   @override
@@ -167,6 +306,18 @@ class Ticket extends Equatable {
     carriageway,
     photoPaths,
     followUps,
+    _stage,
+    actions,
+    rowVersion,
+    assignedCompanyId,
+    assignedCompanyName,
+    assignedTeamId,
+    assignedTeamName,
+    responsibleName,
+    cancelReason,
+    duplicateOfFolio,
+    closingAssetCondition,
+    assetId,
   ];
 }
 
@@ -344,6 +495,21 @@ class TicketFailure extends Equatable {
   ];
 }
 
+/// Una carretera de la concesion activa, para elegir donde se levanta un
+/// ticket sin punto ni activo cuando la concesion tiene varias.
+class TicketRoad extends Equatable {
+  const TicketRoad({required this.id, required this.code, this.name});
+
+  final String id;
+
+  /// `BR-381`.
+  final String code;
+  final String? name;
+
+  @override
+  List<Object?> get props => [id, code, name];
+}
+
 class NewTicket extends Equatable {
   const NewTicket({
     required this.title,
@@ -360,11 +526,16 @@ class NewTicket extends Equatable {
     this.direction,
     this.kmEndLabel,
     this.assetId,
+    this.roadId,
   });
 
   /// El activo, si se levanta desde su ficha aunque no tenga punto (si viene
   /// del mapa, va en [location]).
   final String? assetId;
+
+  /// La carretera elegida en el formulario (sin punto ni activo, cuando la
+  /// concesion tiene varias); null = la de la concesion o la del punto.
+  final String? roadId;
 
   /// El km final, si la falla ocupa un tramo (`KM 150+400`).
   final String? kmEndLabel;
@@ -414,6 +585,7 @@ class NewTicket extends Equatable {
     direction,
     kmEndLabel,
     assetId,
+    roadId,
   ];
 }
 

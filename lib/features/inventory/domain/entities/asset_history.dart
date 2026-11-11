@@ -6,8 +6,8 @@ enum AssetHistoryKind { tickets, inspections, maintenances }
 
 /// Cuantos registros de un tipo tiene el activo y cuantos siguen abiertos.
 ///
-/// "Abierto" es la regla del servidor: un ticket NUEVO, ASIGNADO, EN_PROCESO,
-/// EN_ESPERA o REABIERTO (RESUELTO ya no cuenta, es la misma regla de "en
+/// "Abierto" es la regla del servidor: un ticket SIN_VALIDAR o ABIERTO (DTF
+/// M11 v0.3; ATENDIDO ya no cuenta, es la misma regla de "en
 /// mantenimiento"); una inspeccion que no esta CERRADA ni CANCELADA; un
 /// mantenimiento PROGRAMADO o EN_EJECUCION.
 class AssetHistoryCount extends Equatable {

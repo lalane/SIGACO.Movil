@@ -1,4 +1,5 @@
 import '../entities/ticket.dart';
+import '../entities/ticket_supervision.dart';
 
 /// Por que no se pudieron traer o guardar los tickets.
 enum TicketsError {
@@ -39,11 +40,53 @@ class TicketPartiallySavedException implements Exception {
   String toString() => 'TicketPartiallySavedException($reason)';
 }
 
+/// El servidor no acepto una accion sobre el ticket: [reason] es lo que dijo,
+/// con su codigo (por ejemplo, otra persona ya lo cambio o el folio del
+/// duplicado no existe). Nada se guardo.
+class TicketActionRejected implements Exception {
+  const TicketActionRejected(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => 'TicketActionRejected($reason)';
+}
+
+/// Las acciones del Supervisor sobre un ticket (DTF M11 v0.3, HU-11-24). Cada
+/// una devuelve el ticket como quedo. Lanzan [TicketsException] o
+/// [TicketActionRejected]; necesitan red (el servidor valida el estado y la
+/// version del ticket).
+abstract interface class TicketSupervision {
+  /// Empresas activas con sus equipos asignables y sus integrantes.
+  Future<List<TicketAssignableCompany>> assignableTeams();
+
+  /// Asigna (SIN_VALIDAR) o reasigna con motivo (ABIERTO).
+  Future<Ticket> assign(Ticket ticket, TicketAssignment assignment);
+
+  /// Valida y cierra un ticket ATENDIDO.
+  Future<Ticket> close(Ticket ticket, TicketClosing closing);
+
+  /// Regresa a ABIERTO un ticket ATENDIDO, con motivo.
+  Future<Ticket> returnToOpen(Ticket ticket, String reason);
+
+  /// Reabre un ticket CERRADO, con motivo.
+  Future<Ticket> reopen(Ticket ticket, String reason);
+
+  /// Cancela un ticket SIN_VALIDAR o ABIERTO.
+  Future<Ticket> cancel(Ticket ticket, TicketCancellation cancellation);
+}
+
 /// El catalogo de fallas de la Matriz (indicador, subclasificacion, falla y
 /// plazo). Lo implementan los repositorios que hablan con el servidor; sin el,
 /// el formulario usa la lista plana de [TicketsRepository.categories].
 abstract interface class TicketFailureSource {
   Future<List<TicketFailure>> failures();
+}
+
+/// Las carreteras de la concesion activa: el formulario pide elegir una si son
+/// varias y el ticket no trae punto ni activo (el servidor no puede deducirla).
+abstract interface class TicketRoadSource {
+  Future<List<TicketRoad>> roads();
 }
 
 /// Distancia maxima del punto de un ticket a la carretera; la misma que valida

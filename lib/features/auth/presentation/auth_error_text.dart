@@ -11,6 +11,7 @@ String authErrorText(AppLocalizations l10n, AuthError e) => switch (e) {
   AuthError.validation => l10n.errValidation,
   AuthError.passwordMismatch => l10n.passwordMismatch,
   AuthError.biometricNotConfigured => l10n.biometricNoCredentials,
+  AuthError.accessExpired => l10n.errAccessExpired,
 };
 
 /// El mensaje a mostrar: si el servidor explico el motivo (por ejemplo por que no

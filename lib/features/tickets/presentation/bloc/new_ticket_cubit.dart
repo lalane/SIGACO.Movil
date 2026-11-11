@@ -9,7 +9,17 @@ import '../../domain/entities/ticket.dart';
 import '../../domain/repositories/tickets_repository.dart';
 import 'follow_up_cubit.dart';
 
-enum NewTicketIssue { title, category, description, kmEnd, direction, offRoad }
+enum NewTicketIssue {
+  title,
+  category,
+  description,
+  kmEnd,
+  direction,
+  offRoad,
+
+  /// La concesion tiene varias carreteras y el ticket no trae punto ni activo.
+  road,
+}
 
 /// Las fallas de la Matriz que la persona puede usar: las de sus indicadores.
 /// Null si no se sabe (todas).
@@ -36,7 +46,16 @@ class NewTicketState extends Equatable {
     this.placement,
     this.kmEndLabel = '',
     this.direction,
+    this.roads = const [],
+    this.roadId,
   });
+
+  /// Las carreteras para elegir: solo si son varias y el ticket no trae punto
+  /// ni activo (con una, o con punto, no se pregunta).
+  final List<TicketRoad> roads;
+
+  /// La carretera elegida.
+  final String? roadId;
 
   /// El km final, si la falla ocupa un tramo.
   final String kmEndLabel;
@@ -105,6 +124,7 @@ class NewTicketState extends Equatable {
     if (needsDirection && direction == null) NewTicketIssue.direction,
     if (placement?.status == TicketPlacementStatus.offRoad)
       NewTicketIssue.offRoad,
+    if (roads.length > 1 && roadId == null) NewTicketIssue.road,
   ];
 
   /// El km final va con el inicial y no puede ser menor.
@@ -137,6 +157,8 @@ class NewTicketState extends Equatable {
     TicketPlacement? placement,
     String? kmEndLabel,
     String? direction,
+    List<TicketRoad>? roads,
+    String? roadId,
   }) => NewTicketState(
     failures: failures ?? this.failures,
     indicator: clearSelection ? indicator : (indicator ?? this.indicator),
@@ -157,6 +179,8 @@ class NewTicketState extends Equatable {
     placement: placement ?? this.placement,
     kmEndLabel: kmEndLabel ?? this.kmEndLabel,
     direction: direction ?? this.direction,
+    roads: roads ?? this.roads,
+    roadId: roadId ?? this.roadId,
   );
 
   @override
@@ -180,6 +204,8 @@ class NewTicketState extends Equatable {
     placement,
     kmEndLabel,
     direction,
+    roads,
+    roadId,
   ];
 }
 
@@ -253,8 +279,25 @@ class NewTicketCubit extends Cubit<NewTicketState> {
     );
   }
 
+  /// Sin punto ni activo, el servidor no sabe en que carretera va: si la
+  /// concesion tiene varias, se pide elegirla (con una sola no se pregunta).
+  Future<void> _roads() async {
+    final source = _repository;
+    if (location != null || asset != null || source is! TicketRoadSource) {
+      return;
+    }
+    try {
+      final roads = await (source as TicketRoadSource).roads();
+      if (isClosed || roads.length < 2) return;
+      emit(state.copyWith(roads: roads));
+    } catch (_) {
+      // Sin red no se pregunta: el servidor dira que falta la carretera.
+    }
+  }
+
   Future<void> load() async {
     unawaited(_place());
+    unawaited(_roads());
     var failures = const <TicketFailure>[];
     final source = _repository;
     if (source is TicketFailureSource) {
@@ -330,6 +373,8 @@ class NewTicketCubit extends Cubit<NewTicketState> {
 
   void setDirection(String v) => emit(state.copyWith(direction: v));
 
+  void setRoad(String id) => emit(state.copyWith(roadId: id));
+
   void setDescription(String v) => emit(state.copyWith(description: v));
 
   void setPhoto(int slot, String? path) {
@@ -360,6 +405,7 @@ class NewTicketCubit extends Cubit<NewTicketState> {
           deviceClockAt: _clock().toUtc(),
           location: location,
           assetId: asset?.id,
+          roadId: state.roads.length > 1 ? state.roadId : null,
           clientId: _clientId,
           fixedAttention: state.failure != null,
           kmEndLabel: state.kmEndLabel.trim().isEmpty

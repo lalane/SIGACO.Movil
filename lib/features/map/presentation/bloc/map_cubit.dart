@@ -11,13 +11,19 @@ import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/map_settings.dart';
 import '../../domain/entities/nearby_pin.dart';
 import '../../domain/entities/road_segment.dart';
+import '../../domain/entities/segment_pavement.dart';
 import '../../domain/entities/user_location.dart';
 import '../../domain/repositories/location_source.dart';
 import '../../domain/repositories/map_pack_manager.dart';
 import '../../domain/repositories/map_repository.dart';
 import '../../domain/repositories/road_segments_repository.dart';
+import '../../domain/repositories/segment_pavement_source.dart';
 
 enum MapStatus { loading, ready, failure }
+
+/// Como va la capa de pavimento por tramo. [unavailable]: el perfil no ve la
+/// capa «Indicadores y pavimento» (DTF M10 §4.2) o no hay fuente; no se ofrece.
+enum PavementStatus { idle, loading, ready, unavailable, failure }
 
 /// Como va la busqueda de la ubicacion del usuario.
 enum LocateStatus {
@@ -58,6 +64,9 @@ class MapState extends Equatable {
     this.areaLoading = false,
     this.areaTruncated = false,
     this.areaError,
+    this.pavementOn = false,
+    this.pavement,
+    this.pavementStatus = PavementStatus.idle,
   });
 
   final MapLayer layer;
@@ -123,6 +132,16 @@ class MapState extends Equatable {
   /// La ultima consulta de zona fallo; los pines que ya estaban se conservan.
   final MapError? areaError;
 
+  /// Los tramos se pintan por el estado de su pavimento (HU-MOB-10-01 CA-04)
+  /// en vez de por su sentido. Es independiente de la pestana de pines.
+  final bool pavementOn;
+  final PavementLayer? pavement;
+  final PavementStatus pavementStatus;
+
+  /// El nivel de pavimento de cada tramo, si la capa esta prendida y cargada.
+  PavementLayer? get shownPavement =>
+      pavementOn && pavementStatus == PavementStatus.ready ? pavement : null;
+
   List<MapPin> get layerPins => pinsByLayer[layer] ?? const [];
 
   /// Cuando se guardaron los pines de la pestana abierta, si son del telefono.
@@ -186,6 +205,8 @@ class MapState extends Equatable {
     return null;
   }
 
+  // Supuesto S-GIS-12: «Cercanos» lista activos (lo que se elige para levantar
+  // un registro), no todas las capas.
   /// Los activos de inventario cercanos a la ultima ubicacion, con el radio
   /// elegido. Son lo que se elige para levantar un ticket, una inspeccion o un
   /// mantenimiento. Con conexion los da el servidor (mide hasta la geometria de
@@ -242,6 +263,9 @@ class MapState extends Equatable {
     bool? areaTruncated,
     MapError? areaError,
     bool clearAreaError = false,
+    bool? pavementOn,
+    PavementLayer? pavement,
+    PavementStatus? pavementStatus,
   }) => MapState(
     layer: layer ?? this.layer,
     status: status ?? this.status,
@@ -279,6 +303,9 @@ class MapState extends Equatable {
     areaLoading: areaLoading ?? this.areaLoading,
     areaTruncated: areaTruncated ?? this.areaTruncated,
     areaError: clearAreaError ? null : (areaError ?? this.areaError),
+    pavementOn: pavementOn ?? this.pavementOn,
+    pavement: pavement ?? this.pavement,
+    pavementStatus: pavementStatus ?? this.pavementStatus,
   );
 
   @override
@@ -309,6 +336,9 @@ class MapState extends Equatable {
     areaLoading,
     areaTruncated,
     areaError,
+    pavementOn,
+    pavement,
+    pavementStatus,
   ];
 }
 
@@ -451,6 +481,57 @@ class MapCubit extends Cubit<MapState> {
     try {
       await reader?.close();
     } catch (_) {}
+  }
+
+  /// Hay de donde sacar el pavimento por tramo (no con datos de ejemplo).
+  bool get pavementSupported => segmentsRepository is SegmentPavementSource;
+
+  /// Prende o apaga la capa de pavimento: la primera vez la pide al servidor
+  /// (o la toma del telefono sin conexion).
+  Future<void> togglePavement() async {
+    if (state.pavementOn) {
+      emit(state.copyWith(pavementOn: false));
+      return;
+    }
+    emit(state.copyWith(pavementOn: true));
+    if (state.pavement == null ||
+        state.pavementStatus == PavementStatus.failure) {
+      await loadPavement();
+    }
+  }
+
+  Future<void> loadPavement() async {
+    final source = segmentsRepository;
+    if (source is! SegmentPavementSource) {
+      emit(
+        state.copyWith(
+          pavementOn: false,
+          pavementStatus: PavementStatus.unavailable,
+        ),
+      );
+      return;
+    }
+    emit(state.copyWith(pavementStatus: PavementStatus.loading));
+    try {
+      final layer = await (source as SegmentPavementSource).pavement();
+      if (isClosed) return;
+      emit(
+        state.copyWith(pavement: layer, pavementStatus: PavementStatus.ready),
+      );
+    } on MapException catch (e) {
+      if (isClosed) return;
+      final denied =
+          e.error == MapError.permissionDenied ||
+          e.error == MapError.notAvailable;
+      emit(
+        state.copyWith(
+          pavementOn: false,
+          pavementStatus: denied
+              ? PavementStatus.unavailable
+              : PavementStatus.failure,
+        ),
+      );
+    }
   }
 
   /// Vuelve a pedir la pestana abierta (reintento o jalar para actualizar). Por

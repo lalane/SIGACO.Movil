@@ -13,9 +13,17 @@ String moduleNumberLocale(String locale) =>
 String moduleDate(DateTime utc, ConcessionZone? zone) =>
     DateFormat('dd-MM-yyyy HH:mm').format(inConcessionZone(utc, zone));
 
-/// Solo el dia, `15/08/2026`, en la zona de la concesion.
+/// Solo el dia, `15/08/2026`, en la zona de la concesion. Para un instante
+/// (cuando paso algo); una fecha sin hora va con [moduleCalendarDay].
 String moduleDay(DateTime utc, ConcessionZone? zone) =>
     DateFormat('dd/MM/yyyy').format(inConcessionZone(utc, zone));
+
+/// Una fecha sin hora (`2026-11-10` del servidor: programada, instalacion,
+/// inicio de una obra), `10/11/2026`. No se pasa por la zona: es el mismo dia
+/// en cualquier lugar. Llevada a la zona, la medianoche UTC caeria el dia
+/// anterior al oeste de Greenwich (en Brasil, siempre).
+String moduleCalendarDay(DateTime day) =>
+    DateFormat('dd/MM/yyyy').format(DateTime(day.year, day.month, day.day));
 
 /// `15 de octubre de 2026 · 09:15` en la zona de la concesion.
 String moduleLongDate(

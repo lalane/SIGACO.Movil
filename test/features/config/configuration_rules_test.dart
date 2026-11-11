@@ -47,6 +47,8 @@ void main() {
         clock.now = DateTime.utc(2026, 10, 19, 15, 40);
         await cubit.load();
         cubit.setTitle('Bache');
+        // La descripcion es obligatoria (DTF M11 v0.3).
+        cubit.setDescription('Bache en el carril derecho');
         cubit.setCategory(cubit.state.categories.first);
         await cubit.save();
 
@@ -64,6 +66,7 @@ void main() {
       final cubit = NewTicketCubit(repo, clock: clock.call);
       await cubit.load();
       cubit.setTitle('Señal caída');
+      cubit.setDescription('Señal vertical en el suelo');
       cubit.setCategory(cubit.state.categories.first);
       clock.now = DateTime.utc(2026, 10, 19, 15, 5);
       await cubit.save();

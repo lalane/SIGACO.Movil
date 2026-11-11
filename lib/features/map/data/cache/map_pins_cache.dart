@@ -25,6 +25,16 @@ abstract interface class MapPinsCache implements ScopeBound {
   Future<SegmentListing?> readSegments();
 }
 
+/// El pavimento por tramo guardado tal como llego del servidor, para pintarlo
+/// sin conexion. Es aparte de [MapPinsCache] para no obligar a cada cache a
+/// tenerlo.
+abstract interface class PavementCache {
+  Future<void> savePavement(Map<String, dynamic> json);
+
+  /// Lo ultimo guardado y cuando se guardo (UTC); null si no hay.
+  Future<(Map<String, dynamic>, DateTime)?> readPavement();
+}
+
 /// Sin cache: todo se pide al servidor (pruebas y datos de ejemplo).
 class NoMapPinsCache implements MapPinsCache {
   const NoMapPinsCache();
@@ -45,7 +55,7 @@ class NoMapPinsCache implements MapPinsCache {
 
 /// Cache en archivos dentro de la carpeta de la app, un archivo por pestana. Sin
 /// alcance fijado (nadie ha iniciado sesion) no guarda ni entrega nada.
-class FileMapPinsCache implements MapPinsCache {
+class FileMapPinsCache implements MapPinsCache, PavementCache {
   FileMapPinsCache({
     Future<Directory> Function()? root,
     DateTime Function()? clock,
@@ -184,6 +194,17 @@ class FileMapPinsCache implements MapPinsCache {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Future<void> savePavement(Map<String, dynamic> json) =>
+      _write('pavement.json', 'pavement', [json]);
+
+  @override
+  Future<(Map<String, dynamic>, DateTime)?> readPavement() async {
+    final saved = await _read('pavement.json', 'pavement');
+    if (saved == null || saved.$1.isEmpty) return null;
+    return (saved.$1.first, saved.$2);
   }
 
   /// Los puntos van planos (`[lat, lon, lat, lon...]`): una carretera son miles.

@@ -49,6 +49,15 @@ abstract interface class MaintenanceRepository {
 
   Future<MaintenanceOrder> get(String id);
 
+  /// Los conteos del indicador entre [from] y [to] (dias de calendario,
+  /// incluidos): tickets de M11 y ultima evaluacion (HU-MC-15). null si el
+  /// servidor no los publica o no hay red: la pantalla sigue sin ellos.
+  Future<MaintenanceIndicatorSummary?> summary(
+    MaintenanceIndicator indicator, {
+    DateTime? from,
+    DateTime? to,
+  });
+
   /// Registra un seguimiento (HU-MC-10) y devuelve la orden ya con el.
   ///
   /// Se manda una de dos cosas, nunca las dos:

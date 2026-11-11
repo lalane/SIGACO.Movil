@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'asset_condition_info.dart';
 import 'asset_history.dart';
 import 'asset_template.dart';
 
@@ -87,6 +88,7 @@ class InventoryAsset extends Equatable {
     this.attachmentCount,
     this.pendingSync = false,
     this.history,
+    this.conditionInfo,
   });
 
   /// Identificador del servidor (es el de las rutas y el del mapa). En un
@@ -170,6 +172,10 @@ class InventoryAsset extends Equatable {
   /// de la ficha); null si el servidor no los da: no se muestra la historia.
   final AssetHistoryCounts? history;
 
+  /// La condicion con su origen y las marcas de campo (M13 Parte 2); null si
+  /// el servidor no la da.
+  final AssetConditionInfo? conditionInfo;
+
   bool get hasLocation =>
       latitude != null &&
       longitude != null &&
@@ -236,6 +242,7 @@ class InventoryAsset extends Equatable {
           attachmentCount: attachmentCount,
           pendingSync: pendingSync,
           history: history,
+          conditionInfo: conditionInfo,
         );
 
   @override
@@ -276,5 +283,6 @@ class InventoryAsset extends Equatable {
     attachmentCount,
     pendingSync,
     history,
+    conditionInfo,
   ];
 }

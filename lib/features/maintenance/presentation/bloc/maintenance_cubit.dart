@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +17,7 @@ class MaintenanceState extends Equatable {
     this.from,
     this.to,
     this.query = '',
+    this.summary,
   });
 
   final MaintenanceListStatus status;
@@ -29,6 +32,10 @@ class MaintenanceState extends Equatable {
   final DateTime? from;
   final DateTime? to;
   final String query;
+
+  /// Tickets y evaluacion del indicador en el periodo de [from] a [to]; null
+  /// mientras no llega o si el servidor no lo publica.
+  final MaintenanceIndicatorSummary? summary;
 
   int get total => orders.length;
 
@@ -91,6 +98,8 @@ class MaintenanceState extends Equatable {
     DateTime? to,
     bool clearTo = false,
     String? query,
+    MaintenanceIndicatorSummary? summary,
+    bool clearSummary = false,
   }) => MaintenanceState(
     status: status ?? this.status,
     orders: orders ?? this.orders,
@@ -99,6 +108,7 @@ class MaintenanceState extends Equatable {
     from: clearFrom ? null : (from ?? this.from),
     to: clearTo ? null : (to ?? this.to),
     query: query ?? this.query,
+    summary: clearSummary ? null : (summary ?? this.summary),
   );
 
   @override
@@ -110,6 +120,7 @@ class MaintenanceState extends Equatable {
     from,
     to,
     query,
+    summary,
   ];
 }
 
@@ -132,6 +143,8 @@ class MaintenanceCubit extends Cubit<MaintenanceState> {
   Future<void> refresh() => _fetch();
 
   Future<void> _fetch() async {
+    // Los conteos van aparte: si fallan, la lista se ve igual.
+    unawaited(_fetchSummary());
     try {
       final orders = await _repository.list(indicator);
       if (isClosed) return;
@@ -158,28 +171,50 @@ class MaintenanceCubit extends Cubit<MaintenanceState> {
     }
   }
 
+  Future<void> _fetchSummary() async {
+    final summary = await _repository.summary(
+      indicator,
+      from: state.from,
+      to: state.to,
+    );
+    if (isClosed) return;
+    emit(
+      summary == null
+          ? state.copyWith(clearSummary: true)
+          : state.copyWith(summary: summary),
+    );
+  }
+
   void setStatus(MaintenanceStatus? status) => emit(
     status == null
         ? state.copyWith(clearStatus: true)
         : state.copyWith(statusFilter: status),
   );
 
-  void setFrom(DateTime? day) => emit(
-    day == null ? state.copyWith(clearFrom: true) : state.copyWith(from: day),
-  );
+  /// Las fechas acotan la lista y los conteos de tickets del periodo.
+  void setFrom(DateTime? day) {
+    emit(
+      day == null ? state.copyWith(clearFrom: true) : state.copyWith(from: day),
+    );
+    unawaited(_fetchSummary());
+  }
 
-  void setTo(DateTime? day) => emit(
-    day == null ? state.copyWith(clearTo: true) : state.copyWith(to: day),
-  );
+  void setTo(DateTime? day) {
+    emit(day == null ? state.copyWith(clearTo: true) : state.copyWith(to: day));
+    unawaited(_fetchSummary());
+  }
 
   void setQuery(String query) => emit(state.copyWith(query: query));
 
-  void clearFilters() => emit(
-    state.copyWith(
-      clearStatus: true,
-      clearFrom: true,
-      clearTo: true,
-      query: '',
-    ),
-  );
+  void clearFilters() {
+    emit(
+      state.copyWith(
+        clearStatus: true,
+        clearFrom: true,
+        clearTo: true,
+        query: '',
+      ),
+    );
+    unawaited(_fetchSummary());
+  }
 }

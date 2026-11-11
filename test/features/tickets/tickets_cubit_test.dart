@@ -74,8 +74,11 @@ void main() {
       await cubit.load();
       expect(cubit.state.status, TicketsStatus.ready);
       expect(cubit.state.count(TicketFilter.all), 8);
-      expect(cubit.state.count(TicketFilter.open), 4);
-      expect(cubit.state.count(TicketFilter.attended), 4);
+      expect(cubit.state.count(TicketFilter.unvalidated), 2);
+      expect(cubit.state.count(TicketFilter.open), 2);
+      expect(cubit.state.count(TicketFilter.attended), 3);
+      expect(cubit.state.count(TicketFilter.closed), 1);
+      expect(cubit.state.count(TicketFilter.cancelled), 0);
     });
 
     test('lo mas reciente va primero', () async {
@@ -89,10 +92,14 @@ void main() {
       await cubit.load();
       cubit.setFilter(TicketFilter.open);
       expect(
-        cubit.state.visible.every((t) => t.status == TicketStatus.open),
+        cubit.state.visible.every((t) => t.stage == TicketStage.open),
         isTrue,
       );
-      expect(cubit.state.visible, hasLength(4));
+      expect(cubit.state.visible, hasLength(2));
+      cubit.setFilter(TicketFilter.unvalidated);
+      expect(cubit.state.visible.map((t) => t.id), ['T-0037', 'T-0041']);
+      cubit.setFilter(TicketFilter.closed);
+      expect(cubit.state.visible.map((t) => t.id), ['T-0042']);
     });
 
     test('busca por titulo, numero y cadenamiento', () async {

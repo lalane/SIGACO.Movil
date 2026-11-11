@@ -32,6 +32,30 @@ Color conditionColor(AssetCondition c) => switch (c) {
   AssetCondition.poor => StatusColors.open,
 };
 
+/// La condicion del activo para la pastilla: "No aplica" si su tipo no la
+/// lleva (M13 Parte 2, RB-13-15); si no, la homologada o "Sin evaluar".
+String assetConditionLabel(AppLocalizations l10n, InventoryAsset asset) =>
+    asset.conditionInfo?.applies == false
+    ? l10n.invConditionNotApplicable
+    : conditionLabel(l10n, asset.condition);
+
+Color assetConditionColor(InventoryAsset asset) =>
+    asset.conditionInfo?.applies == false
+    ? const Color(0xFF94A3B8)
+    : conditionColor(asset.condition);
+
+/// De donde salio la condicion (`source` del servidor).
+String conditionSourceLabel(AppLocalizations l10n, String? code) =>
+    switch (code?.toUpperCase()) {
+      'WEBGIS' => l10n.invConditionSourceWebgis,
+      'INSPECCION' => l10n.invConditionSourceInspection,
+      'MANUAL' => l10n.invConditionSourceManual,
+      'TICKET' => l10n.invConditionSourceTicket,
+      'MANTENIMIENTO' => l10n.invConditionSourceMaintenance,
+      'CARGA_INICIAL' => l10n.invConditionSourceInitial,
+      _ => code ?? '—',
+    };
+
 String lifecycleLabel(AppLocalizations l10n, AssetLifecycle s) => switch (s) {
   AssetLifecycle.pendingValidation => l10n.invLifecyclePending,
   AssetLifecycle.active => l10n.invLifecycleActive,
@@ -86,6 +110,10 @@ String historyStatusLabel(
   String code,
 ) {
   final label = switch ((kind, code)) {
+    // Estados del DTF M11 v0.3; los del BBP siguen por si llega un dato viejo.
+    (AssetHistoryKind.tickets, 'SIN_VALIDAR') => l10n.invHistTkUnvalidated,
+    (AssetHistoryKind.tickets, 'ABIERTO') => l10n.invHistTkOpen,
+    (AssetHistoryKind.tickets, 'ATENDIDO') => l10n.invHistTkAttended,
     (AssetHistoryKind.tickets, 'NUEVO') => l10n.invHistTkNew,
     (AssetHistoryKind.tickets, 'ASIGNADO') => l10n.invHistTkAssigned,
     (AssetHistoryKind.tickets, 'EN_PROCESO') => l10n.invHistTkInProgress,
@@ -117,11 +145,15 @@ String historyStatusLabel(
 /// lo que se esta trabajando o espera revision es ambar, lo terminado verde y
 /// lo cancelado gris.
 Color historyStatusColor(String code) => switch (code) {
+  // Tickets del DTF M11 v0.3: SIN_VALIDAR y ABIERTO faltan por atender;
+  // ATENDIDO espera la validacion.
+  'SIN_VALIDAR' || 'ABIERTO' => StatusColors.open,
   'NUEVO' || 'ASIGNADO' || 'REABIERTO' || 'PROGRAMADO' => StatusColors.open,
   'PENDIENTE' || 'ASIGNADA' => StatusColors.open,
   'EN_PROCESO' ||
   'EN_ESPERA' ||
   'RESUELTO' ||
+  'ATENDIDO' ||
   'ATENDIDA' ||
   'EN_REVISION' ||
   'EN_EJECUCION' => StatusColors.attended,

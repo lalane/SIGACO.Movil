@@ -118,6 +118,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem conexão com o servidor. Verifique sua rede e tente novamente.';
 
   @override
+  String get errAccessExpired =>
+      'Seu acesso ao SIGACO venceu. Peça ao seu administrador para renová-lo.';
+
+  @override
   String get errValidation =>
       'Não foi possível salvar. Revise os dados e tente novamente.';
 
@@ -1342,6 +1346,50 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get mapLayerPavement => 'Pavimento (IRI) por trecho';
+
+  @override
+  String get mapPavementGood => 'Bom';
+
+  @override
+  String get mapPavementFair => 'Regular';
+
+  @override
+  String get mapPavementBad => 'Ruim';
+
+  @override
+  String get mapPavementNoData => 'Sem medições';
+
+  @override
+  String mapPavementLegend(String label, String cycle) {
+    return '$label por trecho · $cycle · limites provisórios';
+  }
+
+  @override
+  String mapPavementSavedAt(String date) {
+    return 'Pavimento salvo em $date';
+  }
+
+  @override
+  String get mapPavementUnavailable =>
+      'Seu perfil não vê a camada de indicadores e pavimento.';
+
+  @override
+  String get mapPavementFailed =>
+      'Não foi possível carregar o pavimento. Tente novamente.';
+
+  @override
+  String mapPavementSegment(
+    String label,
+    String value,
+    String unit,
+    String level,
+    String coverage,
+  ) {
+    return '$label: $value $unit · $level · $coverage % do trecho medido';
+  }
+
+  @override
   String get mapDetailReference => 'Referência';
 
   @override
@@ -1888,6 +1936,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get fieldTeam => 'Equipe';
 
   @override
+  String get fieldAccessValidUntil => 'Acesso válido até';
+
+  @override
   String get profilePhotoChange => 'Alterar foto';
 
   @override
@@ -2008,6 +2059,29 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String maintStatShare(String percent) {
     return '$percent% do total';
+  }
+
+  @override
+  String get maintTicketsTotal => 'Tickets';
+
+  @override
+  String get maintTicketsPeriod => 'Do período';
+
+  @override
+  String get maintTicketsOpen => 'Abertos';
+
+  @override
+  String get maintTicketsAttended => 'Atendidos';
+
+  @override
+  String get maintTicketsClosed => 'Fechados';
+
+  @override
+  String get maintTicketsCaption => 'Tickets (M11)';
+
+  @override
+  String maintPerCompliance(String percent, String year) {
+    return 'PER $percent% · ano $year';
   }
 
   @override
@@ -2315,6 +2389,41 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get invLastInspection => 'Última monitoração';
+
+  @override
+  String get invNextInspection => 'Próxima monitoração';
+
+  @override
+  String get invConditionNotApplicable => 'Não se aplica';
+
+  @override
+  String get invConditionOrigin => 'Origem da condição';
+
+  @override
+  String get invOpenFindings => 'Achados abertos';
+
+  @override
+  String invNotLocated(String date) {
+    return 'Relatado como não localizado em campo em $date';
+  }
+
+  @override
+  String get invConditionSourceWebgis => 'WebGIS';
+
+  @override
+  String get invConditionSourceInspection => 'Monitoração';
+
+  @override
+  String get invConditionSourceManual => 'Ajuste manual';
+
+  @override
+  String get invConditionSourceTicket => 'Fechamento de registro';
+
+  @override
+  String get invConditionSourceMaintenance => 'Manutenção';
+
+  @override
+  String get invConditionSourceInitial => 'Carga inicial';
 
   @override
   String get invCoordinates => 'Coordenadas';
@@ -3889,6 +3998,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get invHistTkCancelled => 'Cancelado';
 
   @override
+  String get invHistTkUnvalidated => 'Não validado';
+
+  @override
+  String get invHistTkOpen => 'Aberto';
+
+  @override
+  String get invHistTkAttended => 'Atendido';
+
+  @override
   String get invHistInPending => 'Pendente';
 
   @override
@@ -3927,4 +4045,599 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get mapFilterSubsystem => 'Subsistema';
+
+  @override
+  String get defTitle => 'Definições pendentes';
+
+  @override
+  String get defSubtitle =>
+      'Premissas com que o SIGACO já funciona e que a TEKIA deve confirmar';
+
+  @override
+  String get defFilterPending => 'Sem veredito';
+
+  @override
+  String get defFilterAll => 'Todas';
+
+  @override
+  String get defFilterModule => 'Só deste módulo';
+
+  @override
+  String get defSearchHint => 'Código, pergunta ou premissa';
+
+  @override
+  String get defSearchTooltip => 'Buscar';
+
+  @override
+  String get defEmpty => 'Não há definições com este filtro.';
+
+  @override
+  String get defEmptyAll => 'Não há definições pendentes.';
+
+  @override
+  String get defQuestion => 'Pergunta';
+
+  @override
+  String get defAssumption => 'O que o SIGACO faz hoje';
+
+  @override
+  String get defIfVetoed => 'Se a TEKIA disser outra coisa';
+
+  @override
+  String get defSource => 'Fonte';
+
+  @override
+  String get defHistory => 'Histórico';
+
+  @override
+  String get defNoAnswers => 'Ninguém respondeu ainda.';
+
+  @override
+  String get defAgree => 'De acordo';
+
+  @override
+  String get defChange => 'Não: é assim…';
+
+  @override
+  String get defComment => 'Comentar';
+
+  @override
+  String get defChangeHint => 'É assim que deve funcionar';
+
+  @override
+  String get defCommentHint => 'Comentário';
+
+  @override
+  String get defSend => 'Enviar';
+
+  @override
+  String get defSaved => 'Resposta salva';
+
+  @override
+  String get defDecideHint =>
+      'Aceitar a premissa ou pedir a mudança cabe a quem administra; você pode comentar.';
+
+  @override
+  String get defRetiredNote =>
+      'Retirada: não se aplica mais e não se responde.';
+
+  @override
+  String get defTextRequired => 'Escreva o texto.';
+
+  @override
+  String get defStatusOpen => 'Aberta';
+
+  @override
+  String get defStatusAnswered => 'Respondida';
+
+  @override
+  String get defStatusAccepted => 'Aceita';
+
+  @override
+  String get defStatusChangeRequested => 'Mudança solicitada';
+
+  @override
+  String get defStatusRetired => 'Retirada';
+
+  @override
+  String get defPriorityHigh => 'Alta';
+
+  @override
+  String get defPriorityMedium => 'Média';
+
+  @override
+  String get defPriorityLow => 'Baixa';
+
+  @override
+  String get defKindAgree => 'De acordo com a premissa';
+
+  @override
+  String get defKindChange => 'Não: é assim…';
+
+  @override
+  String get defKindComment => 'Comentário';
+
+  @override
+  String get defKindReopen => 'Reaberta';
+
+  @override
+  String get defKindUpdated => 'Premissa atualizada';
+
+  @override
+  String get defKindRetired => 'Retirada';
+
+  @override
+  String get defKindRestored => 'Reincorporada';
+
+  @override
+  String get defSystem => 'Sistema';
+
+  @override
+  String get defFromApp => 'pelo aplicativo';
+
+  @override
+  String defModuleNotice(int count) {
+    return 'Há $count definições sem veredito deste módulo';
+  }
+
+  @override
+  String get defView => 'Ver';
+
+  @override
+  String get defErrorNetwork =>
+      'Sem conexão com o SIGACO. Verifique sua rede e tente de novo.';
+
+  @override
+  String get defErrorPermission => 'Seu perfil não pode fazer isso.';
+
+  @override
+  String get defErrorNotFound => 'A definição não existe mais.';
+
+  @override
+  String get defErrorRetired =>
+      'A definição está retirada: não se responde mais.';
+
+  @override
+  String get defErrorServer =>
+      'O SIGACO não conseguiu responder. Tente de novo.';
+
+  @override
+  String get maintPerformanceAction => 'Desempenho do indicador';
+
+  @override
+  String get maintPerformanceTitle => 'Desempenho';
+
+  @override
+  String get maintPerformanceHint =>
+      'Cálculo do indicador até hoje com os dados do SIGACO. Aprovar eventos, expurgos e fechamentos é feito na web.';
+
+  @override
+  String get maintEventsTitle => 'Eventos de indisponibilidade';
+
+  @override
+  String get maintEventsEmpty => 'Sem eventos registrados.';
+
+  @override
+  String get maintEventsOpen => 'aberto';
+
+  @override
+  String get maintEventsCreate => 'Registrar indisponibilidade';
+
+  @override
+  String get maintEventsAsset => 'Equipamento ou sistema (código)';
+
+  @override
+  String get maintEventsStart => 'Início da indisponibilidade';
+
+  @override
+  String get maintEventsCause => 'Causa';
+
+  @override
+  String get maintEventsApprovalHint =>
+      'O evento fica pendente até que o supervisor o aprove com a evidência na web.';
+
+  @override
+  String get maintEventsRequired => 'Escolha o equipamento e escreva a causa.';
+
+  @override
+  String get maintEventsFailed => 'Não foi possível registrar o evento.';
+
+  @override
+  String get maintEventsSave => 'Salvar';
+
+  @override
+  String get maintStatusComplies => 'Cumpre';
+
+  @override
+  String get maintStatusNotComplies => 'Não cumpre';
+
+  @override
+  String get maintStatusPending => 'Pendente de validação';
+
+  @override
+  String get maintStatusNotYet => 'Ainda não exigível';
+
+  @override
+  String get maintStatusNotEvaluated => 'Não avaliado';
+
+  @override
+  String get captSave => 'Salvar rascunho';
+
+  @override
+  String get captFinalize => 'Finalizar';
+
+  @override
+  String get captStart => 'Iniciar captura';
+
+  @override
+  String get captAccept => 'Aceitar';
+
+  @override
+  String get captReject => 'Recusar';
+
+  @override
+  String get captRejectReason => 'Motivo da recusa';
+
+  @override
+  String captMissing(int count) {
+    return 'Falta para finalizar ($count)';
+  }
+
+  @override
+  String get captCondition => 'Condição';
+
+  @override
+  String get captUnrated => 'Não avaliado';
+
+  @override
+  String captPrevious(String value) {
+    return 'Anterior: $value';
+  }
+
+  @override
+  String get captFromAsset => 'Dado do ativo';
+
+  @override
+  String get captAddPhoto => 'Tirar foto';
+
+  @override
+  String get captPhotoPending => 'A enviar';
+
+  @override
+  String get captNoPhotos => 'Sem fotos';
+
+  @override
+  String get captAddRow => 'Adicionar linha';
+
+  @override
+  String get captRemoveRow => 'Remover';
+
+  @override
+  String get captFindings => 'Achados';
+
+  @override
+  String get captAddFinding => 'Registrar achado';
+
+  @override
+  String get captFindingDescription => 'Descrição';
+
+  @override
+  String get captFindingFailure => 'Falha da Matriz';
+
+  @override
+  String get captFindingNoFailure => 'Sem falha (escolha a severidade)';
+
+  @override
+  String get captFindingSeverity => 'Severidade';
+
+  @override
+  String get captImmediate =>
+      'Prazo «Imediato»: ao finalizar o chamado é criado.';
+
+  @override
+  String get captPendingSync =>
+      'Há mudanças salvas no telefone: são enviadas sozinhas quando o sinal voltar.';
+
+  @override
+  String get captSavedOffline =>
+      'Salvo no telefone: será enviado quando o sinal voltar.';
+
+  @override
+  String get captSaved => 'Rascunho salvo.';
+
+  @override
+  String get captFinalized => 'Inspeção finalizada.';
+
+  @override
+  String get captFinalizedOffline =>
+      'Finalizada no telefone: será enviada quando o sinal voltar.';
+
+  @override
+  String get captJustifyTitle => 'Localização fora da tolerância';
+
+  @override
+  String get captConfirm => 'Confirmar';
+
+  @override
+  String get captCancel => 'Cancelar';
+
+  @override
+  String get captYes => 'Sim';
+
+  @override
+  String get captNo => 'Não';
+
+  @override
+  String get captError => 'Não foi possível concluir a ação.';
+
+  @override
+  String get captOffline =>
+      'Sem conexão e sem cópia no telefone: abra a inspeção uma vez com sinal.';
+
+  @override
+  String captTemplateVersion(int version) {
+    return 'Modelo v$version';
+  }
+
+  @override
+  String captCorrection(String reason) {
+    return 'Correção pedida: $reason';
+  }
+
+  @override
+  String get captNotEditable => 'A inspeção não pode mais ser alterada.';
+
+  @override
+  String get captPermission => 'Seu perfil não permite esta ação.';
+
+  @override
+  String get captDone => 'Pronto.';
+
+  @override
+  String get captRejected => 'Você recusou a inspeção: volta a pendente.';
+
+  @override
+  String get captRetry => 'Tentar de novo';
+
+  @override
+  String get captRoadSection => 'Inspeção de trecho';
+
+  @override
+  String get captConform => 'Conforme';
+
+  @override
+  String get captNonConform => 'Não conforme';
+
+  @override
+  String get captNotApplicable => 'Não se aplica';
+
+  @override
+  String get captWithTicket => 'Com chamado';
+
+  @override
+  String get captStatusPending => 'Pendente';
+
+  @override
+  String get captStatusAssigned => 'Atribuída';
+
+  @override
+  String get captStatusInProgress => 'Em andamento';
+
+  @override
+  String get captStatusAttended => 'Atendida';
+
+  @override
+  String get captStatusInReview => 'Em revisão';
+
+  @override
+  String get captStatusClosed => 'Fechada';
+
+  @override
+  String get captStatusCancelled => 'Cancelada';
+
+  @override
+  String get ticketsFilterUnvalidated => 'Não validados';
+
+  @override
+  String get ticketsFilterClosed => 'Fechados';
+
+  @override
+  String get ticketsFilterCancelled => 'Cancelados';
+
+  @override
+  String get ticketStageUnvalidated => 'Não validado';
+
+  @override
+  String get ticketStageClosed => 'Fechado';
+
+  @override
+  String get ticketStageCancelled => 'Cancelado';
+
+  @override
+  String get ticketInfoAssignedCompany => 'Empresa atribuída';
+
+  @override
+  String get ticketInfoAssignedTeam => 'Equipe atribuída';
+
+  @override
+  String get ticketSupervisionTitle => 'Supervisão';
+
+  @override
+  String get ticketActionAssign => 'Atribuir';
+
+  @override
+  String get ticketActionReassign => 'Reatribuir';
+
+  @override
+  String get ticketActionClose => 'Validar e fechar';
+
+  @override
+  String get ticketActionReturn => 'Devolver para Aberto';
+
+  @override
+  String get ticketActionReopen => 'Reabrir';
+
+  @override
+  String get ticketActionCancel => 'Cancelar registro';
+
+  @override
+  String get ticketActionSave => 'Salvar';
+
+  @override
+  String get ticketAssignTitle => 'Atribuir a empresa e equipe';
+
+  @override
+  String get ticketReassignTitle => 'Reatribuir a outra empresa ou equipe';
+
+  @override
+  String get ticketAssignCompany => 'Empresa';
+
+  @override
+  String get ticketAssignTeam => 'Equipe';
+
+  @override
+  String get ticketAssignPerson => 'Pessoa de referência (opcional)';
+
+  @override
+  String get ticketAssignNoPerson => 'Sem pessoa de referência';
+
+  @override
+  String get ticketAssignSelect => 'Selecione';
+
+  @override
+  String get ticketAssignNoTeams =>
+      'Não há empresas com equipes ativas para atribuir.';
+
+  @override
+  String get ticketAssignLoadFailed =>
+      'Não foi possível carregar as empresas e as equipes.';
+
+  @override
+  String get ticketAssignMissing => 'Escolha a empresa e a equipe.';
+
+  @override
+  String get ticketReasonLabel => 'Motivo';
+
+  @override
+  String get ticketReasonHint => 'Explique o motivo';
+
+  @override
+  String get ticketReasonRequired => 'Escreva o motivo.';
+
+  @override
+  String get ticketCloseTitle => 'Validar e fechar o registro';
+
+  @override
+  String get ticketCloseCondition => 'Condição do ativo';
+
+  @override
+  String get ticketCloseNotes => 'Observação (opcional)';
+
+  @override
+  String get ticketConditionUnchanged => 'Sem alteração';
+
+  @override
+  String get ticketConditionGood => 'Bom';
+
+  @override
+  String get ticketConditionFair => 'Regular';
+
+  @override
+  String get ticketConditionPoor => 'Ruim';
+
+  @override
+  String get ticketConditionVeryPoor => 'Péssimo';
+
+  @override
+  String get ticketReturnTitle => 'Devolver para Aberto';
+
+  @override
+  String get ticketReopenTitle => 'Reabrir o registro';
+
+  @override
+  String get ticketCancelTitle => 'Cancelar o registro';
+
+  @override
+  String get ticketCancelReason => 'Motivo do cancelamento';
+
+  @override
+  String get ticketCancelDuplicate => 'Duplicado';
+
+  @override
+  String get ticketCancelImproper => 'Improcedente';
+
+  @override
+  String get ticketCancelOther => 'Outro';
+
+  @override
+  String get ticketCancelFolio => 'Número do registro original';
+
+  @override
+  String get ticketCancelFolioRequired =>
+      'Escreva o número do registro original.';
+
+  @override
+  String get ticketCancelNotes => 'Detalhe do motivo';
+
+  @override
+  String get ticketCancelNotesRequired => 'Com «Outro», explique o motivo.';
+
+  @override
+  String get ticketDoneAssign => 'Registro atribuído.';
+
+  @override
+  String get ticketDoneReassign => 'Registro reatribuído.';
+
+  @override
+  String get ticketDoneClose => 'Registro validado e fechado.';
+
+  @override
+  String get ticketDoneReturn => 'Registro devolvido para Aberto.';
+
+  @override
+  String get ticketDoneReopen => 'Registro reaberto.';
+
+  @override
+  String get ticketDoneCancel => 'Registro cancelado.';
+
+  @override
+  String ticketActionRejected(String reason) {
+    return 'A alteração não foi aplicada: $reason';
+  }
+
+  @override
+  String get ticketActionOffline => 'Sem conexão: esta ação precisa de rede.';
+
+  @override
+  String get ticketActionDenied => 'Seu perfil não pode fazer esta ação.';
+
+  @override
+  String get ticketActionFailed =>
+      'Não foi possível concluir a ação. Tente novamente.';
+
+  @override
+  String ticketCancelledInfo(String reason) {
+    return 'Cancelado: $reason';
+  }
+
+  @override
+  String ticketCancelledDuplicateOf(String folio) {
+    return 'Duplicado de $folio';
+  }
+
+  @override
+  String ticketClosedCondition(String condition) {
+    return 'Condição do ativo ao fechar: $condition';
+  }
+
+  @override
+  String get newTicketRoad => 'Rodovia';
+
+  @override
+  String get newTicketErrorRoad => 'Escolha a rodovia: a concessão tem várias.';
+
+  @override
+  String maintEventsRejected(String reason) {
+    return 'O evento não foi registrado: $reason';
+  }
 }

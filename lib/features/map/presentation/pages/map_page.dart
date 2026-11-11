@@ -26,6 +26,7 @@ import '../map_record_actions.dart';
 import '../widgets/picked_point_card.dart';
 import '../../domain/entities/pin_cluster.dart';
 import '../../domain/entities/road_segment.dart';
+import '../../domain/entities/segment_pavement.dart';
 import '../../domain/repositories/location_source.dart';
 import '../../domain/repositories/map_repository.dart';
 import '../bloc/map_cubit.dart';
@@ -779,7 +780,11 @@ class _MapArea extends StatelessWidget {
                         Polyline<String>(
                           points: [for (final point in s.points) _ll(point)],
                           strokeWidth: isHighlighted(s) ? 8 : 5,
-                          color: segmentColor(s.direction),
+                          color: state.shownPavement != null
+                              ? pavementColor(
+                                  state.shownPavement!.levelOf(s.id),
+                                )
+                              : segmentColor(s.direction),
                           borderStrokeWidth: 2,
                           borderColor: Colors.white,
                           hitValue: s.id,
@@ -949,6 +954,8 @@ class _MapArea extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 ),
               if (here != null) _AccuracyChip(state: state),
+              if (state.shownPavement != null)
+                _PavementLegend(layer: state.shownPavement!),
             ],
           ),
         ),
@@ -970,9 +977,20 @@ class _MapArea extends StatelessWidget {
                     // Con una ficha abierta se oculta: el mapa necesita
                     // el espacio.
                     if (selected == null && selectedSegment == null)
-                      MapLayerButtons(
-                        current: state.layer,
-                        onSelect: cubit.selectLayer,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          MapLayerButtons(
+                            current: state.layer,
+                            onSelect: cubit.selectLayer,
+                          ),
+                          if (cubit.pavementSupported &&
+                              state.pavementStatus !=
+                                  PavementStatus.unavailable) ...[
+                            SizedBox(height: r.s(8)),
+                            _PavementButton(state: state),
+                          ],
+                        ],
                       ),
                     const Spacer(),
                     if (actions.onCreate != null &&
@@ -1075,6 +1093,7 @@ class _MapArea extends StatelessWidget {
                         )
                         .length,
                     onClose: () => cubit.selectSegment(null),
+                    pavement: state.shownPavement,
                   ),
                 )
               else
@@ -1087,6 +1106,135 @@ class _MapArea extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Prende y apaga la capa de pavimento por tramo (DTF M10 HU-MOB-10-01 CA-04):
+/// los tramos se pintan por el nivel de su IRI. Es independiente de la pestana
+/// de pines.
+class _PavementButton extends StatelessWidget {
+  const _PavementButton({required this.state});
+
+  final MapState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final p = context.palette;
+    final r = context.responsive;
+    final on = state.pavementOn;
+    final size = r.s(44);
+    return Semantics(
+      button: true,
+      toggled: on,
+      label: l10n.mapLayerPavement,
+      child: Tooltip(
+        message: l10n.mapLayerPavement,
+        child: Material(
+          color: on ? p.accent : p.gradientTop,
+          elevation: 2,
+          borderRadius: BorderRadius.circular(r.s(12)),
+          child: InkWell(
+            key: const Key('map-pavement'),
+            borderRadius: BorderRadius.circular(r.s(12)),
+            onTap: state.pavementStatus == PavementStatus.loading
+                ? null
+                : () async {
+                    final cubit = context.read<MapCubit>();
+                    final messenger = ScaffoldMessenger.maybeOf(context);
+                    await cubit.togglePavement();
+                    final after = cubit.state.pavementStatus;
+                    if (after == PavementStatus.unavailable ||
+                        after == PavementStatus.failure) {
+                      messenger?.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            after == PavementStatus.unavailable
+                                ? l10n.mapPavementUnavailable
+                                : l10n.mapPavementFailed,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: state.pavementStatus == PavementStatus.loading
+                  ? Padding(
+                      padding: EdgeInsets.all(r.s(12)),
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      Icons.add_road,
+                      size: r.s(22),
+                      color: on ? p.onAccent : p.textOnTop,
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Que significan los colores de los tramos con la capa de pavimento, de que
+/// ciclo son y, sin conexion, de cuando.
+class _PavementLegend extends StatelessWidget {
+  const _PavementLegend({required this.layer});
+
+  final PavementLayer layer;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final saved = layer.cachedAt;
+    // Va en una columna pegada a la derecha sin limite de ancho: sin tope, el
+    // nombre largo del ciclo la estiraba y se salia de la pantalla por la
+    // izquierda (con los colores fuera de vista).
+    final maxWidth = MediaQuery.sizeOf(context).width - 16;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: Chip(
+        key: const Key('map-pavement-legend'),
+        visualDensity: VisualDensity.compact,
+        label: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l10n.mapPavementLegend(layer.label, layer.cycleName ?? '—')),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final level in [...PavementLevel.values, null])
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 5,
+                        backgroundColor: pavementColor(level),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(pavementLevelLabel(l10n, level)),
+                    ],
+                  ),
+              ],
+            ),
+            // RT-GIS-01: en la zona horaria de la concesion, no la del telefono
+            if (saved != null)
+              Text(
+                l10n.mapPavementSavedAt(
+                  formatInZone(
+                    context,
+                    saved,
+                    context.watch<ConcessionZoneCubit>().state,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

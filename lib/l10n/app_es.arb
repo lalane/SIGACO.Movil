@@ -40,6 +40,7 @@
   "errInvalidCredentials": "Correo o contraseña incorrectos. Tras varios intentos fallidos consecutivos la cuenta se bloquea.",
   "errAccountBlocked": "Tu acceso ha sido bloqueado por intentos fallidos. Contacta al administrador del sistema para solicitar la reactivación de tu cuenta.",
   "errNetwork": "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo.",
+  "errAccessExpired": "Tu acceso a SIGACO venció. Pide a tu administrador que lo renueve.",
   "errValidation": "No se pudo guardar. Revisa los datos e inténtalo de nuevo.",
   "passwordRulesTitle": "La contraseña debe tener:",
   "passwordRuleLength": "Al menos {min} caracteres",
@@ -610,6 +611,52 @@
       }
     }
   },
+  "mapLayerPavement": "Pavimento (IRI) por tramo",
+  "mapPavementGood": "Bueno",
+  "mapPavementFair": "Regular",
+  "mapPavementBad": "Malo",
+  "mapPavementNoData": "Sin mediciones",
+  "mapPavementLegend": "{label} por tramo · {cycle} · umbrales provisionales",
+  "@mapPavementLegend": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "cycle": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPavementSavedAt": "Pavimento guardado el {date}",
+  "@mapPavementSavedAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "mapPavementUnavailable": "Su perfil no ve la capa de indicadores y pavimento.",
+  "mapPavementFailed": "No se pudo cargar el pavimento. Intente de nuevo.",
+  "mapPavementSegment": "{label}: {value} {unit} · {level} · {coverage} % del tramo medido",
+  "@mapPavementSegment": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      },
+      "coverage": {
+        "type": "String"
+      }
+    }
+  },
   "mapDetailReference": "Referencia",
   "mapDetailDistance": "A {distance} de ti",
   "@mapDetailDistance": {
@@ -895,6 +942,7 @@
   "newAccidentErrorSeverity": "Elige la gravedad.",
   "maintIndicatorsTitle": "Seleccione un indicador",
   "fieldTeam": "Equipo",
+  "fieldAccessValidUntil": "Acceso vigente hasta",
   "profilePhotoChange": "Cambiar foto",
   "accountPanelTitle": "Configuraciones de la cuenta",
   "accountMyAccount": "Mi cuenta",
@@ -957,6 +1005,23 @@
   "@maintStatShare": {
     "placeholders": {
       "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "maintTicketsTotal": "Tickets",
+  "maintTicketsPeriod": "Del periodo",
+  "maintTicketsOpen": "Abiertos",
+  "maintTicketsAttended": "Atendidos",
+  "maintTicketsClosed": "Cerrados",
+  "maintTicketsCaption": "Tickets (M11)",
+  "maintPerCompliance": "PER {percent}% · año {year}",
+  "@maintPerCompliance": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "year": {
         "type": "String"
       }
     }
@@ -1092,6 +1157,24 @@
   "invDirection": "Sentido",
   "invInstalled": "Instalación",
   "invLastInspection": "Último monitoreo",
+  "invNextInspection": "Próximo monitoreo",
+  "invConditionNotApplicable": "No aplica",
+  "invConditionOrigin": "Origen de la condición",
+  "invOpenFindings": "Hallazgos abiertos",
+  "invNotLocated": "Reportado no localizado en campo el {date}",
+  "@invNotLocated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "invConditionSourceWebgis": "WebGIS",
+  "invConditionSourceInspection": "Monitoreo",
+  "invConditionSourceManual": "Ajuste a mano",
+  "invConditionSourceTicket": "Cierre de registro",
+  "invConditionSourceMaintenance": "Mantenimiento",
+  "invConditionSourceInitial": "Carga inicial",
   "invCoordinates": "Coordenadas",
   "invNotes": "Observaciones",
   "invViewOnMap": "Ver en mapa",
@@ -1941,6 +2024,9 @@
   "invHistTkResolved": "Resuelto",
   "invHistTkClosed": "Cerrado",
   "invHistTkCancelled": "Cancelado",
+  "invHistTkUnvalidated": "Sin validar",
+  "invHistTkOpen": "Abierto",
+  "invHistTkAttended": "Atendido",
   "invHistInPending": "Pendiente",
   "invHistInAssigned": "Asignada",
   "invHistInInProgress": "En proceso",
@@ -1953,5 +2039,261 @@
   "invHistMpCompleted": "Completado",
   "invHistMpCancelled": "Cancelado",
   "ticketAssetLocationHint": "La carretera, el km, el sentido y la geometría salen del activo.",
-  "mapFilterSubsystem": "Subsistema"
+  "mapFilterSubsystem": "Subsistema",
+  "defTitle": "Definiciones pendientes",
+  "defSubtitle": "Supuestos con los que SIGACO ya funciona y TEKIA debe confirmar",
+  "defFilterPending": "Sin veredicto",
+  "defFilterAll": "Todas",
+  "defFilterModule": "Solo de este módulo",
+  "defSearchHint": "Código, pregunta o supuesto",
+  "defSearchTooltip": "Buscar",
+  "defEmpty": "No hay definiciones con este filtro.",
+  "defEmptyAll": "No hay definiciones pendientes.",
+  "defQuestion": "Pregunta",
+  "defAssumption": "Lo que hace hoy SIGACO",
+  "defIfVetoed": "Si TEKIA dice otra cosa",
+  "defSource": "Fuente",
+  "defHistory": "Historial",
+  "defNoAnswers": "Nadie la ha contestado todavía.",
+  "defAgree": "De acuerdo",
+  "defChange": "No: así es…",
+  "defComment": "Comentar",
+  "defChangeHint": "Así es como debe funcionar",
+  "defCommentHint": "Comentario",
+  "defSend": "Enviar",
+  "defSaved": "Respuesta guardada",
+  "defDecideHint": "Aceptar el supuesto o pedir el cambio lo hace quien administra; usted puede comentarla.",
+  "defRetiredNote": "Retirada: ya no aplica y no se contesta.",
+  "defTextRequired": "Escriba el texto.",
+  "defStatusOpen": "Abierta",
+  "defStatusAnswered": "Respondida",
+  "defStatusAccepted": "Aceptada",
+  "defStatusChangeRequested": "Cambio solicitado",
+  "defStatusRetired": "Retirada",
+  "defPriorityHigh": "Alta",
+  "defPriorityMedium": "Media",
+  "defPriorityLow": "Baja",
+  "defKindAgree": "De acuerdo con el supuesto",
+  "defKindChange": "No: así es…",
+  "defKindComment": "Comentario",
+  "defKindReopen": "Reabierta",
+  "defKindUpdated": "Supuesto actualizado",
+  "defKindRetired": "Retirada",
+  "defKindRestored": "Reincorporada",
+  "defSystem": "Sistema",
+  "defFromApp": "desde la app",
+  "defModuleNotice": "Hay {count} definiciones sin veredicto de este módulo",
+  "@defModuleNotice": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "defView": "Ver",
+  "defErrorNetwork": "Sin conexión con SIGACO. Revise su red e intente de nuevo.",
+  "defErrorPermission": "Su perfil no puede hacer eso.",
+  "defErrorNotFound": "La definición ya no existe.",
+  "defErrorRetired": "La definición está retirada: ya no se contesta.",
+  "defErrorServer": "SIGACO no pudo responder. Intente de nuevo.",
+  "maintPerformanceAction": "Desempeño del indicador",
+  "maintPerformanceTitle": "Desempeño",
+  "maintPerformanceHint": "Cálculo del indicador a hoy con los datos de SIGACO. Aprobar eventos, expurgos y cierres se hace en la web.",
+  "maintEventsTitle": "Eventos de indisponibilidad",
+  "maintEventsEmpty": "Sin eventos registrados.",
+  "maintEventsOpen": "abierto",
+  "maintEventsCreate": "Registrar indisponibilidad",
+  "maintEventsAsset": "Equipo o sistema (código)",
+  "maintEventsStart": "Inicio de la indisponibilidad",
+  "maintEventsCause": "Causa",
+  "maintEventsApprovalHint": "El evento queda pendiente hasta que el supervisor lo apruebe con la evidencia en la web.",
+  "maintEventsRequired": "Elija el equipo y escriba la causa.",
+  "maintEventsFailed": "No se pudo registrar el evento.",
+  "maintEventsSave": "Guardar",
+  "maintStatusComplies": "Cumple",
+  "maintStatusNotComplies": "No cumple",
+  "maintStatusPending": "Pendiente de validación",
+  "maintStatusNotYet": "Aún no exigible",
+  "maintStatusNotEvaluated": "No evaluado",
+  "captSave": "Guardar borrador",
+  "captFinalize": "Finalizar",
+  "captStart": "Iniciar captura",
+  "captAccept": "Aceptar",
+  "captReject": "Rechazar",
+  "captRejectReason": "Motivo del rechazo",
+  "captMissing": "Falta para finalizar ({count})",
+  "@captMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "captCondition": "Condición",
+  "captUnrated": "Sin evaluar",
+  "captPrevious": "Anterior: {value}",
+  "@captPrevious": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "captFromAsset": "Dato del activo",
+  "captAddPhoto": "Tomar foto",
+  "captPhotoPending": "Por enviar",
+  "captNoPhotos": "Sin fotos",
+  "captAddRow": "Agregar fila",
+  "captRemoveRow": "Quitar",
+  "captFindings": "Hallazgos",
+  "captAddFinding": "Registrar hallazgo",
+  "captFindingDescription": "Descripción",
+  "captFindingFailure": "Falla de la Matriz",
+  "captFindingNoFailure": "Sin falla (elige la severidad)",
+  "captFindingSeverity": "Severidad",
+  "captImmediate": "Plazo «Imediato»: al finalizar se crea el ticket.",
+  "captPendingSync": "Hay cambios guardados en el teléfono: se envían solos al volver la señal.",
+  "captSavedOffline": "Guardado en el teléfono: se enviará al volver la señal.",
+  "captSaved": "Borrador guardado.",
+  "captFinalized": "Inspección finalizada.",
+  "captFinalizedOffline": "Finalizada en el teléfono: se enviará al volver la señal.",
+  "captJustifyTitle": "Ubicación fuera de la tolerancia",
+  "captConfirm": "Confirmar",
+  "captCancel": "Cancelar",
+  "captYes": "Sí",
+  "captNo": "No",
+  "captError": "No se pudo completar la acción.",
+  "captOffline": "Sin conexión y sin copia en el teléfono: abre la inspección una vez con señal.",
+  "captTemplateVersion": "Plantilla v{version}",
+  "@captTemplateVersion": {
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "captCorrection": "Corrección pedida: {reason}",
+  "@captCorrection": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "captNotEditable": "La inspección ya no se puede modificar.",
+  "captPermission": "Tu perfil no permite esta acción.",
+  "captDone": "Listo.",
+  "captRejected": "Rechazaste la inspección: vuelve a pendiente.",
+  "captRetry": "Reintentar",
+  "captRoadSection": "Inspección de tramo",
+  "captConform": "Conforme",
+  "captNonConform": "No conforme",
+  "captNotApplicable": "No aplica",
+  "captWithTicket": "Con ticket",
+  "captStatusPending": "Pendiente",
+  "captStatusAssigned": "Asignada",
+  "captStatusInProgress": "En proceso",
+  "captStatusAttended": "Atendida",
+  "captStatusInReview": "En revisión",
+  "captStatusClosed": "Cerrada",
+  "captStatusCancelled": "Cancelada",
+  "ticketsFilterUnvalidated": "Sin validar",
+  "ticketsFilterClosed": "Cerrados",
+  "ticketsFilterCancelled": "Cancelados",
+  "ticketStageUnvalidated": "Sin validar",
+  "ticketStageClosed": "Cerrado",
+  "ticketStageCancelled": "Cancelado",
+  "ticketInfoAssignedCompany": "Empresa asignada",
+  "ticketInfoAssignedTeam": "Equipo asignado",
+  "ticketSupervisionTitle": "Supervisión",
+  "ticketActionAssign": "Asignar",
+  "ticketActionReassign": "Reasignar",
+  "ticketActionClose": "Validar y cerrar",
+  "ticketActionReturn": "Regresar a Abierto",
+  "ticketActionReopen": "Reabrir",
+  "ticketActionCancel": "Cancelar registro",
+  "ticketActionSave": "Guardar",
+  "ticketAssignTitle": "Asignar a empresa y equipo",
+  "ticketReassignTitle": "Reasignar a otra empresa o equipo",
+  "ticketAssignCompany": "Empresa",
+  "ticketAssignTeam": "Equipo",
+  "ticketAssignPerson": "Persona de referencia (opcional)",
+  "ticketAssignNoPerson": "Sin persona de referencia",
+  "ticketAssignSelect": "Selecciona",
+  "ticketAssignNoTeams": "No hay empresas con equipos activos para asignar.",
+  "ticketAssignLoadFailed": "No se pudieron traer las empresas y los equipos.",
+  "ticketAssignMissing": "Elige la empresa y el equipo.",
+  "ticketReasonLabel": "Motivo",
+  "ticketReasonHint": "Explica el motivo",
+  "ticketReasonRequired": "Escribe el motivo.",
+  "ticketCloseTitle": "Validar y cerrar el registro",
+  "ticketCloseCondition": "Condición del activo",
+  "ticketCloseNotes": "Observación (opcional)",
+  "ticketConditionUnchanged": "Sin cambio",
+  "ticketConditionGood": "Bueno",
+  "ticketConditionFair": "Regular",
+  "ticketConditionPoor": "Malo",
+  "ticketConditionVeryPoor": "Pésimo",
+  "ticketReturnTitle": "Regresar a Abierto",
+  "ticketReopenTitle": "Reabrir el registro",
+  "ticketCancelTitle": "Cancelar el registro",
+  "ticketCancelReason": "Motivo de cancelación",
+  "ticketCancelDuplicate": "Duplicado",
+  "ticketCancelImproper": "Improcedente",
+  "ticketCancelOther": "Otro",
+  "ticketCancelFolio": "Folio del registro original",
+  "ticketCancelFolioRequired": "Escribe el folio del registro original.",
+  "ticketCancelNotes": "Detalle del motivo",
+  "ticketCancelNotesRequired": "Con «Otro», explica el motivo.",
+  "ticketDoneAssign": "Registro asignado.",
+  "ticketDoneReassign": "Registro reasignado.",
+  "ticketDoneClose": "Registro validado y cerrado.",
+  "ticketDoneReturn": "Registro regresado a Abierto.",
+  "ticketDoneReopen": "Registro reabierto.",
+  "ticketDoneCancel": "Registro cancelado.",
+  "ticketActionRejected": "No se aplicó el cambio: {reason}",
+  "@ticketActionRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketActionOffline": "Sin conexión: esta acción necesita red.",
+  "ticketActionDenied": "Tu perfil no puede hacer esta acción.",
+  "ticketActionFailed": "No se pudo completar la acción. Inténtalo de nuevo.",
+  "ticketCancelledInfo": "Cancelado: {reason}",
+  "@ticketCancelledInfo": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketCancelledDuplicateOf": "Duplicado de {folio}",
+  "@ticketCancelledDuplicateOf": {
+    "placeholders": {
+      "folio": {
+        "type": "String"
+      }
+    }
+  },
+  "ticketClosedCondition": "Condición del activo al cerrar: {condition}",
+  "@ticketClosedCondition": {
+    "placeholders": {
+      "condition": {
+        "type": "String"
+      }
+    }
+  },
+  "newTicketRoad": "Carretera",
+  "newTicketErrorRoad": "Elige la carretera: la concesión tiene varias.",
+  "maintEventsRejected": "No se registró el evento: {reason}",
+  "@maintEventsRejected": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  }
 }

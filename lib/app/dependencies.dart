@@ -57,6 +57,10 @@ import '../features/inspections/data/repositories/api_inspections_repository.dar
 import '../features/inspections/data/repositories/sample_inspections_repository.dart';
 import '../features/inspections/data/repositories/unavailable_inspections_repository.dart';
 import '../features/inspections/domain/repositories/inspections_repository.dart';
+import '../features/inspections/data/repositories/api_inspection_capture_repository.dart';
+import '../features/inspections/data/repositories/offline_inspection_capture_repository.dart';
+import '../features/inspections/data/sync/inspections_sync_remote.dart';
+import '../features/inspections/domain/repositories/inspection_capture_repository.dart';
 import '../core/scan/qr_scanner.dart';
 import '../features/inventory/data/repositories/api_asset_capture_repository.dart';
 import '../features/inventory/data/repositories/api_inventory_repository.dart';
@@ -68,6 +72,8 @@ import '../features/inventory/data/sync/assets_sync_remote.dart';
 import '../features/inventory/domain/repositories/asset_capture_repository.dart';
 import '../features/inventory/domain/repositories/inventory_repository.dart';
 import '../features/maintenance/data/repositories/api_maintenance_repository.dart';
+import '../features/maintenance/data/repositories/api_indicator_events_repository.dart';
+import '../features/maintenance/domain/repositories/indicator_events_repository.dart';
 import '../features/maintenance/data/repositories/offline_maintenance_repository.dart';
 import '../features/maintenance/data/sync/maintenance_sync_remote.dart';
 import '../features/maintenance/data/repositories/sample_maintenance_repository.dart';
@@ -83,6 +89,9 @@ import '../features/works/data/repositories/api_works_repository.dart';
 import '../features/works/data/repositories/sample_works_repository.dart';
 import '../features/works/data/repositories/unavailable_works_repository.dart';
 import '../features/works/domain/repositories/works_repository.dart';
+import '../features/definitions/data/repositories/api_definitions_repository.dart';
+import '../features/definitions/data/repositories/unavailable_definitions_repository.dart';
+import '../features/definitions/domain/repositories/definitions_repository.dart';
 import '../features/reports/domain/repositories/reports_repository.dart';
 import '../features/maintenance/data/repositories/unavailable_maintenance_repository.dart';
 import '../features/maintenance/domain/repositories/maintenance_repository.dart';
@@ -330,16 +339,20 @@ class AppDependencies {
     this.sampleAccidents = false,
     this.maintenanceRepository = const UnavailableMaintenanceRepository(),
     this.sampleMaintenance = false,
+    this.indicatorEventsRepository =
+        const UnavailableIndicatorEventsRepository(),
     this.inventoryRepository = const UnavailableInventoryRepository(),
     this.sampleInventory = false,
     this.assetCaptureRepository = const UnavailableAssetCaptureRepository(),
     this.qrScanner = const NoQrScanner(),
     this.worksRepository = const UnavailableWorksRepository(),
     this.sampleWorks = false,
+    this.definitionsRepository = const UnavailableDefinitionsRepository(),
     this.alertsRepository = const UnavailableAlertsRepository(),
     this.sampleAlerts = false,
     this.inspectionsRepository = const UnavailableInspectionsRepository(),
     this.sampleInspections = false,
+    this.inspectionCaptureRepository = const UnavailableInspectionCapture(),
     ReportsRepository? reportsRepository,
     DashboardRepository? dashboardRepository,
     ComplianceSource? complianceSource,
@@ -447,6 +460,9 @@ class AppDependencies {
   final MaintenanceRepository maintenanceRepository;
   final bool sampleMaintenance;
 
+  /// Desempeño y eventos de los indicadores de MC2 (SGITS, SGE, SGF, SGOST, SGSEI).
+  final IndicatorEventsRepository indicatorEventsRepository;
+
   /// Inventario (APP-MOB-06). Igual que los tickets.
   final InventoryRepository inventoryRepository;
   final bool sampleInventory;
@@ -461,12 +477,19 @@ class AppDependencies {
   /// Obras (APP-MOB-09). Igual que los tickets.
   final WorksRepository worksRepository;
   final bool sampleWorks;
+
+  /// Definiciones pendientes (tanda 4): los supuestos que TEKIA contesta.
+  final DefinitionsRepository definitionsRepository;
   final AlertsRepository alertsRepository;
   final bool sampleAlerts;
 
   /// Inspecciones (APP-MOB-08). Igual que los tickets.
   final InspectionsRepository inspectionsRepository;
   final bool sampleInspections;
+
+  /// Captura por plantilla de Monitoreo (M08), con la cola sin conexion. Sin
+  /// servidor (datos de ejemplo) la ficha usa el checklist de antes.
+  final InspectionCaptureRepository inspectionCaptureRepository;
 
   /// Indicadores y reportes (APP-MOB-02). Sin un servicio propio se arman con
   /// los mantenimientos del indicador.
@@ -712,6 +735,13 @@ class AppDependencies {
       () async => (await deviceSource.read())?.identifier,
     );
 
+    // Monitoreo: la captura por plantilla; sin red, borrador, fotos, hallazgos y
+    // finalizacion quedan en la cola y salen por /api/sync/operations.
+    final apiCapture = ApiInspectionCaptureRepository(api, language: language);
+    final offlineCapture = OfflineInspectionCaptureRepository(apiCapture, queue, files: fileStore);
+    scope.register(offlineCapture);
+    final inspectionsRemote = InspectionsSyncRemote(api, () async => (await deviceSource.read())?.identifier, apiCapture);
+
     final DocumentsRepository documents;
     final SyncRemote remote;
     if (AppConfig.sampleDocuments) {
@@ -723,6 +753,8 @@ class AppDependencies {
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
         OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
         OfflineAssetCaptureRepository.assetEntity: assetsRemote,
+        OfflineInspectionCaptureRepository.inspectionEntity: inspectionsRemote,
+        OfflineInspectionCaptureRepository.findingEntity: inspectionsRemote,
       });
     } else {
       final server = DocumentsRepositoryImpl(api, language: language);
@@ -743,6 +775,8 @@ class AppDependencies {
         OfflineTicketsRepository.followUpEntity: ticketsRemote,
         OfflineMaintenanceRepository.progressEntity: maintenanceRemote,
         OfflineAssetCaptureRepository.assetEntity: assetsRemote,
+        OfflineInspectionCaptureRepository.inspectionEntity: inspectionsRemote,
+        OfflineInspectionCaptureRepository.findingEntity: inspectionsRemote,
       });
     }
     final authRepository = AuthRepositoryImpl(api);
@@ -854,6 +888,7 @@ class AppDependencies {
         demo: () => demo.on || AppConfig.sampleMaintenance,
       ),
       sampleMaintenance: AppConfig.sampleMaintenance,
+      indicatorEventsRepository: ApiIndicatorEventsRepository(api),
       inventoryRepository: DemoAwareInventory(
         real: ApiInventoryRepository(api),
         sample: SampleInventoryRepository(),
@@ -884,6 +919,7 @@ class AppDependencies {
         demo: () => demo.on || AppConfig.sampleWorks,
       ),
       sampleWorks: AppConfig.sampleWorks,
+      definitionsRepository: ApiDefinitionsRepository(api),
       // El cumplimiento por indicador lo calcula el servidor; con ejemplos se
       // muestran cifras con la forma del BBP.
       // Los tickets del dashboard salen del resumen del servidor, salvo con
@@ -915,6 +951,7 @@ class AppDependencies {
         demo: () => demo.on || AppConfig.sampleInspections,
       ),
       sampleInspections: AppConfig.sampleInspections,
+      inspectionCaptureRepository: AppConfig.sampleInspections ? const UnavailableInspectionCapture() : offlineCapture,
       features: const FeatureFlags(documents: AppConfig.documentsModule),
       mapPacks: mapPacks,
       connectivity: ConnectivityPlusSource(),

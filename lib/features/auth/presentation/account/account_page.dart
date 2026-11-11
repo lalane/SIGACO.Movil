@@ -99,6 +99,12 @@ class _Body extends StatelessWidget {
         (Icons.work_outline, l10n.fieldJobTitle, user.jobTitle!),
       (Icons.business_outlined, l10n.fieldCompany, user.companyName ?? '—'),
       (Icons.groups_outlined, l10n.fieldTeam, user.teamName ?? '—'),
+      if (user.accessValidUntil != null)
+        (
+          Icons.event_available_outlined,
+          l10n.fieldAccessValidUntil,
+          _calendarDay(user.accessValidUntil!),
+        ),
       (
         Icons.apartment_outlined,
         l10n.fieldConcession,
@@ -384,4 +390,10 @@ class _ProfileCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Un dia de calendario del servidor (AAAA-MM-DD) como DD/MM/AAAA.
+String _calendarDay(String day) {
+  final parts = day.split('-');
+  return parts.length == 3 ? '${parts[2]}/${parts[1]}/${parts[0]}' : day;
 }

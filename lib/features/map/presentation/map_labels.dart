@@ -7,6 +7,7 @@ import '../../../core/theme/status_colors.dart';
 import '../../../l10n/app_localizations.dart';
 import '../domain/entities/map_pin.dart';
 import '../domain/entities/road_segment.dart';
+import '../domain/entities/segment_pavement.dart';
 
 String layerLabel(AppLocalizations l10n, MapLayer layer) => switch (layer) {
   MapLayer.tickets => l10n.mapTabTickets,
@@ -67,6 +68,23 @@ Color segmentColor(TravelDirection direction) => switch (direction) {
   TravelDirection.increasing => const Color(0xFF1D4ED8),
   TravelDirection.decreasing => const Color(0xFF6D28D9),
 };
+
+/// El color de un tramo con la capa de pavimento: los mismos del visor web
+/// (bueno, regular y malo); gris si el tramo no tiene mediciones en el ciclo.
+Color pavementColor(PavementLevel? level) => switch (level) {
+  PavementLevel.good => const Color(0xFF16A34A),
+  PavementLevel.fair => const Color(0xFFEAB308),
+  PavementLevel.bad => const Color(0xFFDC2626),
+  null => const Color(0xFF94A3B8),
+};
+
+String pavementLevelLabel(AppLocalizations l10n, PavementLevel? level) =>
+    switch (level) {
+      PavementLevel.good => l10n.mapPavementGood,
+      PavementLevel.fair => l10n.mapPavementFair,
+      PavementLevel.bad => l10n.mapPavementBad,
+      null => l10n.mapPavementNoData,
+    };
 
 /// Distancia legible: metros hasta 1 km y kilometros con un decimal despues.
 String distanceLabel(AppLocalizations l10n, double meters) {

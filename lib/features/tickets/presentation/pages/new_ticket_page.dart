@@ -337,6 +337,35 @@ class NewTicketPage extends StatelessWidget {
                   },
                 ),
               ),
+            // Sin punto ni activo y con varias carreteras, se elige (el
+            // servidor no puede deducirla).
+            if (state.roads.length > 1)
+              ModuleField(
+                label: l10n.newTicketRoad,
+                error: shows(NewTicketIssue.road)
+                    ? l10n.newTicketErrorRoad
+                    : null,
+                child: DropdownButtonFormField<String>(
+                  key: const Key('new-ticket-road'),
+                  initialValue: state.roadId,
+                  isExpanded: true,
+                  style: moduleInkStyle,
+                  dropdownColor: Colors.white,
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  hint: Text(l10n.followUpSelect, style: moduleHintStyle),
+                  decoration: moduleInput(
+                    context,
+                    error: shows(NewTicketIssue.road),
+                  ),
+                  items: [
+                    for (final r in state.roads)
+                      DropdownMenuItem(value: r.id, child: Text(r.code)),
+                  ],
+                  onChanged: (id) {
+                    if (id != null) cubit.setRoad(id);
+                  },
+                ),
+              ),
             ModuleField(
               label: l10n.newTicketChainage,
               // Cuando el punto se ubica en la carretera, el km llega despues.

@@ -13,6 +13,7 @@ import '../../../../core/ui/module_nav.dart';
 import '../../../../core/ui/module_pills.dart';
 import '../../../../core/ui/module_widgets.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../domain/entities/indicator_events.dart';
 import '../../domain/entities/maintenance.dart';
 import '../../domain/repositories/maintenance_repository.dart';
 import '../bloc/maintenance_cubit.dart';
@@ -90,6 +91,15 @@ class _MaintenancePageState extends State<MaintenancePage> {
                     '${indicatorCode(widget.indicator)} · ${indicatorLabel(l10n, widget.indicator)}',
                 subtitle: l10n.maintSubtitle,
                 actions: [
+                  if (mc2Indicators.contains(widget.indicator))
+                    ModuleHeaderAction(
+                      key: const Key('maintenance-performance-button'),
+                      icon: Icons.insights,
+                      tooltip: l10n.maintPerformanceAction,
+                      onPressed: () => context.push(
+                        '/maintenance/${widget.indicator.name}/performance',
+                      ),
+                    ),
                   ModuleHeaderAction(
                     key: const Key('maintenance-search-button'),
                     icon: _searching ? Icons.search_off : Icons.search,
@@ -139,6 +149,11 @@ class _MaintenancePageState extends State<MaintenancePage> {
                   state.orders.isNotEmpty) ...[
                 _Summary(state: state),
                 _FilterRow(state: state),
+              ],
+              // Tickets del indicador en el periodo y cumplimiento PER (HU-MC-15).
+              if (state.summary != null) ...[
+                SizedBox(height: r.s(8)),
+                _TicketSummary(summary: state.summary!),
               ],
               SizedBox(height: r.s(12)),
               Expanded(child: ModuleListSheet(body: _body(context, state))),
@@ -227,6 +242,58 @@ class _Summary extends StatelessWidget {
             caption: l10n.maintStatShare(pct.format(state.share(s))),
             color: statusColor(s),
           ),
+      ],
+    );
+  }
+}
+
+/// Los tickets del indicador en el periodo elegido (total, abiertos,
+/// atendidos y cerrados) y, si hay evaluacion, el cumplimiento PER: los mismos
+/// numeros que la web (HU-MC-15, CA-HU-MC-15-02).
+class _TicketSummary extends StatelessWidget {
+  const _TicketSummary({required this.summary});
+
+  final MaintenanceIndicatorSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context).toString();
+    final pct = NumberFormat('0.#', moduleNumberLocale(locale));
+    final compliance = summary.compliancePercent;
+    final caption = l10n.maintTicketsCaption;
+    return ModuleSummaryCard(
+      key: const Key('maintenance-ticket-summary'),
+      stats: [
+        ModuleStat(
+          key: const Key('maintenance-tickets-total'),
+          value: '${summary.ticketsTotal}',
+          label: l10n.maintTicketsTotal,
+          caption: compliance == null
+              ? l10n.maintTicketsPeriod
+              : l10n.maintPerCompliance(
+                  pct.format(compliance),
+                  '${summary.evaluationYear ?? '—'}',
+                ),
+        ),
+        ModuleStat(
+          key: const Key('maintenance-tickets-open'),
+          value: '${summary.ticketsOpen}',
+          label: l10n.maintTicketsOpen,
+          caption: caption,
+        ),
+        ModuleStat(
+          key: const Key('maintenance-tickets-attended'),
+          value: '${summary.ticketsAttended}',
+          label: l10n.maintTicketsAttended,
+          caption: caption,
+        ),
+        ModuleStat(
+          key: const Key('maintenance-tickets-closed'),
+          value: '${summary.ticketsClosed}',
+          label: l10n.maintTicketsClosed,
+          caption: caption,
+        ),
       ],
     );
   }

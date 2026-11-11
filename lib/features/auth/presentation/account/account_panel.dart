@@ -40,6 +40,9 @@ Future<void> showAccountPanel(BuildContext context) async {
   switch (action) {
     case _PanelAction.myAccount:
       context.push('/account');
+    // Definiciones pendientes (tanda 4): lo que TEKIA confirma de SIGACO.
+    case _PanelAction.definitions:
+      context.push('/definitions');
     case _PanelAction.switchConcession:
       await switchConcession(
         context,
@@ -51,7 +54,7 @@ Future<void> showAccountPanel(BuildContext context) async {
   }
 }
 
-enum _PanelAction { myAccount, switchConcession, signOut }
+enum _PanelAction { myAccount, definitions, switchConcession, signOut }
 
 class AccountPanel extends StatelessWidget {
   const AccountPanel({super.key});
@@ -142,6 +145,12 @@ class AccountPanel extends StatelessWidget {
               icon: Icons.account_circle_outlined,
               label: l10n.accountMyAccount,
               onTap: () => Navigator.of(context).pop(_PanelAction.myAccount),
+            ),
+            _PanelTile(
+              key: const Key('panel-definitions'),
+              icon: Icons.contact_support_outlined,
+              label: l10n.defTitle,
+              onTap: () => Navigator.of(context).pop(_PanelAction.definitions),
             ),
             _PanelTile(
               key: const Key('panel-language'),

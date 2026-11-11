@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/responsive/responsive.dart';
-import '../../../../core/theme/status_colors.dart';
 import '../../../../core/ui/module_widgets.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../bloc/tickets_cubit.dart';
@@ -28,11 +27,7 @@ class TicketsFilterChips extends StatelessWidget {
             id: f.name,
             label: filterLabel(l10n, f),
             count: state.count(f),
-            badge: switch (f) {
-              TicketFilter.all => Colors.white,
-              TicketFilter.open => StatusColors.open,
-              TicketFilter.attended => StatusColors.attended,
-            },
+            badge: f.stage == null ? Colors.white : stageColor(f.stage!),
           ),
       ],
     );

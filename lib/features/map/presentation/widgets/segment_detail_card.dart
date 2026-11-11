@@ -5,6 +5,7 @@ import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/road_segment.dart';
+import '../../domain/entities/segment_pavement.dart';
 import '../map_labels.dart';
 
 /// La ficha corta del tramo elegido: su codigo, hacia donde corre y que
@@ -16,6 +17,7 @@ class SegmentDetailCard extends StatelessWidget {
     required this.onClose,
     this.layer,
     this.pinCount,
+    this.pavement,
   });
 
   final RoadSegment segment;
@@ -25,12 +27,18 @@ class SegmentDetailCard extends StatelessWidget {
   final MapLayer? layer;
   final int? pinCount;
 
+  /// Con la capa de pavimento prendida: el indicador del tramo (HU-MOB-10-01).
+  final PavementLayer? pavement;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final p = context.palette;
     final r = context.responsive;
-    final color = segmentColor(segment.direction);
+    final measured = pavement?.segments[segment.id];
+    final color = pavement != null
+        ? pavementColor(measured?.level)
+        : segmentColor(segment.direction);
     final from = segment.startKmLabel;
     final to = segment.endKmLabel;
     return Card(
@@ -86,6 +94,26 @@ class SegmentDetailCard extends StatelessWidget {
                 if (from != null && to != null)
                   Chip(
                     label: Text(l10n.mapSegmentRange(from, to)),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                if (pavement != null)
+                  Chip(
+                    key: const Key('map-segment-pavement'),
+                    avatar: CircleAvatar(
+                      radius: 6,
+                      backgroundColor: pavementColor(measured?.level),
+                    ),
+                    label: Text(
+                      measured?.average == null
+                          ? '${pavement!.label}: ${pavementLevelLabel(l10n, null)}'
+                          : l10n.mapPavementSegment(
+                              pavement!.label,
+                              measured!.average!.toStringAsFixed(2),
+                              pavement!.unit,
+                              pavementLevelLabel(l10n, measured.level),
+                              '${measured.coveragePercent}',
+                            ),
+                    ),
                     visualDensity: VisualDensity.compact,
                   ),
                 if (layer != null && pinCount != null)

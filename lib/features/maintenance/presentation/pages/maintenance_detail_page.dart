@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/theme/sigaco_palette.dart';
 import '../../../../core/theme/status_colors.dart';
-import '../../../../core/time/concession_zone_cubit.dart';
 import '../../../../core/ui/module_detail.dart';
 import '../../../../core/ui/module_format.dart';
 import '../../../../core/ui/module_header.dart';
@@ -79,7 +78,6 @@ class _Detail extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final p = context.palette;
     final r = context.responsive;
-    final zone = context.watch<ConcessionZoneCubit>().state;
     final locale = Localizations.localeOf(context).toString();
     const none = '—';
     String? money0(double? v) => v == null ? null : money(locale, v);
@@ -272,14 +270,14 @@ class _Detail extends StatelessWidget {
                             l10n.maintStartDate,
                             order.startDate == null
                                 ? none
-                                : moduleDay(order.startDate!, zone),
+                                : moduleCalendarDay(order.startDate!),
                           ),
                           ModuleInfo(
                             Icons.calendar_today_outlined,
                             l10n.maintEndDate,
                             order.endDate == null
                                 ? none
-                                : moduleDay(order.endDate!, zone),
+                                : moduleCalendarDay(order.endDate!),
                           ),
                         ],
                       ),

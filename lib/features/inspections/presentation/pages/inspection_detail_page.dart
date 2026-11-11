@@ -230,15 +230,13 @@ class _Detail extends StatelessWidget {
                             inspection.completedAt == null
                                 ? l10n.inspScheduled
                                 : l10n.inspCompletedOn,
-                            (inspection.completedAt ??
-                                        inspection.scheduledAt) ==
-                                    null
+                            // Hecha: el instante en la zona de la concesion;
+                            // programada: el dia tal cual (fecha sin hora).
+                            inspection.completedAt != null
+                                ? moduleDay(inspection.completedAt!, zone)
+                                : inspection.scheduledAt == null
                                 ? none
-                                : moduleDay(
-                                    (inspection.completedAt ??
-                                        inspection.scheduledAt)!,
-                                    zone,
-                                  ),
+                                : moduleCalendarDay(inspection.scheduledAt!),
                           ),
                         ],
                       ),
@@ -365,12 +363,13 @@ class _Detail extends StatelessWidget {
                       : () => showFindingSheet(
                           context,
                           checklist: inspection.checklist,
-                          onSave: ({itemId, required note, required photoPaths}) =>
-                              cubit.addFinding(
-                                itemId: itemId,
-                                note: note,
-                                photoPaths: photoPaths,
-                              ),
+                          onSave:
+                              ({itemId, required note, required photoPaths}) =>
+                                  cubit.addFinding(
+                                    itemId: itemId,
+                                    note: note,
+                                    photoPaths: photoPaths,
+                                  ),
                         ),
                 ),
               if (inspection.editable && configured)

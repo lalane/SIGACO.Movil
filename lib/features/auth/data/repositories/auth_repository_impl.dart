@@ -67,6 +67,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return const AuthException(AuthError.invalidCredentials);
       case 'AUTH_ACCOUNT_BLOCKED':
         return const AuthException(AuthError.accountBlocked);
+      case 'AUTH_ACCESS_EXPIRED':
+        return const AuthException(AuthError.accessExpired);
     }
     if (f.status == 400 || f.status == 422) {
       return AuthException(AuthError.validation, details: _reasons(f));

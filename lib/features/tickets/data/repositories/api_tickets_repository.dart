@@ -9,6 +9,7 @@ import '../../../../core/geo/geojson_anchor.dart';
 import '../../../../core/geo/km_label.dart';
 import '../../../../core/ids/client_id.dart';
 import '../../domain/entities/ticket.dart';
+import '../../domain/entities/ticket_supervision.dart';
 import '../../domain/repositories/tickets_repository.dart';
 
 /// Los tickets contra el backend (`/api/tickets`, M11). El servidor aplica el
@@ -16,7 +17,12 @@ import '../../domain/repositories/tickets_repository.dart';
 /// muestra (abierto o atendido, APP-MOB-03) y el seguimiento y las fotos que
 /// captura a lo que el servidor guarda.
 class ApiTicketsRepository
-    implements TicketsRepository, TicketFailureSource, TicketPlacementSource {
+    implements
+        TicketsRepository,
+        TicketFailureSource,
+        TicketPlacementSource,
+        TicketRoadSource,
+        TicketSupervision {
   ApiTicketsRepository(
     this._api, {
     required this.roadId,
@@ -47,15 +53,45 @@ class ApiTicketsRepository
   /// Tipos de ticket ya vistos: nombre que se muestra -> codigo del servidor.
   final _typeCodes = <String, String>{};
 
+  /// De los cerrados y cancelados solo se traen los mas recientes: los que
+  /// faltan por atender son los que importan en campo, y esos llegan todos.
+  static const _finishedPageSize = 50;
+
   @override
   Future<List<Ticket>> list() => _guard(() async {
+    // Sin estado, el servidor da los que siguen vivos (SIN_VALIDAR, ABIERTO y
+    // ATENDIDO).
+    final result = await _pages(const {}, maxPages: _maxPages);
+    final seen = {for (final t in result) t.id};
+    // Los cerrados y los cancelados, para sus filtros (DTF M11 v0.3). Si no
+    // llegan, la lista se ve igual con los vivos.
+    final finished = await Future.wait([
+      for (final stage in const [TicketStage.closed, TicketStage.cancelled])
+        _pages(
+          {'status': stage.code},
+          maxPages: 1,
+          pageSize: _finishedPageSize,
+        ).catchError((Object _) => const <Ticket>[]),
+    ]);
+    for (final t in finished.expand((l) => l)) {
+      if (seen.add(t.id)) result.add(t);
+    }
+    return _withCovers(result);
+  }, listing: true);
+
+  /// Los tickets de `GET /api/tickets` con [query], pagina por pagina.
+  Future<List<Ticket>> _pages(
+    Map<String, Object?> query, {
+    required int maxPages,
+    int pageSize = _pageSize,
+  }) async {
     final result = <Ticket>[];
     var page = 1;
     var total = 0;
     do {
       final json = await _api.getJson(
         '/api/tickets',
-        query: {'page': page, 'pageSize': _pageSize},
+        query: {...query, 'page': page, 'pageSize': pageSize},
       );
       final map = _asMap(json);
       total = (map['total'] as num?)?.toInt() ?? 0;
@@ -66,9 +102,9 @@ class ApiTicketsRepository
         result.add(ticketFromDto(_asMap(item)));
       }
       page++;
-    } while (result.length < total && page <= _maxPages);
-    return _withCovers(result);
-  }, listing: true);
+    } while (result.length < total && page <= maxPages);
+    return result;
+  }
 
   /// Cuantos tickets del historial traen su primera foto: los mas recientes, que
   /// son los que se ven al abrir.
@@ -334,8 +370,9 @@ class ApiTicketsRepository
     final assetId = draft.assetId ?? location?.assetId;
     String? road;
     if (assetId == null) {
-      road = await roadId() ?? _road;
-      _road = road;
+      // La elegida en el formulario manda; si no, la unica de la concesion.
+      road = draft.roadId ?? await roadId() ?? _road;
+      if (draft.roadId == null) _road = road;
     }
     final km = parseKm(draft.kmLabel ?? location?.kmLabel);
     return <String, Object?>{
@@ -402,13 +439,16 @@ class ApiTicketsRepository
     return {
       'kind': 'AVANCE',
       'description': text.isEmpty ? _fallbackNote : text,
+      // Fecha y hora de la atencion en campo (DTF M11 HU-11-09).
+      'attendedAt': followUp.at.toUtc().toIso8601String(),
     };
   }
 
   /// Lo que sigue a un seguimiento ya registrado: sus fotos y, si se marco como
-  /// atendido, pasar a en proceso un ticket que nadie ha tomado. Si ya esta en
-  /// proceso, resuelto o en espera, el seguimiento basta; resolverlo o cerrarlo
-  /// es de otro perfil y de la web.
+  /// atendido, dejar el ticket ATENDIDO con ese seguimiento (DTF M11 v0.3,
+  /// HU-11-10: exige al menos una foto). Solo si el servidor ofrece ATENDER (el
+  /// ticket esta ABIERTO y el usuario es de su equipo o Supervisor); validar y
+  /// cerrar es del Supervisor.
   Future<void> finishFollowUp(
     String ticketId,
     String? followUpId, {
@@ -423,12 +463,15 @@ class ApiTicketsRepository
       capturedAt: at,
       followUpId: followUpId,
     );
-    if (attended) {
+    if (attended && followUpId != null) {
       final dto = _asMap(await _api.getJson('/api/tickets/$key'));
-      if (_pending.contains(_text(dto['status']))) {
+      final actions =
+          (dto['actions'] as List?)?.map((e) => '$e').toSet() ??
+          const <String>{};
+      if (actions.contains('ATENDER')) {
         await _api.post(
-          '/api/tickets/$key/status',
-          data: {'status': 'EN_PROCESO', 'rowVersion': dto['rowVersion']},
+          '/api/tickets/$key/attend',
+          data: {'followUpId': followUpId, 'rowVersion': dto['rowVersion']},
         );
       }
     }
@@ -465,8 +508,139 @@ class ApiTicketsRepository
         return _load(ticketId);
       });
 
-  /// Estados en los que nadie ha atendido el ticket.
-  static const _pending = {'NUEVO', 'ASIGNADO', 'REABIERTO'};
+  @override
+  Future<List<TicketRoad>> roads() => _guard(() async {
+    final me = _asMap(await _api.getJson('/api/auth/me'));
+    final context = me['context'];
+    final raw = context is Map ? context['roads'] : null;
+    return [
+      for (final r in _items(raw))
+        if (r is Map && _text(r['id']) != null)
+          TicketRoad(
+            id: _text(r['id'])!,
+            code: _text(r['code']) ?? _text(r['name']) ?? _text(r['id'])!,
+            name: _text(r['name']),
+          ),
+    ];
+  });
+
+  // Acciones del Supervisor (DTF M11 v0.3, HU-11-24).
+
+  @override
+  Future<List<TicketAssignableCompany>> assignableTeams() => _guard(() async {
+    final raw = await _api.getJson('/api/tickets/assignable-teams');
+    return [
+      for (final c in _items(raw))
+        if (c is Map<String, dynamic> && _text(c['id']) != null)
+          TicketAssignableCompany(
+            id: _text(c['id'])!,
+            name: _text(c['name']) ?? _text(c['id'])!,
+            isExternal: c['isExternal'] == true,
+            teams: [
+              for (final t in _items(c['teams']))
+                if (t is Map<String, dynamic> && _text(t['id']) != null)
+                  TicketAssignableTeam(
+                    id: _text(t['id'])!,
+                    name: _text(t['name']) ?? _text(t['id'])!,
+                    members: [
+                      for (final m in _items(t['members']))
+                        if (m is Map<String, dynamic> &&
+                            _text(m['userId']) != null)
+                          TicketTeamMember(
+                            userId: _text(m['userId'])!,
+                            fullName: _text(m['fullName']) ?? '',
+                            profileCode: _text(m['profileCode']),
+                          ),
+                    ],
+                  ),
+            ],
+          ),
+    ];
+  });
+
+  @override
+  Future<Ticket> assign(Ticket ticket, TicketAssignment assignment) =>
+      _act(ticket, 'assign', {
+        'companyId': assignment.companyId,
+        'teamId': assignment.teamId,
+        'responsibleUserId': ?assignment.responsibleUserId,
+        'reason': ?_clean(assignment.reason),
+      });
+
+  @override
+  Future<Ticket> close(Ticket ticket, TicketClosing closing) => _act(
+    ticket,
+    'close',
+    {'notes': ?_clean(closing.notes), 'assetCondition': closing.condition.code},
+  );
+
+  @override
+  Future<Ticket> returnToOpen(Ticket ticket, String reason) =>
+      _act(ticket, 'return', {'reason': reason.trim()});
+
+  @override
+  Future<Ticket> reopen(Ticket ticket, String reason) =>
+      _act(ticket, 'reopen', {'reason': reason.trim()});
+
+  @override
+  Future<Ticket> cancel(Ticket ticket, TicketCancellation cancellation) =>
+      _act(ticket, 'cancel', {
+        'reason': cancellation.reason.code,
+        'duplicateOfFolio': ?_clean(cancellation.duplicateOfFolio),
+        'notes': ?_clean(cancellation.notes),
+      });
+
+  /// Manda la accion con la version del ticket que se ve y devuelve el ticket
+  /// como quedo. Lo que el servidor rechaza por regla (409, 400) llega con su
+  /// motivo; sin red, sin permiso o sin el ticket, como cualquier otro fallo.
+  Future<Ticket> _act(
+    Ticket ticket,
+    String step,
+    Map<String, Object?> body,
+  ) => _guard(() async {
+    final key = Uri.encodeComponent(ticket.id);
+    final Map<String, dynamic>? dto;
+    try {
+      dto = await _api.post(
+        '/api/tickets/$key/$step',
+        data: {...body, 'rowVersion': ?ticket.rowVersion},
+      );
+    } on ApiFailure catch (e) {
+      if (e.isNetwork || e.status == 403 || e.status == 404) rethrow;
+      throw TicketActionRejected(_reason(e));
+    }
+    try {
+      return await _load(ticket.id);
+    } catch (_) {
+      // La accion ya quedo: si la ficha no se puede volver a pedir, se muestra
+      // lo que respondio el servidor con lo que ya se veia.
+      if (dto == null || _text(dto['id']) == null) rethrow;
+      return ticketFromDto(
+        dto,
+      ).copyWith(photoPaths: ticket.photoPaths, followUps: ticket.followUps);
+    }
+  });
+
+  static String? _clean(String? text) {
+    final t = text?.trim();
+    return t == null || t.isEmpty ? null : t;
+  }
+
+  static List<Object?> _items(Object? raw) => raw is List
+      ? raw
+      : (raw is Map ? raw['items'] : null) as List? ?? const [];
+
+  /// Estados en los que falta atender el ticket y el SLA corre (DTF M11 v0.3);
+  /// los del BBP siguen entendiendose por si llega un dato viejo.
+  static const _pending = {
+    'SIN_VALIDAR',
+    'ABIERTO',
+    'NUEVO',
+    'ASIGNADO',
+    'EN_PROCESO',
+    'EN_ESPERA',
+    'REABIERTO',
+  };
 
   static const _fallbackNote = 'Atendido desde la app movil.';
 
@@ -530,11 +704,12 @@ class ApiTicketsRepository
     );
   }
 
-  /// Abierto (nadie lo ha atendido) o atendido (hay trabajo hecho o ya termino).
-  static TicketStatus statusFromCode(String? code) => switch (code) {
-    'NUEVO' || 'ASIGNADO' || 'REABIERTO' || null => TicketStatus.open,
-    _ => TicketStatus.attended,
-  };
+  /// Abierto (SIN_VALIDAR o ABIERTO: falta atenderlo) o atendido (ATENDIDO,
+  /// CERRADO o CANCELADO).
+  static TicketStatus statusFromCode(String? code) =>
+      code == null || _pending.contains(code)
+      ? TicketStatus.open
+      : TicketStatus.attended;
 
   /// Un ticket tal como lo entrega `GET /api/tickets`.
   static Ticket ticketFromDto(Map<String, dynamic> m) {
@@ -560,8 +735,30 @@ class ApiTicketsRepository
       kmLabel: kmLabel(_num(m['kmStart']), _num(m['kmEnd'])),
       latitude: anchor?.$1,
       longitude: anchor?.$2,
-      carriageway: _text(m['lane']),
+      // El cuerpo de la via (DTF M11 v0.3); el carril del BBP si no viene.
+      carriageway: _text(m['carriageway']) ?? _text(m['lane']),
+      authorName: _text(m['createdByName']),
+      authorProfile: _text(m['createdByProfile']),
+      stage: TicketStage.fromCode(_text(m['status'])),
+      actions: actionsFrom(m['actions']),
+      rowVersion: (m['rowVersion'] as num?)?.toInt(),
+      assignedCompanyId: _text(m['assignedCompanyId']),
+      assignedCompanyName: _text(m['assignedCompanyName']),
+      assignedTeamId: _text(m['assignedTeamId']),
+      assignedTeamName: _text(m['assignedTeamName']),
+      responsibleName: _text(m['responsibleName']),
+      cancelReason: _text(m['cancelReason']),
+      duplicateOfFolio: _text(m['duplicateOfFolio']),
+      closingAssetCondition: _text(m['closingAssetCondition']),
+      assetId: _text(m['assetId']),
     );
+  }
+
+  /// Las acciones que el servidor ofrece; null si no las manda (un servidor
+  /// anterior). Un codigo que la app no conoce se ignora.
+  static Set<TicketAction>? actionsFrom(Object? raw) {
+    if (raw is! List) return null;
+    return {for (final code in raw) ?TicketAction.fromCode('$code')};
   }
 
   /// Un seguimiento tal como lo entrega `GET /api/tickets/{id}/follow-ups`.
@@ -614,6 +811,8 @@ class ApiTicketsRepository
     try {
       return await body();
     } on TicketPartiallySavedException {
+      rethrow;
+    } on TicketActionRejected {
       rethrow;
     } on ApiFailure catch (e) {
       throw TicketsException(

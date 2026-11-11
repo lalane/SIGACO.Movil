@@ -106,6 +106,7 @@ class _Detail extends StatelessWidget {
     final latitude = asset.latitude;
     final longitude = asset.longitude;
     final lifecycle = asset.lifecycle;
+    final condition = asset.conditionInfo;
     final reason = statusReasonLabel(l10n, asset.statusReason);
     return Scaffold(
       backgroundColor: p.gradientTop,
@@ -133,8 +134,8 @@ class _Detail extends StatelessWidget {
                             const Spacer(),
                             ModuleStatusPill(
                               key: const Key('inventory-detail-condition'),
-                              label: conditionLabel(l10n, asset.condition),
-                              color: conditionColor(asset.condition),
+                              label: assetConditionLabel(l10n, asset),
+                              color: assetConditionColor(asset),
                               large: true,
                             ),
                           ],
@@ -179,6 +180,20 @@ class _Detail extends StatelessWidget {
                             AssetStatusPills(
                               asset: asset,
                               keyPrefix: 'inventory-detail',
+                            ),
+                          ],
+                          if (condition?.notLocatedAt != null) ...[
+                            SizedBox(height: r.s(10)),
+                            Text(
+                              l10n.invNotLocated(
+                                moduleDay(condition!.notLocatedAt!, zone),
+                              ),
+                              key: const Key('inventory-detail-not-located'),
+                              style: TextStyle(
+                                color: const Color(0xFFFCA5A5),
+                                fontWeight: FontWeight.w700,
+                                fontSize: r.s(14),
+                              ),
                             ),
                           ],
                           if (reason != null) ...[
@@ -284,7 +299,7 @@ class _Detail extends StatelessWidget {
                             l10n.invInstalled,
                             asset.installedAt == null
                                 ? none
-                                : moduleDay(asset.installedAt!, zone),
+                                : moduleCalendarDay(asset.installedAt!),
                           ),
                           ModuleInfo(
                             Icons.event_available_outlined,
@@ -293,6 +308,37 @@ class _Detail extends StatelessWidget {
                                 ? none
                                 : moduleDay(asset.lastInspectionAt!, zone),
                           ),
+                          // M13 Parte 2 (HU-MOB-13-05): de donde salio la condicion,
+                          // hallazgos abiertos y proximo monitoreo.
+                          if (condition != null && condition.applies)
+                            ModuleInfo(
+                              Icons.health_and_safety_outlined,
+                              l10n.invConditionOrigin,
+                              condition.source == null
+                                  ? none
+                                  : [
+                                      conditionSourceLabel(
+                                        l10n,
+                                        condition.source,
+                                      ),
+                                      if (condition.nativeValue != null)
+                                        condition.nativeValue!,
+                                      if (condition.executedAt != null)
+                                        moduleDay(condition.executedAt!, zone),
+                                    ].join(' · '),
+                            ),
+                          if (condition != null && condition.openFindings > 0)
+                            ModuleInfo(
+                              Icons.report_problem_outlined,
+                              l10n.invOpenFindings,
+                              '${condition.openFindings}',
+                            ),
+                          if (condition?.nextInspectionOn != null)
+                            ModuleInfo(
+                              Icons.event_outlined,
+                              l10n.invNextInspection,
+                              moduleCalendarDay(condition!.nextInspectionOn!),
+                            ),
                           ModuleInfo(
                             Icons.place_outlined,
                             l10n.invCoordinates,

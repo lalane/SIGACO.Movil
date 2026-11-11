@@ -4,6 +4,7 @@ import 'dart:ui' show Color;
 import '../../domain/entities/geo_point.dart';
 import '../../domain/entities/map_pin.dart';
 import '../../domain/entities/road_segment.dart';
+import '../../domain/entities/segment_pavement.dart';
 import '../../domain/entities/user_location.dart';
 
 /// Lo que el mapa de MapLibre dibuja, como GeoJSON y expresiones de estilo. Todo
@@ -63,11 +64,13 @@ Map<String, Object?> selectedPinGeoJson(MapPin? pin) => _collection([
     }),
 ]);
 
-/// Los tramos como lineas: el id, el sentido (`inc` o `dec`) y si estan
-/// resaltados (`hl` 1 o 0).
+/// Los tramos como lineas: el id, el sentido (`inc` o `dec`), si estan
+/// resaltados (`hl` 1 o 0) y, con la capa de pavimento, su nivel (`lv`:
+/// `good`, `fair`, `bad` o `none` sin mediciones).
 Map<String, Object?> segmentsGeoJson(
   List<RoadSegment> segments, {
   required bool Function(RoadSegment) highlighted,
+  PavementLayer? pavement,
 }) => _collection([
   for (final s in segments)
     if (s.isDrawable)
@@ -83,6 +86,7 @@ Map<String, Object?> segmentsGeoJson(
           'id': s.id,
           'dir': s.direction == TravelDirection.increasing ? 'inc' : 'dec',
           'hl': highlighted(s) ? 1 : 0,
+          if (pavement != null) 'lv': pavement.levelOf(s.id)?.name ?? 'none',
         },
       },
 ]);
